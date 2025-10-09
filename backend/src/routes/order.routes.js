@@ -1,8 +1,8 @@
 // routes/orders.js
-const express = require('express');
+import express from'express';
 const router = express.Router();
-const Order = require('../models/Order');
-const { protect, authorize } = require('../middleware/auth');
+import Order from'../models/order.model.js';
+import { protect, authorize } from'../middleware/auth.middleware.js';
 
 // @route   POST /api/orders
 // @desc    Create a new order
@@ -269,4 +269,4 @@ router.put('/:id/assign-delivery', protect, authorize('admin'), async (req, res)
   }
 });
 
-module.exports = router;
+export default router;

@@ -1,8 +1,8 @@
 // routes/users.js
-const express = require('express');
+import express from'express';
 const router = express.Router();
-const User = require('../models/User');
-const { protect } = require('../middleware/auth');
+import User from'../models/user.model.js';
+import { protect } from'../middleware/auth.middleware.js';
 
 // @route   GET /api/users/profile
 // @desc    Get user profile
@@ -173,4 +173,4 @@ router.put('/change-password', protect, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

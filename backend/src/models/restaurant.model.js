@@ -1,5 +1,5 @@
 // src/models/restaurant.model.js
-const mongoose = require('mongoose');
+import mongoose from'mongoose';
 
 const RestaurantSchema = new mongoose.Schema({
   owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -14,4 +14,4 @@ const RestaurantSchema = new mongoose.Schema({
   averageRating: { type: Number, default: 0 },
 }, { timestamps: true });
 
-module.exports = mongoose.model('Restaurant', RestaurantSchema);
+export default mongoose.model('Restaurant', RestaurantSchema);

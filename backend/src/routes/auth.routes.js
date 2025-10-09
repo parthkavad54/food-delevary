@@ -1,8 +1,8 @@
 // routes/auth.js
-const express = require('express');
+import express from "express";
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+import jwt from'jsonwebtoken';
+import User from'../models/user.model.js';
 
 // Generate JWT Token
 const generateToken = (userId) => {
@@ -153,4 +153,4 @@ router.get('/me', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
