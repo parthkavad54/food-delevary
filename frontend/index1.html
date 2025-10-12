@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Menu — FOODY</title>
+  <link rel="icon" href="./public/images/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="assets/styles1.css" />
+  <script defer src="assets/script1.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav" aria-label="Main Navigation">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="restaurants.html" class="nav-link">Restaurants</a>
+        <a href="menu.html" class="nav-link is-active" aria-current="page">All Food</a>
+        <a href="reviews.html" class="nav-link">Reviews</a>
+        <a href="order.html" class="button button-outline" id="nav-cart-link">🛒 Cart (0)</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h1 class="h2">Today's Delicious Menu 😋</h1>
+          <p class="muted">Explore meals from top restaurants, customize your order, and click **"Add to Cart"** to get started!</p>
+
+          <nav class="menu-filters" aria-label="Menu Categories">
+              <a href="#italian" class="button button-pill">🇮🇹 Italian</a>
+              <a href="#japanese" class="button button-pill">🍣 Japanese</a>
+              <a href="#american" class="button button-pill">🍔 American</a>
+              <a href="#mediterranean" class="button button-pill">🥗 Mediterranean</a>
+              <a href="#indian" class="button button-pill">🌶️ Indian</a>
+              <input type="search" placeholder="Search menu items..." class="search-input">
+          </nav>
+        </div>
+
+        <h2 class="h3 menu-category-title" id="italian">🇮🇹 Italian Delights</h2>
+        <div class="menu-grid">
+          <article class="menu-item" data-id="pizza-margherita" data-base-price="12.99" aria-labelledby="pizza-margherita-title">
+            <img src="./public/images/pizza.jpg" alt="A classic Margherita Pizza with fresh basil" />
+            <div class="menu-body">
+              <h3 class="h4" id="pizza-margherita-title">Margherita Pizza</h3>
+              <p class="muted item-description">Tomato, fresh mozzarella, and basil on a crisp, thin crust.</p>
+              <form class="menu-form">
+                <label>
+                  <span class="label">Choose Portion</span>
+                  <select name="size" required>
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="1">Small ($12.99)</option>
+                    <option value="1.2">Medium ($15.59)</option>
+                    <option value="1.5">Large ($19.49)</option>
+                  </select>
+                </label>
+                <label>
+                  <span class="label">Special Instructions (Optional)</span>
+                  <input type="text" name="notes" placeholder="e.g., extra crispy, no basil, well-done" />
+                </label>
+                <fieldset class="inline-checks">
+                  <legend class="label">Extra Toppings</legend>
+                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-cheese" /> Extra cheese (+$1.50)</label>
+                  <label class="checkbox"><input type="checkbox" name="mods" value="gluten-free" /> Gluten-free crust (+$3.00)</label>
+                  <label class="checkbox"><input type="checkbox" name="mods" value="spicy" /> Spicy oil drizzle</label>
+                </fieldset>
+                <div class="menu-actions">
+                  <span class="price current-price" data-price>$12.99</span>
+                  <button type="submit" class="button button-primary add-to-cart">🛒 Add to Cart</button>
+                </div>
+              </form>
+            </div>
+          </article>
+
+          <article class="menu-item" data-id="pasta-alfredo" data-base-price="13.50" aria-labelledby="pasta-alfredo-title">
+            </article>
+        </div>
+        
+        </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="muted">© <span id="year"></span> FOODY — With love ♥</p>
+      <nav class="foot-nav" aria-label="Footer Navigation">
+        <a href="index.html">Home</a>
+        <a href="restaurants.html">Restaurants</a>
+        <a href="menu.html" aria-current="page">All Food</a>
+        <a href="reviews.html">Reviews</a>
+        <a href="order.html">Order</a>
+      </nav>
+    </div>
+  </footer>
+
+  <a href="order.html" id="fixed-cart-button" class="fixed-button-mobile">
+      <span aria-hidden="true">🛒</span> View Cart (<span id="cart-item-count-mobile">0</span>)
+  </a>
+</body>
+</html>
