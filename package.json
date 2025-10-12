@@ -1,0 +1,30 @@
+{
+  "name": "food-delivery-app",
+  "version": "1.0.0",
+  "description": "Full-stack food delivery application with Node.js backend and vanilla JavaScript frontend",
+  "main": "start-server.js",
+  "scripts": {
+    "start": "node start-server.js",
+    "dev": "node start-server.js",
+    "backend": "cd backend && npm run dev",
+    "install-all": "npm install && cd backend && npm install",
+    "build": "echo 'No build process needed for this project'",
+    "test": "echo 'No tests specified'"
+  },
+  "keywords": [
+    "food-delivery",
+    "nodejs",
+    "express",
+    "mongodb",
+    "javascript",
+    "restaurant"
+  ],
+  "author": "parth",
+  "license": "ISC",
+  "dependencies": {
+    "child_process": "^1.0.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

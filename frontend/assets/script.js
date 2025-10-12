@@ -9,7 +9,7 @@
   const y = document.getElementById("year")
   if (y) y.textContent = String(new Date().getFullYear())
 
-  // Authentication management
+  // Authentication management - Enhanced with API integration
   function checkAuth() {
     const user = JSON.parse(localStorage.getItem('foody_user') || 'null');
     const navAuth = document.getElementById('nav-auth');
@@ -21,6 +21,41 @@
     } else {
       if (navAuth) navAuth.style.display = 'flex';
       if (navUser) navUser.style.display = 'none';
+    }
+  }
+
+  // Enhanced authentication functions
+  async function loginUser(email, password) {
+    try {
+      const response = await window.foodAPI.login(email, password);
+      checkAuth();
+      return response;
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
+  }
+
+  async function registerUser(userData) {
+    try {
+      const response = await window.foodAPI.register(userData);
+      checkAuth();
+      return response;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      throw error;
+    }
+  }
+
+  async function logoutUser() {
+    try {
+      await window.foodAPI.logout();
+      checkAuth();
+      // Clear local cart on logout
+      localStorage.removeItem('dd_cart');
+      updateNavCartCount();
+    } catch (error) {
+      console.error('Logout failed:', error);
     }
   }
 
@@ -198,13 +233,13 @@
   // Logout functionality
   const logoutBtn = document.getElementById('logout-btn');
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', function() {
-      localStorage.removeItem('foody_user');
+    logoutBtn.addEventListener('click', async function() {
+      await logoutUser();
       window.location.href = 'index.html';
     });
   }
 
-  // CART persistence
+  // CART persistence - Enhanced with API integration
   function loadCart() {
     try {
       return JSON.parse(localStorage.getItem("dd_cart") || "[]")
@@ -212,9 +247,22 @@
       return []
     }
   }
-  function saveCart(items) {
+  
+  async function saveCart(items) {
     localStorage.setItem("dd_cart", JSON.stringify(items))
     updateNavCartCount()
+    
+    // Sync with backend if user is logged in
+    if (window.foodAPI && window.foodAPI.token) {
+      try {
+        await window.foodAPI.clearCart()
+        for (const item of items) {
+          await window.foodAPI.addToCart(item)
+        }
+      } catch (error) {
+        console.error('Failed to sync cart with backend:', error)
+      }
+    }
   }
   function updateNavCartCount() {
     const link = document.getElementById("nav-cart-link")
