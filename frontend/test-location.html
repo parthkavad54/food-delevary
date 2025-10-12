@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Location Test — FOODY</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      
+      <div class="location-selector">
+        <span class="location-icon">📍</span>
+        <div class="location-input-group">
+          <input type="text" id="pincode-input" placeholder="Enter pincode" class="pincode-input" maxlength="6" />
+          <select class="location-dropdown" id="location-select" disabled>
+            <option value="">Select City</option>
+          </select>
+        </div>
+        <button class="location-search-btn" id="location-search-btn" disabled>🔍</button>
+      </div>
+      
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="test-location.html" class="nav-link is-active">Test Location</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="profile-container">
+          <div class="profile-card">
+            <h1 class="h2">Location Functionality Test</h1>
+            <p class="muted">Test the pincode to city lookup functionality</p>
+            
+            <div class="two-col">
+              <div>
+                <h3 class="h3">Test Instructions</h3>
+                <ol>
+                  <li>Enter a 6-digit pincode in the location selector above</li>
+                  <li>Click the search button (🔍)</li>
+                  <li>Select a city from the dropdown</li>
+                  <li>Your location will be saved and remembered</li>
+                </ol>
+                
+                <h4 class="h4">Test Pincodes</h4>
+                <ul>
+                  <li><strong>395001</strong> - Surat, Gujarat</li>
+                  <li><strong>360001</strong> - Rajkot, Gujarat</li>
+                  <li><strong>380001</strong> - Ahmedabad, Gujarat</li>
+                  <li><strong>110001</strong> - New Delhi</li>
+                  <li><strong>400001</strong> - Mumbai, Maharashtra</li>
+                </ul>
+              </div>
+              
+              <div>
+                <h3 class="h3">Current Location</h3>
+                <div id="current-location-display" class="pill">
+                  <p><strong>No location selected</strong></p>
+                  <p class="muted">Enter a pincode and select a city to see your location here.</p>
+                </div>
+                
+                <h4 class="h4">Saved Addresses</h4>
+                <div id="saved-addresses" class="pill">
+                  <p class="muted">No saved addresses</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Display current location
+    function updateLocationDisplay() {
+      const location = localStorage.getItem('foody_location');
+      const display = document.getElementById('current-location-display');
+      
+      if (location) {
+        try {
+          const locationData = JSON.parse(location);
+          display.innerHTML = `
+            <p><strong>Current Location</strong></p>
+            <p>City: ${locationData.city}</p>
+            <p>Pincode: ${locationData.pincode}</p>
+            <p class="meta">Saved: ${new Date(locationData.timestamp).toLocaleString()}</p>
+          `;
+        } catch (error) {
+          display.innerHTML = '<p class="muted">Error loading location data</p>';
+        }
+      } else {
+        display.innerHTML = `
+          <p><strong>No location selected</strong></p>
+          <p class="muted">Enter a pincode and select a city to see your location here.</p>
+        `;
+      }
+    }
+
+    // Display saved addresses
+    function updateAddressesDisplay() {
+      const addresses = JSON.parse(localStorage.getItem('foody_addresses') || '[]');
+      const display = document.getElementById('saved-addresses');
+      
+      if (addresses.length === 0) {
+        display.innerHTML = '<p class="muted">No saved addresses</p>';
+        return;
+      }
+
+      display.innerHTML = addresses.map((address, index) => `
+        <div style="margin-bottom: 1rem; padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">
+          <p><strong>${address.label}</strong> ${address.isDefault ? '(Default)' : ''}</p>
+          <p>${address.fullAddress}</p>
+          <p class="meta">${address.city}, ${address.state} - ${address.pincode}</p>
+        </div>
+      `).join('');
+    }
+
+    // Update displays on page load
+    updateLocationDisplay();
+    updateAddressesDisplay();
+
+    // Listen for location changes
+    const locationSelect = document.getElementById('location-select');
+    if (locationSelect) {
+      locationSelect.addEventListener('change', () => {
+        setTimeout(() => {
+          updateLocationDisplay();
+        }, 100);
+      });
+    }
+
+    // Listen for address changes (if on profile page)
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'foody_addresses') {
+        updateAddressesDisplay();
+      }
+    });
+  </script>
+</body>
+</html>

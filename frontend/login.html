@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Customer Reviews — FOODY</title>
+  <title>Login — FOODY</title>
+  <meta name="description" content="Login to your FOODY account to access your orders and preferences." />
   <link rel="stylesheet" href="assets/styles.css" />
   <script defer src="assets/script.js"></script>
 </head>
@@ -18,11 +19,11 @@
         <a href="index.html" class="nav-link">Home</a>
         <a href="restaurants.html" class="nav-link">Restaurants</a>
         <a href="menu.html" class="nav-link">Menu</a>
-        <a href="reviews.html" class="nav-link is-active" aria-current="page">Reviews</a>
+        <a href="reviews.html" class="nav-link">Reviews</a>
         <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
         <div class="nav-auth" id="nav-auth">
-          <a href="login.html" class="button button-ghost" id="login-link">Login</a>
-          <a href="signup.html" class="button button-primary" id="signup-link">Sign Up</a>
+          <a href="login.html" class="button button-primary" id="login-link">Login</a>
+          <a href="signup.html" class="button button-outline" id="signup-link">Sign Up</a>
         </div>
         <div class="nav-user" id="nav-user" style="display: none;">
           <a href="dashboard.html" class="nav-link" id="dashboard-link">Dashboard</a>
@@ -36,35 +37,72 @@
   <main>
     <section class="section">
       <div class="container">
-        <div class="section-head">
-          <h1 class="h2">Customer Reviews</h1>
-          <p class="muted">Hear from customers who’ve already enjoyed FOODY.</p>
-        </div>
+        <div class="auth-container">
+          <div class="auth-card">
+            <div class="auth-header">
+              <h1 class="h2">Welcome Back!</h1>
+              <p class="muted">Sign in to your FOODY account</p>
+            </div>
+            
+            <form class="auth-form" id="login-form">
+              <div class="form-group">
+                <label for="email" class="label">Email Address</label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  name="email" 
+                  required 
+                  placeholder="Enter your email"
+                  class="form-input"
+                />
+                <div class="error-message" id="email-error"></div>
+              </div>
 
-        <div class="review-list">
-          <article class="review">
-            <div class="stars" aria-label="Rated 5 out of 5">★★★★★</div>
-            <p>Delivery was quick and the food tasted amazing—still hot and fresh. I’m impressed!</p>
-            <footer>— Alex W.</footer>
-          </article>
+              <div class="form-group">
+                <label for="password" class="label">Password</label>
+                <input 
+                  type="password" 
+                  id="password" 
+                  name="password" 
+                  required 
+                  placeholder="Enter your password"
+                  class="form-input"
+                />
+                <div class="error-message" id="password-error"></div>
+              </div>
 
-          <article class="review">
-            <div class="stars" aria-label="Rated 4 out of 5">★★★★☆</div>
-            <p>Great variety and easy checkout. Would love even more vegetarian options.</p>
-            <footer>— Priya S.</footer>
-          </article>
+              <div class="form-options">
+                <label class="checkbox">
+                  <input type="checkbox" name="remember" />
+                  Remember me
+                </label>
+                <a href="#" class="forgot-link">Forgot password?</a>
+              </div>
 
-          <article class="review">
-            <div class="stars" aria-label="Rated 5 out of 5">★★★★★</div>
-            <p>Best sushi delivery in town. Excellent quality and careful packaging.</p>
-            <footer>— Diego M.</footer>
-          </article>
+              <button type="submit" class="button button-primary auth-submit">
+                Sign In
+              </button>
+            </form>
 
-          <article class="review">
-            <div class="stars" aria-label="Rated 4.5 out of 5">★★★★☆</div>
-            <p>The burgers are awesome. Delivery time was accurate. Will order again!</p>
-            <footer>— Casey L.</footer>
-          </article>
+            <div class="auth-divider">
+              <span>or</span>
+            </div>
+
+            <div class="social-login">
+              <button class="button button-outline social-btn">
+                <span class="social-icon">📧</span>
+                Continue with Google
+              </button>
+              <button class="button button-outline social-btn">
+                <span class="social-icon">📘</span>
+                Continue with Facebook
+              </button>
+            </div>
+
+            <div class="auth-footer">
+              <p>Don't have an account? <a href="signup.html" class="auth-link">Sign up here</a></p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -130,5 +168,36 @@
       </div>
     </div>
   </footer>
+
+  <script>
+    // Login form handling
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      // Simple validation
+      if (!email || !password) {
+        alert('Please fill in all fields');
+        return;
+      }
+      
+      // Simulate login (in real app, this would be an API call)
+      if (email === 'demo@foody.com' && password === 'password') {
+        // Store user session
+        localStorage.setItem('foody_user', JSON.stringify({
+          email: email,
+          name: 'Demo User',
+          loginTime: new Date().toISOString()
+        }));
+        
+        // Redirect to dashboard
+        window.location.href = 'dashboard.html';
+      } else {
+        alert('Invalid email or password. Try demo@foody.com / password');
+      }
+    });
+  </script>
 </body>
 </html>

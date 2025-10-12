@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign Up — FOODY</title>
+  <meta name="description" content="Create your FOODY account to start ordering delicious food." />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="restaurants.html" class="nav-link">Restaurants</a>
+        <a href="menu.html" class="nav-link">Menu</a>
+        <a href="reviews.html" class="nav-link">Reviews</a>
+        <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
+        <div class="nav-auth" id="nav-auth">
+          <a href="login.html" class="button button-outline" id="login-link">Login</a>
+          <a href="signup.html" class="button button-primary" id="signup-link">Sign Up</a>
+        </div>
+        <div class="nav-user" id="nav-user" style="display: none;">
+          <a href="dashboard.html" class="nav-link" id="dashboard-link">Dashboard</a>
+          <a href="profile.html" class="nav-link" id="profile-link">Profile</a>
+          <button class="button button-outline" id="logout-btn">Logout</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="auth-container">
+          <div class="auth-card">
+            <div class="auth-header">
+              <h1 class="h2">Join FOODY!</h1>
+              <p class="muted">Create your account and start ordering delicious food</p>
+            </div>
+            
+            <form class="auth-form" id="signup-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="firstName" class="label">First Name</label>
+                  <input 
+                    type="text" 
+                    id="firstName" 
+                    name="firstName" 
+                    required 
+                    placeholder="Enter your first name"
+                    class="form-input"
+                  />
+                  <div class="error-message" id="firstName-error"></div>
+                </div>
+
+                <div class="form-group">
+                  <label for="lastName" class="label">Last Name</label>
+                  <input 
+                    type="text" 
+                    id="lastName" 
+                    name="lastName" 
+                    required 
+                    placeholder="Enter your last name"
+                    class="form-input"
+                  />
+                  <div class="error-message" id="lastName-error"></div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="email" class="label">Email Address</label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  name="email" 
+                  required 
+                  placeholder="Enter your email"
+                  class="form-input"
+                />
+                <div class="error-message" id="email-error"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="phone" class="label">Phone Number</label>
+                <input 
+                  type="tel" 
+                  id="phone" 
+                  name="phone" 
+                  required 
+                  placeholder="Enter your phone number"
+                  class="form-input"
+                />
+                <div class="error-message" id="phone-error"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="password" class="label">Password</label>
+                <input 
+                  type="password" 
+                  id="password" 
+                  name="password" 
+                  required 
+                  placeholder="Create a password"
+                  class="form-input"
+                />
+                <div class="error-message" id="password-error"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="confirmPassword" class="label">Confirm Password</label>
+                <input 
+                  type="password" 
+                  id="confirmPassword" 
+                  name="confirmPassword" 
+                  required 
+                  placeholder="Confirm your password"
+                  class="form-input"
+                />
+                <div class="error-message" id="confirmPassword-error"></div>
+              </div>
+
+              <div class="form-group">
+                <label for="address" class="label">Delivery Address</label>
+                <textarea 
+                  id="address" 
+                  name="address" 
+                  required 
+                  placeholder="Enter your delivery address"
+                  class="form-input"
+                  rows="3"
+                ></textarea>
+                <div class="error-message" id="address-error"></div>
+              </div>
+
+              <div class="form-options">
+                <label class="checkbox terms-checkbox">
+                  <input type="checkbox" name="terms" required />
+                  <span class="checkbox-text">I agree to the <a href="#" class="auth-link">Terms of Service</a> and <a href="#" class="auth-link">Privacy Policy</a></span>
+                </label>
+                <label class="checkbox newsletter-checkbox">
+                  <input type="checkbox" name="newsletter" />
+                  <span class="checkbox-text">Subscribe to our newsletter for special offers</span>
+                </label>
+              </div>
+
+              <button type="submit" class="button button-primary auth-submit">
+                Create Account
+              </button>
+            </form>
+
+            <div class="auth-divider">
+              <span>or</span>
+            </div>
+
+            <div class="social-login">
+              <button class="button button-outline social-btn">
+                <span class="social-icon">📧</span>
+                Sign up with Google
+              </button>
+              <button class="button button-outline social-btn">
+                <span class="social-icon">📘</span>
+                Sign up with Facebook
+              </button>
+            </div>
+
+            <div class="auth-footer">
+              <p>Already have an account? <a href="login.html" class="auth-link">Sign in here</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-brand">
+            <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="footer-logo" />
+            <span class="brand-name">FOODY</span>
+          </div>
+          <p class="footer-description">Delivering delicious food from your favorite restaurants right to your doorstep. Fast, fresh, and always satisfying.</p>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Facebook">📘</a>
+            <a href="#" class="social-link" aria-label="Twitter">🐦</a>
+            <a href="#" class="social-link" aria-label="Instagram">📷</a>
+            <a href="#" class="social-link" aria-label="LinkedIn">💼</a>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="restaurants.html">Restaurants</a></li>
+            <li><a href="menu.html">Menu</a></li>
+            <li><a href="reviews.html">Reviews</a></li>
+            <li><a href="order.html">Order</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Customer Service</h4>
+          <ul class="footer-links">
+            <li><a href="#">Help Center</a></li>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Track Order</a></li>
+            <li><a href="#">Refund Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Contact Info</h4>
+          <div class="contact-info">
+            <p>📞 +1 (555) 123-4567</p>
+            <p>📧 support@foody.com</p>
+            <p>📍 123 Food Street, City, State 12345</p>
+            <p>🕒 Mon-Sun: 8:00 AM - 11:00 PM</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p class="copyright">© <span id="year"></span> FOODY — With love ♥</p>
+        <div class="footer-bottom-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Signup form handling
+    document.getElementById('signup-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const data = Object.fromEntries(formData);
+      
+      // Validation
+      if (data.password !== data.confirmPassword) {
+        alert('Passwords do not match');
+        return;
+      }
+      
+      if (data.password.length < 6) {
+        alert('Password must be at least 6 characters long');
+        return;
+      }
+      
+      if (!data.terms) {
+        alert('Please agree to the Terms of Service');
+        return;
+      }
+      
+      // Simulate account creation (in real app, this would be an API call)
+      const userData = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        name: `${data.firstName} ${data.lastName}`,
+        signupTime: new Date().toISOString()
+      };
+      
+      // Store user session
+      localStorage.setItem('foody_user', JSON.stringify(userData));
+      
+      // Redirect to dashboard
+      window.location.href = 'dashboard.html';
+    });
+  </script>
+</body>
+</html>

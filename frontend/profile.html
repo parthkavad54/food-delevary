@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile — FOODY</title>
+  <meta name="description" content="Manage your FOODY profile, preferences, and account settings." />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="restaurants.html" class="nav-link">Restaurants</a>
+        <a href="menu.html" class="nav-link">Menu</a>
+        <a href="reviews.html" class="nav-link">Reviews</a>
+        <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
+        <div class="nav-auth" id="nav-auth" style="display: none;">
+          <a href="login.html" class="button button-outline" id="login-link">Login</a>
+          <a href="signup.html" class="button button-primary" id="signup-link">Sign Up</a>
+        </div>
+        <div class="nav-user" id="nav-user">
+          <a href="dashboard.html" class="nav-link" id="dashboard-link">Dashboard</a>
+          <a href="profile.html" class="nav-link is-active" id="profile-link">Profile</a>
+          <button class="button button-outline" id="logout-btn">Logout</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="profile-container">
+          <div class="profile-header">
+            <div class="profile-avatar">
+              <div class="avatar-circle">
+                <span id="avatar-initials">U</span>
+              </div>
+            </div>
+            <div class="profile-info">
+              <h1 class="h2" id="profile-name">User Name</h1>
+              <p class="muted" id="profile-email">user@example.com</p>
+              <p class="meta">Member since <span id="member-since">2024</span></p>
+            </div>
+          </div>
+
+          <div class="profile-tabs">
+            <button class="tab-button active" data-tab="personal">Personal Info</button>
+            <button class="tab-button" data-tab="addresses">Addresses</button>
+            <button class="tab-button" data-tab="preferences">Preferences</button>
+            <button class="tab-button" data-tab="orders">Order History</button>
+          </div>
+
+          <!-- Personal Information Tab -->
+          <div class="tab-content active" id="personal-tab">
+            <div class="profile-card">
+              <h3 class="h3">Personal Information</h3>
+              <form class="profile-form" id="personal-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="firstName" class="label">First Name</label>
+                    <input type="text" id="firstName" name="firstName" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label for="lastName" class="label">Last Name</label>
+                    <input type="text" id="lastName" name="lastName" class="form-input" />
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="email" class="label">Email Address</label>
+                  <input type="email" id="email" name="email" class="form-input" />
+                </div>
+                
+                <div class="form-group">
+                  <label for="phone" class="label">Phone Number</label>
+                  <input type="tel" id="phone" name="phone" class="form-input" />
+                </div>
+                
+                <div class="form-group">
+                  <label for="birthday" class="label">Date of Birth</label>
+                  <input type="date" id="birthday" name="birthday" class="form-input" />
+                </div>
+                
+                <button type="submit" class="button button-primary">Save Changes</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Addresses Tab -->
+          <div class="tab-content" id="addresses-tab">
+            <div class="profile-card">
+              <h3 class="h3">Delivery Addresses</h3>
+              <div class="addresses-list" id="addresses-list">
+                <div class="address-item">
+                  <div class="address-info">
+                    <h4 class="h4">Home Address</h4>
+                    <p id="home-address">123 Main Street, City, State 12345</p>
+                    <p class="meta">Default delivery address</p>
+                  </div>
+                  <div class="address-actions">
+                    <button class="button button-outline edit-address-btn" data-address-id="1">Edit</button>
+                    <button class="button button-ghost remove-address-btn" data-address-id="1">Remove</button>
+                  </div>
+                </div>
+              </div>
+              
+              <button class="button button-primary" id="add-address-btn">Add New Address</button>
+              
+              <!-- Add/Edit Address Modal -->
+              <div class="address-modal" id="address-modal" style="display: none;">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h4 class="h4" id="modal-title">Add New Address</h4>
+                    <button class="close-modal" id="close-modal">&times;</button>
+                  </div>
+                  <form class="address-form" id="address-form">
+                    <input type="hidden" id="address-id" name="addressId" />
+                    <div class="form-group">
+                      <label for="address-label" class="label">Address Label</label>
+                      <input type="text" id="address-label" name="label" class="form-input" placeholder="Home, Office, etc." required />
+                    </div>
+                    <div class="form-group">
+                      <label for="full-address" class="label">Full Address</label>
+                      <textarea id="full-address" name="fullAddress" class="form-input" rows="3" placeholder="Enter complete address" required></textarea>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="pincode" class="label">Pincode</label>
+                        <input type="text" id="pincode" name="pincode" class="form-input" placeholder="123456" maxlength="6" required />
+                      </div>
+                      <div class="form-group">
+                        <label for="city" class="label">City</label>
+                        <input type="text" id="city" name="city" class="form-input" placeholder="City" required />
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="state" class="label">State</label>
+                        <input type="text" id="state" name="state" class="form-input" placeholder="State" required />
+                      </div>
+                      <div class="form-group">
+                        <label for="landmark" class="label">Landmark (Optional)</label>
+                        <input type="text" id="landmark" name="landmark" class="form-input" placeholder="Near landmark" />
+                      </div>
+                    </div>
+                    <div class="form-actions">
+                      <button type="button" class="button button-outline" id="cancel-address">Cancel</button>
+                      <button type="submit" class="button button-primary">Save Address</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preferences Tab -->
+          <div class="tab-content" id="preferences-tab">
+            <div class="profile-card">
+              <h3 class="h3">Food Preferences</h3>
+              <form class="preferences-form">
+                <div class="preference-group">
+                  <h4 class="h4">Dietary Restrictions</h4>
+                  <div class="checkbox-group">
+                    <label class="checkbox">
+                      <input type="checkbox" name="dietary" value="vegetarian" />
+                      Vegetarian
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="dietary" value="vegan" />
+                      Vegan
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="dietary" value="gluten-free" />
+                      Gluten-Free
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="dietary" value="halal" />
+                      Halal
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="dietary" value="kosher" />
+                      Kosher
+                    </label>
+                  </div>
+                </div>
+                
+                <div class="preference-group">
+                  <h4 class="h4">Spice Level</h4>
+                  <div class="radio-group">
+                    <label class="radio">
+                      <input type="radio" name="spice" value="mild" />
+                      Mild
+                    </label>
+                    <label class="radio">
+                      <input type="radio" name="spice" value="medium" />
+                      Medium
+                    </label>
+                    <label class="radio">
+                      <input type="radio" name="spice" value="hot" />
+                      Hot
+                    </label>
+                  </div>
+                </div>
+                
+                <div class="preference-group">
+                  <h4 class="h4">Notifications</h4>
+                  <div class="checkbox-group">
+                    <label class="checkbox">
+                      <input type="checkbox" name="notifications" value="email" checked />
+                      Email notifications
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="notifications" value="sms" />
+                      SMS notifications
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="notifications" value="push" checked />
+                      Push notifications
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="notifications" value="promotions" checked />
+                      Promotional offers
+                    </label>
+                  </div>
+                </div>
+                
+                <button type="submit" class="button button-primary">Save Preferences</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Order History Tab -->
+          <div class="tab-content" id="orders-tab">
+            <div class="profile-card">
+              <h3 class="h3">Order History</h3>
+              <div class="orders-list">
+                <div class="order-item">
+                  <div class="order-info">
+                    <h4 class="h4">Margherita Pizza</h4>
+                    <p class="muted">Bella Roma • Order #12345</p>
+                    <p class="meta">Delivered on Dec 15, 2024</p>
+                  </div>
+                  <div class="order-status-badge completed">Delivered</div>
+                  <div class="order-price">₹1,299</div>
+                  <button class="button button-outline">Reorder</button>
+                </div>
+                
+                <div class="order-item">
+                  <div class="order-info">
+                    <h4 class="h4">Sushi Platter</h4>
+                    <p class="muted">Sora Sushi • Order #12344</p>
+                    <p class="meta">Delivered on Dec 12, 2024</p>
+                  </div>
+                  <div class="order-status-badge completed">Delivered</div>
+                  <div class="order-price">₹1,850</div>
+                  <button class="button button-outline">Reorder</button>
+                </div>
+                
+                <div class="order-item">
+                  <div class="order-info">
+                    <h4 class="h4">Butter Chicken</h4>
+                    <p class="muted">Spice Route • Order #12343</p>
+                    <p class="meta">Delivered on Dec 10, 2024</p>
+                  </div>
+                  <div class="order-status-badge completed">Delivered</div>
+                  <div class="order-price">₹1,475</div>
+                  <button class="button button-outline">Reorder</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-brand">
+            <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="footer-logo" />
+            <span class="brand-name">FOODY</span>
+          </div>
+          <p class="footer-description">Delivering delicious food from your favorite restaurants right to your doorstep. Fast, fresh, and always satisfying.</p>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Facebook">📘</a>
+            <a href="#" class="social-link" aria-label="Twitter">🐦</a>
+            <a href="#" class="social-link" aria-label="Instagram">📷</a>
+            <a href="#" class="social-link" aria-label="LinkedIn">💼</a>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="restaurants.html">Restaurants</a></li>
+            <li><a href="menu.html">Menu</a></li>
+            <li><a href="reviews.html">Reviews</a></li>
+            <li><a href="order.html">Order</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Customer Service</h4>
+          <ul class="footer-links">
+            <li><a href="#">Help Center</a></li>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Track Order</a></li>
+            <li><a href="#">Refund Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Contact Info</h4>
+          <div class="contact-info">
+            <p>📞 +1 (555) 123-4567</p>
+            <p>📧 support@foody.com</p>
+            <p>📍 123 Food Street, City, State 12345</p>
+            <p>🕒 Mon-Sun: 8:00 AM - 11:00 PM</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p class="copyright">© <span id="year"></span> FOODY — With love ♥</p>
+        <div class="footer-bottom-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Check if user is logged in
+    const user = JSON.parse(localStorage.getItem('foody_user') || 'null');
+    
+    if (!user) {
+      window.location.href = 'login.html';
+    } else {
+      // Update profile info
+      document.getElementById('profile-name').textContent = user.name || 'User Name';
+      document.getElementById('profile-email').textContent = user.email || 'user@example.com';
+      document.getElementById('home-address').textContent = user.address || 'No address set';
+      
+      // Set avatar initials
+      const initials = (user.name || 'User').split(' ').map(n => n[0]).join('').toUpperCase();
+      document.getElementById('avatar-initials').textContent = initials;
+      
+      // Set member since date
+      const memberSince = new Date(user.signupTime || Date.now()).getFullYear();
+      document.getElementById('member-since').textContent = memberSince;
+    }
+    
+    // Tab functionality
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.dataset.tab;
+        
+        // Remove active class from all buttons and contents
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        
+        // Add active class to clicked button and corresponding content
+        button.classList.add('active');
+        document.getElementById(`${tabId}-tab`).classList.add('active');
+      });
+    });
+    
+    // Logout functionality
+    document.getElementById('logout-btn').addEventListener('click', function() {
+      localStorage.removeItem('foody_user');
+      window.location.href = 'index.html';
+    });
+    
+    // Form submissions
+    document.getElementById('personal-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      alert('Profile updated successfully!');
+    });
+
+    // Address management functionality
+    let addresses = JSON.parse(localStorage.getItem('foody_addresses') || '[]');
+    let editingAddressId = null;
+
+    function renderAddresses() {
+      const addressesList = document.getElementById('addresses-list');
+      if (addresses.length === 0) {
+        addressesList.innerHTML = '<p class="muted">No addresses saved yet. Add your first address below.</p>';
+        return;
+      }
+
+      addressesList.innerHTML = addresses.map((address, index) => `
+        <div class="address-item ${address.isDefault ? 'default' : ''}">
+          <div class="address-info">
+            <h4 class="h4">${address.label}</h4>
+            <p>${address.fullAddress}</p>
+            <p class="meta">${address.city}, ${address.state} - ${address.pincode}</p>
+            ${address.landmark ? `<p class="meta">Near: ${address.landmark}</p>` : ''}
+            ${address.isDefault ? '<p class="meta">Default delivery address</p>' : ''}
+          </div>
+          <div class="address-actions">
+            <button class="button button-outline edit-address-btn" data-address-id="${index}">Edit</button>
+            ${!address.isDefault ? `<button class="button button-ghost remove-address-btn" data-address-id="${index}">Remove</button>` : ''}
+            ${!address.isDefault ? `<button class="button button-primary set-default-btn" data-address-id="${index}">Set Default</button>` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      // Add event listeners
+      document.querySelectorAll('.edit-address-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => editAddress(parseInt(e.target.dataset.addressId)));
+      });
+
+      document.querySelectorAll('.remove-address-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => removeAddress(parseInt(e.target.dataset.addressId)));
+      });
+
+      document.querySelectorAll('.set-default-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => setDefaultAddress(parseInt(e.target.dataset.addressId)));
+      });
+    }
+
+    function editAddress(index) {
+      const address = addresses[index];
+      editingAddressId = index;
+      
+      document.getElementById('modal-title').textContent = 'Edit Address';
+      document.getElementById('address-id').value = index;
+      document.getElementById('address-label').value = address.label;
+      document.getElementById('full-address').value = address.fullAddress;
+      document.getElementById('pincode').value = address.pincode;
+      document.getElementById('city').value = address.city;
+      document.getElementById('state').value = address.state;
+      document.getElementById('landmark').value = address.landmark || '';
+      
+      document.getElementById('address-modal').style.display = 'flex';
+    }
+
+    function removeAddress(index) {
+      if (confirm('Are you sure you want to remove this address?')) {
+        addresses.splice(index, 1);
+        localStorage.setItem('foody_addresses', JSON.stringify(addresses));
+        renderAddresses();
+      }
+    }
+
+    function setDefaultAddress(index) {
+      addresses.forEach(addr => addr.isDefault = false);
+      addresses[index].isDefault = true;
+      localStorage.setItem('foody_addresses', JSON.stringify(addresses));
+      renderAddresses();
+    }
+
+    function addNewAddress() {
+      editingAddressId = null;
+      document.getElementById('modal-title').textContent = 'Add New Address';
+      document.getElementById('address-form').reset();
+      document.getElementById('address-modal').style.display = 'flex';
+    }
+
+    // Modal functionality
+    document.getElementById('add-address-btn').addEventListener('click', addNewAddress);
+    
+    document.getElementById('close-modal').addEventListener('click', () => {
+      document.getElementById('address-modal').style.display = 'none';
+    });
+
+    document.getElementById('cancel-address').addEventListener('click', () => {
+      document.getElementById('address-modal').style.display = 'none';
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('address-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'address-modal') {
+        document.getElementById('address-modal').style.display = 'none';
+      }
+    });
+
+    // Address form submission
+    document.getElementById('address-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const addressData = {
+        label: formData.get('label'),
+        fullAddress: formData.get('fullAddress'),
+        pincode: formData.get('pincode'),
+        city: formData.get('city'),
+        state: formData.get('state'),
+        landmark: formData.get('landmark') || '',
+        isDefault: addresses.length === 0 // First address is default
+      };
+
+      if (editingAddressId !== null) {
+        // Editing existing address
+        addresses[editingAddressId] = addressData;
+      } else {
+        // Adding new address
+        addresses.push(addressData);
+      }
+
+      localStorage.setItem('foody_addresses', JSON.stringify(addresses));
+      renderAddresses();
+      document.getElementById('address-modal').style.display = 'none';
+      
+      alert('Address saved successfully!');
+    });
+
+    // Initialize addresses
+    renderAddresses();
+  </script>
+</body>
+</html>

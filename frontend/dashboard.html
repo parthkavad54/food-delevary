@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard — FOODY</title>
+  <meta name="description" content="Your FOODY dashboard - manage orders, view favorites, and track deliveries." />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="restaurants.html" class="nav-link">Restaurants</a>
+        <a href="menu.html" class="nav-link">Menu</a>
+        <a href="reviews.html" class="nav-link">Reviews</a>
+        <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
+        <div class="nav-auth" id="nav-auth" style="display: none;">
+          <a href="login.html" class="button button-outline" id="login-link">Login</a>
+          <a href="signup.html" class="button button-primary" id="signup-link">Sign Up</a>
+        </div>
+        <div class="nav-user" id="nav-user">
+          <a href="dashboard.html" class="nav-link is-active" id="dashboard-link">Dashboard</a>
+          <a href="profile.html" class="nav-link" id="profile-link">Profile</a>
+          <button class="button button-outline" id="logout-btn">Logout</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="dashboard-header">
+          <h1 class="h2">Welcome back, <span id="user-name">User</span>!</h1>
+          <p class="muted">Here's what's happening with your orders</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="dashboard-actions">
+          <a href="menu.html" class="action-card">
+            <div class="action-icon">🍽️</div>
+            <h3>Order Food</h3>
+            <p>Browse restaurants and place a new order</p>
+          </a>
+          <a href="order.html" class="action-card">
+            <div class="action-icon">🛒</div>
+            <h3>View Cart</h3>
+            <p>Check your current order and proceed to checkout</p>
+          </a>
+          <a href="profile.html" class="action-card">
+            <div class="action-icon">👤</div>
+            <h3>My Profile</h3>
+            <p>Update your information and preferences</p>
+          </a>
+        </div>
+
+        <!-- Order Status -->
+        <div class="dashboard-section">
+          <h2 class="h3">Current Orders</h2>
+          <div class="order-status" id="current-orders">
+            <div class="empty-state">
+              <p>No active orders</p>
+              <a href="menu.html" class="button button-primary">Start Ordering</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="dashboard-section">
+          <h2 class="h3">Recent Orders</h2>
+          <div class="order-history" id="order-history">
+            <div class="order-item">
+              <div class="order-info">
+                <h4 class="h4">Margherita Pizza</h4>
+                <p class="muted">Bella Roma • Order #12345</p>
+                <p class="meta">Delivered on Dec 15, 2024</p>
+              </div>
+              <div class="order-status-badge completed">Delivered</div>
+              <div class="order-price">₹1,299</div>
+            </div>
+            
+            <div class="order-item">
+              <div class="order-info">
+                <h4 class="h4">Sushi Platter</h4>
+                <p class="muted">Sora Sushi • Order #12344</p>
+                <p class="meta">Delivered on Dec 12, 2024</p>
+              </div>
+              <div class="order-status-badge completed">Delivered</div>
+              <div class="order-price">₹1,850</div>
+            </div>
+            
+            <div class="order-item">
+              <div class="order-info">
+                <h4 class="h4">Butter Chicken</h4>
+                <p class="muted">Spice Route • Order #12343</p>
+                <p class="meta">Delivered on Dec 10, 2024</p>
+              </div>
+              <div class="order-status-badge completed">Delivered</div>
+              <div class="order-price">₹1,475</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Favorites -->
+        <div class="dashboard-section">
+          <h2 class="h3">Your Favorites</h2>
+          <div class="favorites-grid">
+            <div class="favorite-item">
+              <img src="./public/images/pizza.jpg" alt="Margherita Pizza" />
+              <div class="favorite-info">
+                <h4 class="h4">Margherita Pizza</h4>
+                <p class="muted">Bella Roma</p>
+                <div class="favorite-actions">
+                  <span class="price">₹1,299</span>
+                  <button class="button button-primary">Order Again</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="favorite-item">
+              <img src="./public/images/sushi.jpg" alt="Sushi Platter" />
+              <div class="favorite-info">
+                <h4 class="h4">Sushi Platter</h4>
+                <p class="muted">Sora Sushi</p>
+                <div class="favorite-actions">
+                  <span class="price">₹1,850</span>
+                  <button class="button button-primary">Order Again</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Delivery Address -->
+        <div class="dashboard-section">
+          <h2 class="h3">Delivery Address</h2>
+          <div class="address-card">
+            <div class="address-info">
+              <h4 class="h4">Home Address</h4>
+              <p id="user-address">123 Main Street, City, State 12345</p>
+            </div>
+            <a href="profile.html" class="button button-outline">Edit Address</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-brand">
+            <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="footer-logo" />
+            <span class="brand-name">FOODY</span>
+          </div>
+          <p class="footer-description">Delivering delicious food from your favorite restaurants right to your doorstep. Fast, fresh, and always satisfying.</p>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Facebook">📘</a>
+            <a href="#" class="social-link" aria-label="Twitter">🐦</a>
+            <a href="#" class="social-link" aria-label="Instagram">📷</a>
+            <a href="#" class="social-link" aria-label="LinkedIn">💼</a>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="restaurants.html">Restaurants</a></li>
+            <li><a href="menu.html">Menu</a></li>
+            <li><a href="reviews.html">Reviews</a></li>
+            <li><a href="order.html">Order</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Customer Service</h4>
+          <ul class="footer-links">
+            <li><a href="#">Help Center</a></li>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Track Order</a></li>
+            <li><a href="#">Refund Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Contact Info</h4>
+          <div class="contact-info">
+            <p>📞 +1 (555) 123-4567</p>
+            <p>📧 support@foody.com</p>
+            <p>📍 123 Food Street, City, State 12345</p>
+            <p>🕒 Mon-Sun: 8:00 AM - 11:00 PM</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p class="copyright">© <span id="year"></span> FOODY — With love ♥</p>
+        <div class="footer-bottom-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Check if user is logged in
+    const user = JSON.parse(localStorage.getItem('foody_user') || 'null');
+    
+    if (!user) {
+      window.location.href = 'login.html';
+    } else {
+      // Update user info
+      document.getElementById('user-name').textContent = user.name || 'User';
+      document.getElementById('user-address').textContent = user.address || 'No address set';
+    }
+    
+    // Logout functionality
+    document.getElementById('logout-btn').addEventListener('click', function() {
+      localStorage.removeItem('foody_user');
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>
