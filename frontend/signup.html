@@ -6,6 +6,7 @@
   <title>Sign Up — FOODY</title>
   <meta name="description" content="Create your FOODY account to start ordering delicious food." />
   <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
   <script defer src="assets/script.js"></script>
 </head>
 <body>
@@ -240,45 +241,28 @@
   </footer>
 
   <script>
-    // Signup form handling
-    document.getElementById('signup-form').addEventListener('submit', function(e) {
+    // Signup form handling - real API call
+    document.getElementById('signup-form').addEventListener('submit', async function(e) {
       e.preventDefault();
-      
       const formData = new FormData(this);
       const data = Object.fromEntries(formData);
-      
-      // Validation
-      if (data.password !== data.confirmPassword) {
-        alert('Passwords do not match');
-        return;
+
+      if (data.password !== data.confirmPassword) return alert('Passwords do not match');
+      if ((data.password || '').length < 6) return alert('Password must be at least 6 characters long');
+      if (!data.terms) return alert('Please agree to the Terms of Service');
+
+      try {
+        await window.foodAPI.register({
+          name: `${data.firstName} ${data.lastName}`,
+          email: data.email,
+          phone: data.phone,
+          address: data.address,
+          password: data.password
+        });
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        alert(err.message || 'Signup failed');
       }
-      
-      if (data.password.length < 6) {
-        alert('Password must be at least 6 characters long');
-        return;
-      }
-      
-      if (!data.terms) {
-        alert('Please agree to the Terms of Service');
-        return;
-      }
-      
-      // Simulate account creation (in real app, this would be an API call)
-      const userData = {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        name: `${data.firstName} ${data.lastName}`,
-        signupTime: new Date().toISOString()
-      };
-      
-      // Store user session
-      localStorage.setItem('foody_user', JSON.stringify(userData));
-      
-      // Redirect to dashboard
-      window.location.href = 'dashboard.html';
     });
   </script>
 </body>

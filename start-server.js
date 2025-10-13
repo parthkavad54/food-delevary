@@ -44,3 +44,4 @@ process.on('SIGTERM', () => {
   backend.kill('SIGTERM');
   process.exit(0);
 });
+

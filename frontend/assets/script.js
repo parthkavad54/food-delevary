@@ -9,18 +9,47 @@
   const y = document.getElementById("year")
   if (y) y.textContent = String(new Date().getFullYear())
 
-  // Authentication management - Enhanced with API integration
-  function checkAuth() {
-    const user = JSON.parse(localStorage.getItem('foody_user') || 'null');
+  // Authentication management - verify with backend and toggle nav
+  async function checkAuth() {
+    const token = localStorage.getItem('foody_token');
     const navAuth = document.getElementById('nav-auth');
     const navUser = document.getElementById('nav-user');
-    
-    if (user) {
-      if (navAuth) navAuth.style.display = 'none';
-      if (navUser) navUser.style.display = 'flex';
-    } else {
+
+    if (!token) {
+      localStorage.removeItem('foody_user');
       if (navAuth) navAuth.style.display = 'flex';
       if (navUser) navUser.style.display = 'none';
+      return null;
+    }
+
+    try {
+      const me = await window.foodAPI.me();
+      if (me && me.user) {
+        if (navAuth) navAuth.style.display = 'none';
+        if (navUser) navUser.style.display = 'flex';
+        return me.user;
+      }
+    } catch (e) {
+      // Token invalid/expired; clear session state
+      localStorage.removeItem('foody_token');
+      localStorage.removeItem('foody_user');
+    }
+
+    if (navAuth) navAuth.style.display = 'flex';
+    if (navUser) navUser.style.display = 'none';
+    return null;
+  }
+
+  // Redirect to login if page is protected
+  async function guardProtectedPages() {
+    const protectedPaths = ['dashboard.html', 'profile.html', 'order.html'];
+    const isProtected = protectedPaths.some(p => location.pathname.endsWith(p));
+    if (!isProtected) return;
+
+    const user = await checkAuth();
+    if (!user) {
+      const params = new URLSearchParams({ redirect: location.pathname });
+      window.location.href = `login.html?${params.toString()}`;
     }
   }
 
@@ -59,8 +88,9 @@
     }
   }
 
-  // Initialize auth check
+  // Initialize auth check + guard
   checkAuth();
+  guardProtectedPages();
 
   // Location functionality with pincode API
   function initLocationSelector() {

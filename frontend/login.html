@@ -6,6 +6,7 @@
   <title>Login — FOODY</title>
   <meta name="description" content="Login to your FOODY account to access your orders and preferences." />
   <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
   <script defer src="assets/script.js"></script>
 </head>
 <body>
@@ -170,32 +171,20 @@
   </footer>
 
   <script>
-    // Login form handling
-    document.getElementById('login-form').addEventListener('submit', function(e) {
+    // Login form handling - real API call
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
       e.preventDefault();
-      
-      const email = document.getElementById('email').value;
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
-      
-      // Simple validation
-      if (!email || !password) {
-        alert('Please fill in all fields');
-        return;
-      }
-      
-      // Simulate login (in real app, this would be an API call)
-      if (email === 'demo@foody.com' && password === 'password') {
-        // Store user session
-        localStorage.setItem('foody_user', JSON.stringify({
-          email: email,
-          name: 'Demo User',
-          loginTime: new Date().toISOString()
-        }));
-        
-        // Redirect to dashboard
-        window.location.href = 'dashboard.html';
-      } else {
-        alert('Invalid email or password. Try demo@foody.com / password');
+      if (!email || !password) return alert('Please fill in all fields');
+
+      try {
+        await window.foodAPI.login(email, password);
+        const url = new URL(window.location.href);
+        const redirect = url.searchParams.get('redirect') || 'dashboard.html';
+        window.location.href = redirect;
+      } catch (err) {
+        alert(err.message || 'Login failed');
       }
     });
   </script>

@@ -49,6 +49,17 @@ class FoodDeliveryAPI {
     return data;
   }
 
+  async me() {
+    // Verify the current token and return the user
+    const data = await this.request('/auth/me', {
+      method: 'GET'
+    });
+    if (data && data.user) {
+      localStorage.setItem('foody_user', JSON.stringify(data.user));
+    }
+    return data;
+  }
+
   async register(userData) {
     const data = await this.request('/auth/register', {
       method: 'POST',
@@ -97,27 +108,27 @@ class FoodDeliveryAPI {
   }
 
   async addToCart(itemData) {
-    return await this.request('/cart', {
+    return await this.request('/cart/add', {
       method: 'POST',
       body: JSON.stringify(itemData)
     });
   }
 
   async updateCartItem(itemId, quantity) {
-    return await this.request(`/cart/${itemId}`, {
+    return await this.request(`/cart/update/${itemId}`, {
       method: 'PUT',
       body: JSON.stringify({ quantity })
     });
   }
 
   async removeFromCart(itemId) {
-    return await this.request(`/cart/${itemId}`, {
+    return await this.request(`/cart/remove/${itemId}`, {
       method: 'DELETE'
     });
   }
 
   async clearCart() {
-    return await this.request('/cart', {
+    return await this.request('/cart/clear', {
       method: 'DELETE'
     });
   }
@@ -139,7 +150,7 @@ class FoodDeliveryAPI {
   }
 
   async updateOrderStatus(id, status) {
-    return await this.request(`/orders/${id}`, {
+    return await this.request(`/orders/${id}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status })
     });
@@ -195,3 +206,4 @@ window.foodAPI = new FoodDeliveryAPI();
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = FoodDeliveryAPI;
 }
+
