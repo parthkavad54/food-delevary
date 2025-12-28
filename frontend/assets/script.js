@@ -502,7 +502,7 @@
         })
       })
 
-      const DELIVERY_USD = 3.99
+      const DELIVERY_USD = 0.2
       const delivery = cart.length ? Math.round(DELIVERY_USD * INR_RATE) : 0
       if (subtotalEl) subtotalEl.textContent = fmt(subtotal)
       if (deliveryEl) deliveryEl.textContent = fmt(delivery)
