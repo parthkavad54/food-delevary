@@ -333,7 +333,8 @@
           const mods = Array.from(form?.querySelectorAll('input[name="mods"]:checked') || []).map((el) => el.value)
 
           const cart = loadCart()
-          const key = JSON.stringify({ id, mult, mods, notes })
+          const restaurantId = card.getAttribute("data-restaurant-id") || null
+          const key = JSON.stringify({ id, mult, mods, notes, restaurantId })
           const existing = cart.find((it) => it.key === key)
           if (existing) {
             existing.qty += 1
@@ -341,6 +342,8 @@
             cart.push({
               key,
               id,
+              menuItemId: id,
+              restaurantId: restaurantId,
               name,
               unitPrice: Math.round(unitPriceInr),
               qty: 1,
@@ -507,10 +510,95 @@
     }
 
     if (checkoutBtn) {
-      checkoutBtn.addEventListener("click", () => {
-        alert("Checkout complete! (Demo)\nThank you for your order.")
-        saveCart([])
-        render()
+      checkoutBtn.addEventListener("click", async () => {
+        const cart = loadCart()
+        if (cart.length === 0) {
+          alert("Your cart is empty!")
+          return
+        }
+
+        // Check if user is logged in
+        const token = localStorage.getItem('foody_token')
+        if (!token) {
+          alert("Please login to place an order")
+          window.location.href = 'login.html'
+          return
+        }
+
+        // Group cart items by restaurant
+        const itemsByRestaurant = {}
+        cart.forEach(item => {
+          const restId = item.restaurantId
+          if (!restId) {
+            alert("Some items in your cart are missing restaurant information. Please remove them and try again.")
+            return
+          }
+          if (!itemsByRestaurant[restId]) {
+            itemsByRestaurant[restId] = []
+          }
+          itemsByRestaurant[restId].push(item)
+        })
+
+        try {
+          // Create orders for each restaurant (one order per restaurant)
+          for (const [restaurantId, items] of Object.entries(itemsByRestaurant)) {
+            // Calculate totals
+            let totalPrice = 0
+            const orderItems = items.map(item => {
+              const itemTotal = item.unitPrice * item.qty
+              totalPrice += itemTotal
+              return {
+                name: item.name,
+                quantity: item.qty,
+                price: item.unitPrice,
+                menuItem: item.menuItemId || item.id,
+                notes: item.notes || item.options?.notes || ''
+              }
+            })
+
+            const deliveryFee = 50 // Fixed delivery fee
+            const taxAmount = totalPrice * 0.05 // 5% tax
+            const grandTotal = totalPrice + deliveryFee + taxAmount
+
+            // Get user's delivery address (simplified - you'd get this from user profile)
+            const userStr = localStorage.getItem('foody_user')
+            const user = userStr ? JSON.parse(userStr) : null
+
+            const orderData = {
+              restaurant: restaurantId,
+              items: orderItems,
+              totalPrice: totalPrice,
+              deliveryFee: deliveryFee,
+              taxAmount: taxAmount,
+              grandTotal: grandTotal,
+              paymentMethod: 'COD',
+              deliveryAddress: {
+                street: user?.address?.line1 || '123 Main St',
+                city: user?.address?.city || 'City',
+                postalCode: user?.address?.postalCode || '12345',
+                country: 'India'
+              }
+            }
+
+            if (window.foodAPI) {
+              const response = await window.foodAPI.createOrder(orderData)
+              if (!response || !response.success) {
+                throw new Error(response?.message || 'Failed to create order')
+              }
+            } else {
+              throw new Error('API not available')
+            }
+          }
+
+          alert("Order placed successfully!\nThank you for your order.")
+          saveCart([])
+          render()
+          // Redirect to orders/dashboard
+          window.location.href = 'dashboard.html'
+        } catch (error) {
+          console.error('Error placing order:', error)
+          alert("Error placing order: " + (error.message || "Please try again"))
+        }
       })
     }
 

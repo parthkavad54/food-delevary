@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Restaurants — FOODY</title>
   <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
   <script defer src="assets/script.js"></script>
 </head>
 <body>
@@ -106,201 +107,97 @@
         </form>
 
         <div class="restaurant-list" id="restaurant-list">
-          <article class="restaurant-card"
-                   data-cuisine="Italian"
-                   data-price="$$"
-                   data-dietary="vegetarian,gluten-free"
-                   data-rating="4.6">
-            <img src="./public/images/pizza.jpg" alt="Bella Roma logo" class="rest-logo" />
-            <div class="rest-content">
-              <h3 class="h4">Bella Roma</h3>
-              <div class="stars" aria-label="Rated 4.6 out of 5">★★★★☆</div>
-              <p class="muted">Hand-tossed pizzas and homemade pastas.</p>
-              <p class="meta">123 Main St • Delivery: 30–45 min</p>
-              <p class="meta">Dietary Options: Vegetarian, Gluten-free</p>
-              <a href="menu.html#italian" class="button button-ghost">View Menu</a>
-            </div>
-          </article>
-
-          <article class="restaurant-card"
-                   data-cuisine="Japanese"
-                   data-price=""
-                   data-dietary=""
-                   data-rating="4.8">
-            <img src="./public/images/sushi.jpg" alt="Sora Sushi logo" class="rest-logo" />
-            <div class="rest-content">
-              <h3 class="h4">Sora Sushi</h3>
-              <div class="stars" aria-label="Rated 4.8 out of 5">★★★★★</div>
-              <p class="muted">Premium nigiri, sashimi, and specialty rolls.</p>
-              <p class="meta">45 Market Ave • Delivery: 35–50 min</p>
-              <p class="meta">Dietary Options: —</p>
-              <a href="menu.html#japanese" class="button button-ghost">View Menu</a>
-            </div>
-          </article>
-
-          <article class="restaurant-card"
-                   data-cuisine="American"
-                   data-price="$"
-                   data-dietary="vegetarian"
-                   data-rating="4.2">
-            <img src="./public/images/burger.jpg" alt="Patty Palace logo" class="rest-logo" />
-            <div class="rest-content">
-              <h3 class="h4">Patty Palace</h3>
-              <div class="stars" aria-label="Rated 4.2 out of 5">★★★★☆</div>
-              <p class="muted">Smash burgers, fries, and shakes.</p>
-              <p class="meta">9 Oak Blvd • Delivery: 20–35 min</p>
-              <p class="meta">Dietary Options: Vegetarian</p>
-              <a href="menu.html#american" class="button button-ghost">View Menu</a>
-            </div>
-          </article>
-
-          <article class="restaurant-card"
-                   data-cuisine="Mediterranean"
-                   data-price="$$"
-                   data-dietary="vegan,vegetarian,gluten-free"
-                   data-rating="4.5">
-            <img src="./public/images/salad.jpg" alt="Agora Kitchen logo" class="rest-logo" />
-            <div class="rest-content">
-              <h3 class="h4">Agora Kitchen</h3>
-              <div class="stars" aria-label="Rated 4.5 out of 5">★★★★★</div>
-              <p class="muted">Bowls, wraps, and fresh mezze.</p>
-              <p class="meta">77 River Rd • Delivery: 25–40 min</p>
-              <p class="meta">Dietary Options: Vegan, Vegetarian, Gluten-free</p>
-              <a href="menu.html#mediterranean" class="button button-ghost">View Menu</a>
-            </div>
-          </article>
-
-          <article class="restaurant-card"
-                   data-cuisine="Indian"
-                   data-price="$$"
-                   data-dietary="vegetarian,gluten-free"
-                   data-rating="4.7">
-            <img src="./public/images/curry.jpg" alt="Spice Route logo" class="rest-logo" />
-            <div class="rest-content">
-              <h3 class="h4">Spice Route</h3>
-              <div class="stars" aria-label="Rated 4.7 out of 5">★★★★★</div>
-              <p class="muted">Classic curries and tandoori specialties.</p>
-              <p class="meta">210 Cedar St • Delivery: 30–50 min</p>
-              <p class="meta">Dietary Options: Vegetarian, Gluten-free</p>
-              <a href="menu.html#indian" class="button button-ghost">View Menu</a>
-            </div>
-          </article>
-
-          <article class="restaurant-card"
-                   data-cuisine="Chinese"
-                   data-price="$$"
-                   data-dietary="vegetarian"
-                   data-rating="4.4">
-            <img src="./public/images/curry.jpg" alt="Golden Dragon logo" class="rest-logo" />
-            <div class="rest-content">
-              <h3 class="h4">Golden Dragon</h3>
-              <div class="stars" aria-label="Rated 4.4 out of 5">★★★★☆</div>
-              <p class="muted">Authentic Chinese cuisine with fresh ingredients.</p>
-              <p class="meta">88 Chinatown Ave • Delivery: 25–40 min</p>
-              <p class="meta">Dietary Options: Vegetarian</p>
-              <a href="menu.html#chinese" class="button button-ghost">View Menu</a>
-            </div>
-          </article>
-
-          <article class="restaurant-card"
-                   data-cuisine="Mexican"
-                   data-price="$"
-                   data-dietary="vegetarian,vegan"
-                   data-rating="4.3">
-            <img src="./public/images/burger.jpg" alt="Taco Fiesta logo" class="rest-logo" />
-            <div class="rest-content">
-              <h3 class="h4">Taco Fiesta</h3>
-              <div class="stars" aria-label="Rated 4.3 out of 5">★★★★☆</div>
-              <p class="muted">Fresh tacos, burritos, and authentic Mexican flavors.</p>
-              <p class="meta">156 Spice Blvd • Delivery: 20–35 min</p>
-              <p class="meta">Dietary Options: Vegetarian, Vegan</p>
-              <a href="menu.html#mexican" class="button button-ghost">View Menu</a>
-            </div>
-          </article>
-
-          <article class="restaurant-card"
-                   data-cuisine="Thai"
-                   data-price="$$"
-                   data-dietary="vegetarian,gluten-free"
-                   data-rating="4.6">
-            <img src="./public/images/curry.jpg" alt="Thai Garden logo" class="rest-logo" />
-            <div class="rest-content">
-              <h3 class="h4">Thai Garden</h3>
-              <div class="stars" aria-label="Rated 4.6 out of 5">★★★★★</div>
-              <p class="muted">Traditional Thai dishes with aromatic spices.</p>
-              <p class="meta">99 Orchid St • Delivery: 30–45 min</p>
-              <p class="meta">Dietary Options: Vegetarian, Gluten-free</p>
-              <a href="menu.html#thai" class="button button-ghost">View Menu</a>
-            </div>
-          </article>
-
-          <article class="restaurant-card"
-                   data-cuisine="Mediterranean"
-                   data-price="$$$"
-                   data-dietary="vegan,vegetarian,gluten-free"
-                   data-rating="4.8">
-            <img src="./public/images/salad.jpg" alt="Olive Grove logo" class="rest-logo" />
-            <div class="rest-content">
-              <h3 class="h4">Olive Grove</h3>
-              <div class="stars" aria-label="Rated 4.8 out of 5">★★★★★</div>
-              <p class="muted">Premium Mediterranean cuisine with fresh ingredients.</p>
-              <p class="meta">45 Olive Way • Delivery: 35–55 min</p>
-              <p class="meta">Dietary Options: Vegan, Vegetarian, Gluten-free</p>
-              <a href="menu.html#mediterranean" class="button button-ghost">View Menu</a>
-            </div>
-          </article>
-
-          <article class="restaurant-card"
-                   data-cuisine="Korean"
-                   data-price="$$"
-                   data-dietary="vegetarian"
-                   data-rating="4.5">
-            <img src="./public/images/curry.jpg" alt="Seoul Kitchen logo" class="rest-logo" />
-            <div class="rest-content">
-              <h3 class="h4">Seoul Kitchen</h3>
-              <div class="stars" aria-label="Rated 4.5 out of 5">★★★★★</div>
-              <p class="muted">Authentic Korean BBQ and traditional dishes.</p>
-              <p class="meta">72 Seoul St • Delivery: 25–40 min</p>
-              <p class="meta">Dietary Options: Vegetarian</p>
-              <a href="menu.html#korean" class="button button-ghost">View Menu</a>
-            </div>
-          </article>
-
-          <article class="restaurant-card"
-                   data-cuisine="American"
-                   data-price="$$"
-                   data-dietary="vegetarian"
-                   data-rating="4.1">
-            <img src="./public/images/burger.jpg" alt="Steakhouse Prime logo" class="rest-logo" />
-            <div class="rest-content">
-              <h3 class="h4">Steakhouse Prime</h3>
-              <div class="stars" aria-label="Rated 4.1 out of 5">★★★★☆</div>
-              <p class="muted">Premium steaks and classic American comfort food.</p>
-              <p class="meta">200 Prime Ave • Delivery: 40–60 min</p>
-              <p class="meta">Dietary Options: Vegetarian</p>
-              <a href="menu.html#american" class="button button-ghost">View Menu</a>
-            </div>
-          </article>
-
-          <article class="restaurant-card"
-                   data-cuisine="Italian"
-                   data-price="$$$"
-                   data-dietary="vegetarian,gluten-free"
-                   data-rating="4.9">
-            <img src="./public/images/pizza.jpg" alt="Mama Mia logo" class="rest-logo" />
-            <div class="rest-content">
-              <h3 class="h4">Mama Mia</h3>
-              <div class="stars" aria-label="Rated 4.9 out of 5">★★★★★</div>
-              <p class="muted">Family recipes passed down through generations.</p>
-              <p class="meta">33 Family St • Delivery: 35–50 min</p>
-              <p class="meta">Dietary Options: Vegetarian, Gluten-free</p>
-              <a href="menu.html#italian" class="button button-ghost">View Menu</a>
-            </div>
-          </article>
+          <div style="text-align: center; padding: 3rem;">
+            <p>Loading restaurants...</p>
+          </div>
         </div>
       </div>
     </section>
   </main>
+
+  <script>
+    // Load restaurants dynamically
+    async function loadRestaurants() {
+      const restaurantList = document.getElementById('restaurant-list');
+      if (!restaurantList) return;
+
+      try {
+        const response = await window.foodAPI.getRestaurants({});
+        
+        if (response && response.success && response.data) {
+          const restaurants = response.data;
+          
+          // Filter restaurants that have menu items
+          const restaurantsWithMenu = restaurants.filter(rest => 
+            rest.menuItems && rest.menuItems.length > 0
+          );
+
+          if (restaurantsWithMenu.length === 0) {
+            restaurantList.innerHTML = `
+              <div style="text-align: center; padding: 3rem; background: white; border-radius: var(--radius);">
+                <h3>No restaurants available</h3>
+                <p class="muted">Check back soon for new restaurants!</p>
+              </div>
+            `;
+            return;
+          }
+
+          // Render restaurants
+          restaurantList.innerHTML = restaurantsWithMenu.map(restaurant => {
+            const cuisine = restaurant.cuisine && restaurant.cuisine.length > 0 
+              ? restaurant.cuisine.join(', ') 
+              : 'Various';
+            
+            const address = restaurant.address 
+              ? `${restaurant.address.line1 || ''}, ${restaurant.address.city || ''}`.trim()
+              : 'Address not available';
+            
+            const rating = restaurant.averageRating || 0;
+            const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
+            const menuItemCount = restaurant.menuItems ? restaurant.menuItems.length : 0;
+
+            return `
+              <article class="restaurant-card"
+                       data-cuisine="${cuisine}"
+                       data-rating="${rating}">
+                <img src="./public/images/pizza.jpg" alt="${restaurant.name} logo" class="rest-logo" />
+                <div class="rest-content">
+                  <h3 class="h4">${restaurant.name}</h3>
+                  <div class="stars" aria-label="Rated ${rating} out of 5">${stars}</div>
+                  <p class="muted">${restaurant.description || 'Delicious food awaits you'}</p>
+                  <p class="meta">${address} • ${menuItemCount} menu items</p>
+                  <p class="meta">Cuisine: ${cuisine}</p>
+                  <a href="menu.html?restaurant=${restaurant._id}" class="button button-ghost">View Menu</a>
+                </div>
+              </article>
+            `;
+          }).join('');
+        } else {
+          restaurantList.innerHTML = `
+            <div style="text-align: center; padding: 3rem; background: white; border-radius: var(--radius);">
+              <h3>Error loading restaurants</h3>
+              <p class="muted">Please try again later.</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading restaurants:', error);
+        restaurantList.innerHTML = `
+          <div style="text-align: center; padding: 3rem; background: white; border-radius: var(--radius);">
+            <h3>Error loading restaurants</h3>
+            <p class="muted">Please refresh the page or try again later.</p>
+          </div>
+        `;
+      }
+    }
+
+    // Load restaurants when page loads
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadRestaurants);
+    } else {
+      loadRestaurants();
+    }
+  </script>
 
   <footer class="site-footer">
     <div class="container">

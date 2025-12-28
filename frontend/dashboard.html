@@ -222,14 +222,23 @@
     if (!user) {
       window.location.href = 'login.html';
     } else {
-      // Update user info
+      // Redirect admin and restaurant_owner to their respective dashboards
+      if (user.role === 'admin') {
+        window.location.href = 'admin-dashboard.html';
+        return;
+      } else if (user.role === 'restaurant_owner') {
+        window.location.href = 'restaurant-dashboard.html';
+        return;
+      }
+      
+      // Update user info for customers
       document.getElementById('user-name').textContent = user.name || 'User';
       document.getElementById('user-address').textContent = user.address || 'No address set';
     }
     
     // Logout functionality
     document.getElementById('logout-btn').addEventListener('click', function() {
-      localStorage.removeItem('foody_user');
+      window.foodAPI.logout();
       window.location.href = 'index.html';
     });
   </script>

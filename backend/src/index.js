@@ -40,6 +40,8 @@ import orderRoutes from '../src/routes/order.routes.js';
 import cartRoutes from '../src/routes/cart.routes.js';
 import reviewRoutes from '../src/routes/reviews.routes.js';
 import paymentRoutes from '../src/routes/payment.routes.js';
+import adminRoutes from '../src/routes/admin.routes.js';
+import restaurantOwnerRoutes from '../src/routes/restaurantOwner.routes.js';
 
 
 
@@ -52,6 +54,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/restaurant-owner', restaurantOwnerRoutes);
 
 // Health Check
 app.get('/health', (req, res) => {

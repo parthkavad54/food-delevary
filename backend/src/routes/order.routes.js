@@ -11,14 +11,14 @@ router.post('/', protect, async (req, res) => {
   try {
     const orderData = {
       ...req.body,
-      customer: req.user._id
+      user: req.user._id
     };
 
     const order = new Order(orderData);
     await order.save();
 
     await order.populate([
-      { path: 'customer', select: 'name email phone' },
+      { path: 'user', select: 'name email phone' },
       { path: 'restaurant', select: 'name address phone' },
       { path: 'items.menuItem', select: 'name' }
     ]);
@@ -50,21 +50,21 @@ router.get('/', protect, async (req, res) => {
     }
     // Restaurant owner sees orders for their restaurants
     else if (req.user.role === 'restaurant_owner') {
-      const Restaurant = require('../models/Restaurant');
+      const Restaurant = (await import('../models/restaurant.model.js')).default;
       const restaurants = await Restaurant.find({ owner: req.user._id });
       const restaurantIds = restaurants.map(r => r._id);
       query.restaurant = { $in: restaurantIds };
     }
     // Delivery person sees assigned orders
     else if (req.user.role === 'delivery_person') {
-      query.deliveryPerson = req.user._id;
+      query.driver = req.user._id;
     }
     // Admin sees all orders
 
     const { status, startDate, endDate } = req.query;
 
     if (status) {
-      query.status = status;
+      query.orderStatus = status;
     }
 
     if (startDate || endDate) {
@@ -74,9 +74,9 @@ router.get('/', protect, async (req, res) => {
     }
 
     const orders = await Order.find(query)
-      .populate('customer', 'name email phone')
+      .populate('user', 'name email phone')
       .populate('restaurant', 'name address phone')
-      .populate('deliveryPerson', 'name phone')
+      .populate('driver', 'name phone')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -99,10 +99,10 @@ router.get('/', protect, async (req, res) => {
 router.get('/:id', protect, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
-      .populate('customer', 'name email phone')
+      .populate('user', 'name email phone')
       .populate('restaurant', 'name address phone')
       .populate('items.menuItem')
-      .populate('deliveryPerson', 'name phone');
+      .populate('driver', 'name phone');
 
     if (!order) {
       return res.status(404).json({
@@ -112,8 +112,8 @@ router.get('/:id', protect, async (req, res) => {
     }
 
     // Check authorization
-    const isCustomer = order.customer._id.toString() === req.user._id.toString();
-    const isDelivery = order.deliveryPerson && order.deliveryPerson._id.toString() === req.user._id.toString();
+    const isCustomer = order.user._id.toString() === req.user._id.toString();
+    const isDelivery = order.driver && order.driver._id.toString() === req.user._id.toString();
     const isRestaurantOwner = req.user.role === 'restaurant_owner';
     const isAdmin = req.user.role === 'admin';
 
@@ -153,18 +153,11 @@ router.put('/:id/status', protect, authorize('restaurant_owner', 'delivery_perso
     }
 
     // Update status
-    order.status = status;
-    
-    // Add to status history
-    order.statusHistory.push({
-      status,
-      note: note || '',
-      timestamp: new Date()
-    });
+    order.orderStatus = status;
 
     // Update delivery time
-    if (status === 'delivered') {
-      order.actualDeliveryTime = new Date();
+    if (status === 'Delivered') {
+      order.deliveredAt = new Date();
     }
 
     await order.save();
@@ -198,7 +191,7 @@ router.put('/:id/cancel', protect, async (req, res) => {
     }
 
     // Check if customer owns the order
-    if (order.customer.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    if (order.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to cancel this order'
@@ -206,20 +199,14 @@ router.put('/:id/cancel', protect, async (req, res) => {
     }
 
     // Check if order can be cancelled
-    if (['delivered', 'cancelled'].includes(order.status)) {
+    if (['Delivered', 'Cancelled'].includes(order.orderStatus)) {
       return res.status(400).json({
         success: false,
         message: 'Order cannot be cancelled'
       });
     }
 
-    order.status = 'cancelled';
-    order.cancellationReason = req.body.reason || 'Cancelled by customer';
-    order.statusHistory.push({
-      status: 'cancelled',
-      note: order.cancellationReason,
-      timestamp: new Date()
-    });
+    order.orderStatus = 'Cancelled';
 
     await order.save();
 
@@ -252,7 +239,7 @@ router.put('/:id/assign-delivery', protect, authorize('admin'), async (req, res)
       });
     }
 
-    order.deliveryPerson = deliveryPersonId;
+    order.driver = deliveryPersonId;
     await order.save();
 
     res.json({

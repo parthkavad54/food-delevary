@@ -7,7 +7,10 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
+    "start": "node src/index.js",
+    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js",
+    "create-admin": "node -r dotenv/config src/scripts/createAdmin.js",
+    "create-owner": "node -r dotenv/config src/scripts/createRestaurantOwner.js"
   },
   "keywords": [
     "food",

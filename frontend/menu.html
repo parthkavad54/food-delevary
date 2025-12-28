@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Menu — FOODY</title>
   <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
   <script defer src="assets/script.js"></script>
 </head>
 <body>
@@ -49,511 +50,17 @@
     <section class="section">
       <div class="container">
         <div class="section-head">
-          <h1 class="h2">Explore the Menu</h1>
-          <p class="muted">Customize portions, add notes, and make it yours. Click “Add to Cart” to begin.</p>
+          <h1 class="h2" id="restaurant-name">Explore the Menu</h1>
+          <p class="muted" id="restaurant-description">Customize portions, add notes, and make it yours. Click "Add to Cart" to begin.</p>
         </div>
 
-        <h2 class="h3" id="italian">Italian</h2>
-        <div class="menu-grid">
-          <article class="menu-item" data-id="pizza-margherita" data-base-price="12.99">
-            <img src="./public/images/pizza.jpg" alt="Margherita Pizza" />
-            <div class="menu-body">
-              <h3 class="h4">Margherita Pizza</h3>
-              <p class="muted">Tomato, mozzarella, basil</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Size</span>
-                  <select name="size">
-                    <option value="1">Small</option>
-                    <option value="1.2">Medium (+20%)</option>
-                    <option value="1.5">Large (+50%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., extra crispy, no basil" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-cheese" /> Extra cheese</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="gluten-free" /> Gluten-free</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="spicy" /> Spicy</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price></span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
-
-          <article class="menu-item" data-id="pasta-alfredo" data-base-price="13.50">
-            <img src="./public/images/pasta.jpg" alt="Pasta Alfredo" />
-            <div class="menu-body">
-              <h3 class="h4">Pasta Alfredo</h3>
-              <p class="muted">Creamy sauce with parmesan</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Size</span>
-                  <select name="size">
-                    <option value="1">Regular</option>
-                    <option value="1.3">Large (+30%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., add mushrooms" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-parm" /> Extra parmesan</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="gluten-free" /> Gluten-free</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price>111</span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
+        <div id="menu-loading" style="text-align: center; padding: 3rem;">
+          <p>Loading menu items...</p>
         </div>
 
-        <h2 class="h3" id="japanese">Japanese</h2>
-        <div class="menu-grid">
-          <article class="menu-item" data-id="sushi-platter" data-base-price="18.50">
-            <img src="./public/images/sushi.jpg" alt="Sushi Platter" />
-            <div class="menu-body">
-              <h3 class="h4">Sushi Platter</h3>
-              <p class="muted">Chef's selection of nigiri and rolls</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Size</span>
-                  <select name="size">
-                    <option value="1">Regular</option>
-                    <option value="1.4">Large (+40%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., no wasabi" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-ginger" /> Extra ginger</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="no-sesame" /> No sesame</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price></span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
-        </div>
-
-        <h2 class="h3" id="american">American</h2>
-        <div class="menu-grid">
-          <article class="menu-item" data-id="cheeseburger" data-base-price="10.49">
-            <img src="./public/images/burger.jpg" alt="Cheeseburger Combo" />
-            <div class="menu-body">
-              <h3 class="h4">Cheeseburger Combo</h3>
-              <p class="muted">Grilled patty, cheese, fries, and drink</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Size</span>
-                  <select name="size">
-                    <option value="1">Single</option>
-                    <option value="1.5">Double (+50%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., no pickles" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="no-onion" /> No onion</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-sauce" /> Extra sauce</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price></span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
-        </div>
-
-        <h2 class="h3" id="mediterranean">Mediterranean</h2>
-        <div class="menu-grid">
-          <article class="menu-item" data-id="green-salad" data-base-price="9.25">
-            <img src="./public/images/salad.jpg" alt="Green Goddess Salad" />
-            <div class="menu-body">
-              <h3 class="h4">Green Goddess Salad</h3>
-              <p class="muted">Seasonal greens, avocado, herb dressing</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Size</span>
-                  <select name="size">
-                    <option value="1">Regular</option>
-                    <option value="1.4">Large (+40%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., dressing on side" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="vegan" /> Make it vegan</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-avocado" /> Extra avocado</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price></span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
-        </div>
-
-        <h2 class="h3" id="indian">Indian</h2>
-        <div class="menu-grid">
-          <article class="menu-item" data-id="butter-chicken" data-base-price="14.75">
-            <img src="./public/images/curry.jpg" alt="Butter Chicken" />
-            <div class="menu-body">
-              <h3 class="h4">Butter Chicken</h3>
-              <p class="muted">Creamy tomato sauce, served with rice</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Portion</span>
-                  <select name="size">
-                    <option value="1">Regular</option>
-                    <option value="1.5">Large (+50%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., medium spice" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-rice" /> Extra rice</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="no-cilantro" /> No cilantro</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price></span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
-
-          <article class="menu-item" data-id="biryani-chicken" data-base-price="16.50">
-            <img src="./public/images/curry.jpg" alt="Chicken Biryani" />
-            <div class="menu-body">
-              <h3 class="h4">Chicken Biryani</h3>
-              <p class="muted">Fragrant basmati rice with spiced chicken</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Portion</span>
-                  <select name="size">
-                    <option value="1">Regular</option>
-                    <option value="1.3">Large (+30%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., extra spicy, mild" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-raita" /> Extra raita</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="boiled-egg" /> Add boiled egg</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price></span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
-
-          <article class="menu-item" data-id="dal-makhani" data-base-price="12.99">
-            <img src="./public/images/curry.jpg" alt="Dal Makhani" />
-            <div class="menu-body">
-              <h3 class="h4">Dal Makhani</h3>
-              <p class="muted">Creamy black lentils with butter and cream</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Portion</span>
-                  <select name="size">
-                    <option value="1">Regular</option>
-                    <option value="1.2">Large (+20%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., extra cream" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-naan" /> Extra naan</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="rice" /> Add rice</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price></span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
-        </div>
-
-        <h2 class="h3" id="chinese">Chinese</h2>
-        <div class="menu-grid">
-          <article class="menu-item" data-id="kung-pao-chicken" data-base-price="15.99">
-            <img src="./public/images/curry.jpg" alt="Kung Pao Chicken" />
-            <div class="menu-body">
-              <h3 class="h4">Kung Pao Chicken</h3>
-              <p class="muted">Spicy stir-fried chicken with peanuts and vegetables</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Portion</span>
-                  <select name="size">
-                    <option value="1">Regular</option>
-                    <option value="1.3">Large (+30%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., extra spicy, no peanuts" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-rice" /> Extra rice</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="no-peanuts" /> No peanuts</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price></span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
-
-          <article class="menu-item" data-id="sweet-sour-pork" data-base-price="14.50">
-            <img src="./public/images/curry.jpg" alt="Sweet and Sour Pork" />
-            <div class="menu-body">
-              <h3 class="h4">Sweet and Sour Pork</h3>
-              <p class="muted">Crispy pork with tangy sweet and sour sauce</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Portion</span>
-                  <select name="size">
-                    <option value="1">Regular</option>
-                    <option value="1.2">Large (+20%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., extra crispy" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-sauce" /> Extra sauce</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="fried-rice" /> Add fried rice</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price></span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
-        </div>
-
-        <h2 class="h3" id="mexican">Mexican</h2>
-        <div class="menu-grid">
-          <article class="menu-item" data-id="chicken-burrito" data-base-price="13.99">
-            <img src="./public/images/burger.jpg" alt="Chicken Burrito" />
-            <div class="menu-body">
-              <h3 class="h4">Chicken Burrito</h3>
-              <p class="muted">Grilled chicken, rice, beans, and cheese wrapped in tortilla</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Size</span>
-                  <select name="size">
-                    <option value="1">Regular</option>
-                    <option value="1.3">Large (+30%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., extra cheese, no beans" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-cheese" /> Extra cheese</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="guacamole" /> Add guacamole</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="sour-cream" /> Add sour cream</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price></span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
-
-          <article class="menu-item" data-id="beef-tacos" data-base-price="11.99">
-            <img src="./public/images/burger.jpg" alt="Beef Tacos" />
-            <div class="menu-body">
-              <h3 class="h4">Beef Tacos (3 pieces)</h3>
-              <p class="muted">Seasoned ground beef with lettuce, tomato, and cheese</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Quantity</span>
-                  <select name="size">
-                    <option value="1">3 Tacos</option>
-                    <option value="1.5">5 Tacos (+50%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., extra spicy, no lettuce" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-cheese" /> Extra cheese</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="jalapenos" /> Add jalapeños</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price></span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
-        </div>
-
-        <h2 class="h3" id="desserts">Desserts</h2>
-        <div class="menu-grid">
-          <article class="menu-item" data-id="chocolate-cake" data-base-price="8.99">
-            <img src="./public/images/dessert.jpg" alt="Chocolate Cake" />
-            <div class="menu-body">
-              <h3 class="h4">Chocolate Cake</h3>
-              <p class="muted">Rich chocolate cake with chocolate frosting</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Size</span>
-                  <select name="size">
-                    <option value="1">Slice</option>
-                    <option value="2">Whole Cake (+100%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., extra frosting" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="ice-cream" /> Add ice cream</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="nuts" /> Add nuts</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price></span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
-
-          <article class="menu-item" data-id="tiramisu" data-base-price="9.50">
-            <img src="./public/images/dessert.jpg" alt="Tiramisu" />
-            <div class="menu-body">
-              <h3 class="h4">Tiramisu</h3>
-              <p class="muted">Classic Italian dessert with coffee and mascarpone</p>
-
-              <form class="menu-form">
-                <label>
-                  <span class="label">Size</span>
-                  <select name="size">
-                    <option value="1">Regular</option>
-                    <option value="1.5">Large (+50%)</option>
-                  </select>
-                </label>
-
-                <label>
-                  <span class="label">Special instructions</span>
-                  <input type="text" name="notes" placeholder="e.g., extra cocoa" />
-                </label>
-
-                <fieldset class="inline-checks">
-                  <legend class="label">Modifications</legend>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="extra-cocoa" /> Extra cocoa</label>
-                  <label class="checkbox"><input type="checkbox" name="mods" value="decaf" /> Decaf version</label>
-                </fieldset>
-
-                <div class="menu-actions">
-                  <span class="price" data-price></span>
-                  <button type="button" class="button add-to-cart">Add to Cart</button>
-                </div>
-              </form>
-            </div>
-          </article>
+        <div id="menu-container" style="display: none;">
+          <div id="menu-items-grid" class="menu-grid">
+          </div>
         </div>
       </div>
     </section>
@@ -619,5 +126,235 @@
       </div>
     </div>
   </footer>
+
+  <script>
+    // Wait for API to be available
+    function waitForAPI(callback) {
+      if (window.foodAPI) {
+        callback();
+      } else {
+        setTimeout(() => waitForAPI(callback), 100);
+      }
+    }
+
+    let currentRestaurantId = null;
+    let currentRestaurant = null;
+    let menuItems = [];
+
+    // Get restaurant ID from URL
+    function getRestaurantIdFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('restaurantId') || params.get('restaurant');
+    }
+
+    // Load restaurant details
+    async function loadRestaurant(restaurantId) {
+      try {
+        const response = await window.foodAPI.getRestaurant(restaurantId);
+        if (response && response.success) {
+          currentRestaurant = response.data.restaurant || response.data;
+          const nameEl = document.getElementById('restaurant-name');
+          const descEl = document.getElementById('restaurant-description');
+          if (nameEl) nameEl.textContent = currentRestaurant.name || 'Menu';
+          if (descEl) descEl.textContent = currentRestaurant.description || 'Browse our delicious menu items';
+        }
+      } catch (error) {
+        console.error('Error loading restaurant:', error);
+      }
+    }
+
+    // Load menu items for restaurant
+    async function loadMenuItems() {
+      const restaurantId = getRestaurantIdFromURL();
+      
+      if (!restaurantId) {
+        document.getElementById('menu-loading').innerHTML = `
+          <div style="text-align: center; padding: 3rem;">
+            <h3>No Restaurant Selected</h3>
+            <p class="muted">Please select a restaurant from the <a href="restaurants.html">restaurants page</a> to view its menu.</p>
+          </div>
+        `;
+        return;
+      }
+
+      currentRestaurantId = restaurantId;
+
+      try {
+        // Load restaurant details
+        await loadRestaurant(restaurantId);
+
+        // Load menu items
+        const response = await window.foodAPI.getMenuItemsByRestaurant(restaurantId);
+        
+        if (response && response.success && response.menuItems) {
+          menuItems = response.menuItems;
+          renderMenuItems(menuItems);
+        } else {
+          document.getElementById('menu-loading').innerHTML = `
+            <div style="text-align: center; padding: 3rem;">
+              <h3>No Menu Items Available</h3>
+              <p class="muted">This restaurant hasn't added any menu items yet.</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading menu items:', error);
+        document.getElementById('menu-loading').innerHTML = `
+          <div style="text-align: center; padding: 3rem;">
+            <h3>Error Loading Menu</h3>
+            <p class="muted">Please try again later.</p>
+          </div>
+        `;
+      }
+    }
+
+    // Render menu items
+    function renderMenuItems(items) {
+      const container = document.getElementById('menu-items-grid');
+      const loadingEl = document.getElementById('menu-loading');
+      const menuContainer = document.getElementById('menu-container');
+      
+      if (!container) return;
+
+      if (items.length === 0) {
+        container.innerHTML = '<p style="text-align: center; padding: 2rem;">No menu items available.</p>';
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (menuContainer) menuContainer.style.display = 'block';
+        return;
+      }
+
+      // Group items by category
+      const itemsByCategory = {};
+      items.forEach(item => {
+        const category = item.category || 'Other';
+        if (!itemsByCategory[category]) {
+          itemsByCategory[category] = [];
+        }
+        itemsByCategory[category].push(item);
+      });
+
+      // Render items grouped by category
+      let html = '';
+      Object.keys(itemsByCategory).forEach(category => {
+        html += `<h2 class="h3" style="margin-top: 2rem; margin-bottom: 1rem;">${category}</h2>`;
+        html += itemsByCategory[category].map(item => {
+          const imageUrl = item.imageUrl || './public/images/pizza.jpg';
+          return `
+            <article class="menu-item" data-id="${item._id}" data-base-price="${item.price}" data-restaurant-id="${currentRestaurantId}">
+              <img src="${imageUrl}" alt="${item.name}" onerror="this.src='./public/images/pizza.jpg'" />
+              <div class="menu-body">
+                <h3 class="h4">${item.name}</h3>
+                <p class="muted">${item.description || ''}</p>
+
+                <form class="menu-form">
+                  <label>
+                    <span class="label">Quantity</span>
+                    <select name="size">
+                      <option value="1">1x</option>
+                      <option value="2">2x</option>
+                      <option value="3">3x</option>
+                      <option value="4">4x</option>
+                      <option value="5">5x</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    <span class="label">Special instructions</span>
+                    <input type="text" name="notes" placeholder="e.g., extra spicy, no onions" />
+                  </label>
+
+                  <div class="menu-actions">
+                    <span class="price" data-price>₹${item.price}</span>
+                    <button type="button" class="button add-to-cart">Add to Cart</button>
+                  </div>
+                </form>
+              </div>
+            </article>
+          `;
+        }).join('');
+      });
+
+      container.innerHTML = html;
+
+      // Hide loading, show menu
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (menuContainer) menuContainer.style.display = 'block';
+
+      // Setup add to cart handlers for dynamically loaded items
+      setupAddToCart();
+    }
+
+    // Setup add to cart to include restaurant ID
+    function setupAddToCart() {
+      // Remove any existing listeners by using event delegation on document
+      document.addEventListener('click', async function(e) {
+        if (e.target.classList.contains('add-to-cart')) {
+          e.preventDefault();
+          e.stopPropagation();
+          const button = e.target;
+          const menuItem = button.closest('.menu-item');
+          if (!menuItem) return;
+          
+          const itemId = menuItem.dataset.id;
+          const restaurantId = menuItem.dataset.restaurantId || currentRestaurantId;
+          const form = menuItem.querySelector('.menu-form');
+          const name = menuItem.querySelector('.h4').textContent;
+          const basePrice = parseFloat(menuItem.dataset.basePrice) || 0;
+          const quantitySelect = form.querySelector('select[name="size"]');
+          const quantity = quantitySelect ? parseInt(quantitySelect.value) : 1;
+          const notes = form.querySelector('input[name="notes"]') ? form.querySelector('input[name="notes"]').value.trim() : '';
+          
+          // Calculate price (base price is already in the currency from API)
+          const unitPrice = basePrice;
+          const totalPrice = unitPrice * quantity;
+
+          // Load existing cart
+          const cart = JSON.parse(localStorage.getItem('dd_cart') || '[]');
+          
+          // Create cart item key for duplicate checking
+          const key = JSON.stringify({ id: itemId, restaurantId, qty: quantity, notes });
+          
+          // Check if item already exists in cart
+          const existing = cart.find((it) => it.key === key);
+          if (existing) {
+            existing.qty += quantity;
+            existing.price = existing.unitPrice * existing.qty;
+          } else {
+            cart.push({
+              key,
+              id: itemId,
+              menuItemId: itemId,
+              restaurantId: restaurantId,
+              name: name,
+              unitPrice: unitPrice,
+              price: totalPrice,
+              qty: quantity,
+              notes: notes,
+              options: { notes }
+            });
+          }
+          
+          localStorage.setItem('dd_cart', JSON.stringify(cart));
+
+          // Update cart count
+          if (typeof updateNavCartCount === 'function') {
+            updateNavCartCount();
+          }
+
+          // Visual feedback
+          const originalText = button.textContent;
+          button.textContent = '✅ Added!';
+          setTimeout(() => {
+            button.textContent = originalText;
+          }, 1500);
+        }
+      });
+    }
+
+    // Initialize
+    waitForAPI(() => {
+      loadMenuItems();
+    });
+  </script>
 </body>
 </html>

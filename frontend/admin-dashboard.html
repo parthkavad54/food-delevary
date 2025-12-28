@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard — FOODY</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <a href="admin-dashboard.html" class="nav-link is-active">Dashboard</a>
+        <a href="admin-restaurants.html" class="nav-link">Restaurants</a>
+        <a href="admin-users.html" class="nav-link">Users</a>
+        <a href="index.html" class="nav-link">Home</a>
+        <button class="button button-outline" id="logout-btn">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="dashboard-header">
+          <h1 class="h2">Admin Dashboard</h1>
+          <p class="muted">Overview of your platform</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="dashboard-stats" id="stats-container">
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-content">
+              <h3 class="stat-value" id="total-users">-</h3>
+              <p class="stat-label">Total Users</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🍽️</div>
+            <div class="stat-content">
+              <h3 class="stat-value" id="total-restaurants">-</h3>
+              <p class="stat-label">Total Restaurants</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-content">
+              <h3 class="stat-value" id="total-orders">-</h3>
+              <p class="stat-label">Total Orders</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-content">
+              <h3 class="stat-value" id="total-revenue">-</h3>
+              <p class="stat-label">Total Revenue</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="dashboard-actions">
+          <a href="admin-restaurants.html" class="action-card">
+            <div class="action-icon">🍽️</div>
+            <h3>Manage Restaurants</h3>
+            <p>View and manage all restaurants</p>
+          </a>
+          <a href="admin-users.html" class="action-card">
+            <div class="action-icon">👥</div>
+            <h3>Manage Users</h3>
+            <p>View and manage all users</p>
+          </a>
+          <a href="admin-orders.html" class="action-card">
+            <div class="action-icon">📦</div>
+            <h3>View Orders</h3>
+            <p>Monitor all orders</p>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Wait for API to be available
+    function waitForAPI(callback) {
+      if (window.foodAPI) {
+        callback();
+      } else {
+        setTimeout(() => waitForAPI(callback), 100);
+      }
+    }
+
+    // Check authentication and role
+    async function checkAuth() {
+      const token = localStorage.getItem('foody_token');
+      const userStr = localStorage.getItem('foody_user');
+      
+      if (!token || !userStr) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+      if (user.role !== 'admin') {
+        alert('Access denied. Admin access required.');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Load dashboard stats
+      loadDashboardStats();
+    }
+
+    async function loadDashboardStats() {
+      try {
+        const data = await window.foodAPI.getAdminDashboardStats();
+        if (data && data.success) {
+          const stats = data.data;
+          document.getElementById('total-users').textContent = stats.users ? stats.users.total : 0;
+          document.getElementById('total-restaurants').textContent = stats.restaurants ? stats.restaurants.total : 0;
+          document.getElementById('total-orders').textContent = stats.orders ? stats.orders.total : 0;
+          document.getElementById('total-revenue').textContent = `₹${(stats.revenue ? stats.revenue.total : 0).toLocaleString()}`;
+        } else {
+          // Handle error state
+          document.getElementById('total-users').textContent = '-';
+          document.getElementById('total-restaurants').textContent = '-';
+          document.getElementById('total-orders').textContent = '-';
+          document.getElementById('total-revenue').textContent = '-';
+        }
+      } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        // Set error state
+        document.getElementById('total-users').textContent = 'Error';
+        document.getElementById('total-restaurants').textContent = 'Error';
+        document.getElementById('total-orders').textContent = 'Error';
+        document.getElementById('total-revenue').textContent = 'Error';
+      }
+    }
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      window.foodAPI.logout();
+      window.location.href = 'login.html';
+    });
+
+    // Initialize when API is ready
+    waitForAPI(() => {
+      checkAuth();
+    });
+  </script>
+
+  <style>
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    .stat-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .stat-icon {
+      font-size: 2.5rem;
+    }
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--color-primary);
+    }
+    .stat-label {
+      margin: 0.25rem 0 0;
+      color: var(--color-text);
+      opacity: 0.7;
+    }
+  </style>
+</body>
+</html>
+

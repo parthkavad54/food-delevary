@@ -12,6 +12,13 @@ const RestaurantSchema = new mongoose.Schema({
   },
   isActive: { type: Boolean, default: true },
   averageRating: { type: Number, default: 0 },
-}, { timestamps: true });
+}, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } });
+
+// Virtual to populate menu items
+RestaurantSchema.virtual('menuItems', {
+  ref: 'MenuItem',
+  localField: '_id',
+  foreignField: 'restaurant'
+});
 
 export default mongoose.model('Restaurant', RestaurantSchema);

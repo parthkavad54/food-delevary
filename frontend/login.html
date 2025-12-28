@@ -179,10 +179,25 @@
       if (!email || !password) return alert('Please fill in all fields');
 
       try {
-        await window.foodAPI.login(email, password);
+        const response = await window.foodAPI.login(email, password);
+        const user = response.user;
+        
+        // Redirect based on user role
+        let redirectPath = 'dashboard.html'; // default for customers
+        if (user.role === 'admin') {
+          redirectPath = 'admin-dashboard.html';
+        } else if (user.role === 'restaurant_owner') {
+          redirectPath = 'restaurant-dashboard.html';
+        }
+        
+        // Check if there's a redirect parameter in URL (for protected pages)
         const url = new URL(window.location.href);
-        const redirect = url.searchParams.get('redirect') || 'dashboard.html';
-        window.location.href = redirect;
+        const urlRedirect = url.searchParams.get('redirect');
+        if (urlRedirect) {
+          redirectPath = urlRedirect;
+        }
+        
+        window.location.href = redirectPath;
       } catch (err) {
         alert(err.message || 'Login failed');
       }
