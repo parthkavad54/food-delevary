@@ -12,22 +12,23 @@ const app = express();
 
 app.enable("trust proxy");
 
-app.use((req, res, next) => {
-  if (req.headers["x-forwarded-proto"] !== "https") {
-    return res.redirect("https://" + req.headers.host + req.url);
-  }
-  next();
-});
+// app.use((req, res, next) => {
+//   if (req.headers["x-forwarded-proto"] !== "https") {
+//     return res.redirect("https://" + req.headers.host + req.url);
+//   }
+//   next();
+// });
 
 
 // Middleware
 app.use(cors({
-  origin: [
-    "https://food-delevary-2.onrender.com",
-    "http://localhost:3000"
-   ],
-  //process.env.CORS_ORIGIN,
-  // ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5500', 'http://127.0.0.1:5500', 'file://'],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5500', 'http://127.0.0.1:5500', 'file://'],
+  // process.env.CORS_ORIGIN,
+  // [
+  //   "https://food-delevary-2.onrender.com",
+  //   "http://localhost:3000"
+  //  ],
+  
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
