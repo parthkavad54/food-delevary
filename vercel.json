@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -8,30 +9,6 @@
     {
       "source": "/health",
       "destination": "/api/index.js"
-    },
-    {
-      "source": "/",
-      "destination": "/frontend/index.html"
-    },
-    {
-      "source": "/assets/:path*",
-      "destination": "/frontend/assets/:path*"
-    },
-    {
-      "source": "/public/:path*",
-      "destination": "/frontend/public/:path*"
-    },
-    {
-      "source": "/favicon.png",
-      "destination": "/frontend/favicon.png"
-    },
-    {
-      "source": "/(.*)\\.html",
-      "destination": "/frontend/$1.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/$1"
     }
   ],
   "env": {

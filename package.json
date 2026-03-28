@@ -9,7 +9,7 @@
     "dev": "node start-server.js",
     "backend": "cd backend && npm run dev",
     "install-all": "npm install && cd backend && npm install",
-    "build": "echo 'No build process needed for this project'",
+    "build": "node -e \"const fs=require('fs'); fs.rmSync('public', {recursive:true, force:true}); fs.cpSync('frontend', 'public', {recursive:true});\"",
     "test": "echo 'No test specified'"
   },
   "keywords": [
