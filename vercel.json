@@ -1,58 +1,17 @@
 {
   "version": 2,
-  "functions": {
-    "backend/src/index.js": {
-      "maxDuration": 10
-    }
-  },
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "/backend/src/index.js"
+      "destination": "/api/index.js"
     },
     {
       "source": "/health",
-      "destination": "/backend/src/index.js"
+      "destination": "/api/index.js"
     },
     {
       "source": "/",
       "destination": "/frontend/index.html"
-    },
-    {
-      "source": "/index",
-      "destination": "/frontend/index.html"
-    },
-    {
-      "source": "/login",
-      "destination": "/frontend/login.html"
-    },
-    {
-      "source": "/signup",
-      "destination": "/frontend/signup.html"
-    },
-    {
-      "source": "/restaurants",
-      "destination": "/frontend/restaurants.html"
-    },
-    {
-      "source": "/menu",
-      "destination": "/frontend/menu.html"
-    },
-    {
-      "source": "/reviews",
-      "destination": "/frontend/reviews.html"
-    },
-    {
-      "source": "/order",
-      "destination": "/frontend/order.html"
-    },
-    {
-      "source": "/dashboard",
-      "destination": "/frontend/dashboard.html"
-    },
-    {
-      "source": "/profile",
-      "destination": "/frontend/profile.html"
     },
     {
       "source": "/assets/:path*",
@@ -69,6 +28,10 @@
     {
       "source": "/(.*)\\.html",
       "destination": "/frontend/$1.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/$1"
     }
   ],
   "env": {

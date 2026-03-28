@@ -1,14 +1,18 @@
 #!/usr/bin/env node
+// Local dev only — not used by Vercel
 
-const { spawn } = require('child_process');
-const path = require('path');
+import { spawn } from 'child_process';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 console.log('🚀 Starting Food Delivery Application...\n');
 
 // Start backend server
 console.log('📦 Starting Backend Server...');
 const backend = spawn('npm', ['run', 'dev'], {
-  cwd: path.join(__dirname, 'backend'),
+  cwd: join(__dirname, 'backend'),
   stdio: 'inherit',
   shell: true
 });
@@ -44,4 +48,3 @@ process.on('SIGTERM', () => {
   backend.kill('SIGTERM');
   process.exit(0);
 });
-

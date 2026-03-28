@@ -21,14 +21,22 @@ app.enable("trust proxy");
 
 
 // Middleware
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:5000',
+  'http://localhost:5500',
+  'file://',
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '',
+  'https://food-delevary-sable.vercel.app',
+].filter(Boolean);
+
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5500', 'http://127.0.0.1:5500', 'file://'],
-  // process.env.CORS_ORIGIN,
-  // [
-  //   "https://food-delevary-2.onrender.com",
-  //   "http://localhost:3000"
-  //  ],
-  
+  origin: function(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(null, true); // Allow all in production for now
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -36,8 +44,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from frontend
-app.use(express.static('../frontend'));
+// Static files are served by Vercel directly; skip in serverless
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/food_delivery', {
@@ -48,16 +55,16 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/food_deli
 .catch(err => console.error('MongoDB Connection Error:', err));
 
 // Import Routes
-import authRoutes from '../src/routes/auth.routes.js';
-import userRoutes from '../src/routes/users.routes.js';
-import restaurantRoutes from '../src/routes/restaurants.routes.js';
-import menuRoutes from '../src/routes/menu.routes.js';
-import orderRoutes from '../src/routes/order.routes.js';
-import cartRoutes from '../src/routes/cart.routes.js';
-import reviewRoutes from '../src/routes/reviews.routes.js';
-import paymentRoutes from '../src/routes/payment.routes.js';
-import adminRoutes from '../src/routes/admin.routes.js';
-import restaurantOwnerRoutes from '../src/routes/restaurantOwner.routes.js';
+import authRoutes from './routes/auth.routes.js';
+import userRoutes from './routes/users.routes.js';
+import restaurantRoutes from './routes/restaurants.routes.js';
+import menuRoutes from './routes/menu.routes.js';
+import orderRoutes from './routes/order.routes.js';
+import cartRoutes from './routes/cart.routes.js';
+import reviewRoutes from './routes/reviews.routes.js';
+import paymentRoutes from './routes/payment.routes.js';
+import adminRoutes from './routes/admin.routes.js';
+import restaurantOwnerRoutes from './routes/restaurantOwner.routes.js';
 
 
 
@@ -79,7 +86,7 @@ app.get('/health', (req, res) => {
 });
 
 // Import Error Handler
-import { errorHandler } from'./middleware/errorHandler.middleware.js';
+import { errorHandler } from './middleware/errorHandler.middleware.js';
 
 // Error Handling Middleware
 app.use(errorHandler);
