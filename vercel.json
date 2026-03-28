@@ -1,0 +1,46 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/src/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "backend/src/index.js"
+    },
+    {
+      "source": "/health",
+      "destination": "backend/src/index.js"
+    },
+    {
+      "source": "/(index.html)?",
+      "destination": "/frontend/index.html"
+    },
+    {
+      "source": "/favicon.png",
+      "destination": "/frontend/favicon.png"
+    },
+    {
+      "source": "/assets/(.*)",
+      "destination": "/frontend/assets/$1"
+    },
+    {
+      "source": "/public/(.*)",
+      "destination": "/frontend/public/$1"
+    },
+    {
+      "source": "/(.*).html",
+      "destination": "/frontend/$1.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

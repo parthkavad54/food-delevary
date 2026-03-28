@@ -12,7 +12,7 @@
 }
 html,
 body {
-  height: 100%;
+  min-height: 100%;
 }
 body {
   margin: 0;
@@ -21,6 +21,7 @@ body {
   color: var(--color-text);
   background: var(--color-offwhite);
   line-height: 1.6;
+  overflow-x: hidden;
 }
 
 img {
@@ -257,6 +258,97 @@ img {
 .button.is-active {
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+
+/* Mobile Menu Toggle */
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--color-text);
+  z-index: 20;
+}
+
+@media (max-width: 900px) {
+  .header-inner {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .location-selector {
+    order: 3;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    margin-top: 0.5rem;
+  }
+
+  .menu-toggle {
+    display: block;
+    order: 2;
+  }
+
+  .nav {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: #fff;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 15;
+    gap: 1.5rem;
+    padding: 2rem;
+  }
+
+  .nav.is-open {
+    display: flex;
+  }
+
+  .nav-link {
+    font-size: 1.25rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .nav-auth, .nav-user {
+    flex-direction: column;
+    width: 100%;
+    gap: 1rem;
+  }
+
+  .nav-auth .button, .nav-user .button {
+    width: 100%;
+  }
+
+  .hero-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .hero-actions {
+    justify-content: center;
+  }
+
+  .key-features {
+    justify-items: center;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+  }
 }
 
 .site-footer {
@@ -1772,4 +1864,37 @@ textarea.form-input {
     flex-direction: column;
     text-align: center;
   }
+}
+
+/* Premium Enhancements */
+main {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(15px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.button {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s, box-shadow 0.2s;
+}
+
+.button:active {
+  transform: scale(0.96);
+}
+
+.restaurant-card, .menu-item, .action-card, .stat-card {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+}
+
+.restaurant-card:hover, .menu-item:hover, .action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }

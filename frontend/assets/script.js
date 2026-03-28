@@ -604,5 +604,35 @@
 
     render()
   }
-  initCartPage()
+  // Mobile Menu Toggle
+  function initMobileMenu() {
+    const toggle = document.createElement('button');
+    toggle.className = 'menu-toggle';
+    toggle.innerHTML = '☰';
+    toggle.setAttribute('aria-label', 'Toggle Navigation');
+    
+    const headerInner = document.querySelector('.header-inner');
+    const nav = document.querySelector('.nav');
+    
+    if (headerInner && nav) {
+      headerInner.insertBefore(toggle, nav);
+      
+      toggle.addEventListener('click', () => {
+        nav.classList.toggle('is-open');
+        toggle.innerHTML = nav.classList.contains('is-open') ? '✕' : '☰';
+        document.body.style.overflow = nav.classList.contains('is-open') ? 'hidden' : '';
+      });
+      
+      // Close menu when clicking links
+      nav.querySelectorAll('.nav-link, .button').forEach(link => {
+        link.addEventListener('click', () => {
+          nav.classList.remove('is-open');
+          toggle.innerHTML = '☰';
+          document.body.style.overflow = '';
+        });
+      });
+    }
+  }
+  
+  initMobileMenu();
 })()
