@@ -1,6 +1,8 @@
 {
   "version": 2,
   "cleanUrls": true,
+  "public": "public",
+  "buildCommand": "npm run build",
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -9,6 +11,10 @@
     {
       "source": "/health",
       "destination": "/api/index.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "env": {
