@@ -1,7 +1,7 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "public": "public",
+  "public": "frontend",
   "buildCommand": "npm run build",
   "rewrites": [
     {
