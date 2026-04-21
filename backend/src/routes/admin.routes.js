@@ -24,6 +24,11 @@ router.put('/users/:id', adminController.updateUser);
 router.delete('/users/:id', adminController.deleteUser);
 
 // =================================================================
+// ADMIN DEACTIVATION WITH OTP
+// =================================================================
+router.post('/request-deactivation-otp', adminController.requestAdminDeactivationOTP);
+
+// =================================================================
 // RESTAURANT MANAGEMENT
 // =================================================================
 router.get('/restaurants', adminController.getAllRestaurantsAdmin);

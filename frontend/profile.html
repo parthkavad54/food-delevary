@@ -61,37 +61,92 @@
 
           <!-- Personal Information Tab -->
           <div class="tab-content active" id="personal-tab">
-            <div class="profile-card">
-              <h3 class="h3">Personal Information</h3>
-              <form class="profile-form" id="personal-form">
-                <div class="form-row">
-                  <div class="form-group">
+            <div class="form-with-preview">
+              <!-- Form Section -->
+              <div class="form-with-preview__form">
+                <h3 class="h3" style="margin-bottom: 1.5rem;">Edit Personal Information</h3>
+                
+                <div class="form-progress-indicator" id="form-progress">
+                  <div class="progress-dot"></div>
+                  <div class="progress-dot"></div>
+                  <div class="progress-dot"></div>
+                  <div class="progress-dot"></div>
+                  <div class="progress-dot"></div>
+                </div>
+
+                <form class="profile-form" id="personal-form">
+                  <div class="form-group-with-preview">
                     <label for="firstName" class="label">First Name</label>
-                    <input type="text" id="firstName" name="firstName" class="form-input" />
+                    <input type="text" id="firstName" name="firstName" class="form-input" placeholder="Enter your first name" />
                   </div>
-                  <div class="form-group">
+
+                  <div class="form-group-with-preview">
                     <label for="lastName" class="label">Last Name</label>
-                    <input type="text" id="lastName" name="lastName" class="form-input" />
+                    <input type="text" id="lastName" name="lastName" class="form-input" placeholder="Enter your last name" />
+                  </div>
+                  
+                  <div class="form-group-with-preview">
+                    <label for="email" class="label">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-input" placeholder="your@email.com" />
+                  </div>
+                  
+                  <div class="form-group-with-preview">
+                    <label for="phone" class="label">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="+91 98765 43210" />
+                  </div>
+                  
+                  <div class="form-group-with-preview">
+                    <label for="birthday" class="label">Date of Birth</label>
+                    <input type="date" id="birthday" name="birthday" class="form-input" />
+                  </div>
+                  
+                  <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="submit" class="button button-primary" style="flex: 1;">Save Changes</button>
+                    <button type="button" class="button button-outline" onclick="window.location.href='dashboard.html'" style="flex: 1;">Cancel</button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Preview Section -->
+              <div class="form-with-preview__preview">
+                <div class="preview-header">
+                  <div class="preview-avatar" id="preview-avatar">👤</div>
+                  <div class="preview-info">
+                    <h3 id="preview-name">Your Name</h3>
+                    <p id="preview-status">Filling your profile...</p>
                   </div>
                 </div>
-                
-                <div class="form-group">
-                  <label for="email" class="label">Email Address</label>
-                  <input type="email" id="email" name="email" class="form-input" />
+
+                <div class="preview-section">
+                  <div class="preview-section-title">Contact Information</div>
+                  
+                  <div class="preview-item" data-preview="email">
+                    <div class="preview-item-label">Email</div>
+                    <div class="preview-item-value placeholder">Not provided</div>
+                    <div class="preview-item-icon"></div>
+                  </div>
+
+                  <div class="preview-item" data-preview="phone">
+                    <div class="preview-item-label">Phone</div>
+                    <div class="preview-item-value placeholder">Not provided</div>
+                    <div class="preview-item-icon"></div>
+                  </div>
                 </div>
-                
-                <div class="form-group">
-                  <label for="phone" class="label">Phone Number</label>
-                  <input type="tel" id="phone" name="phone" class="form-input" />
+
+                <div class="preview-section">
+                  <div class="preview-section-title">Personal Details</div>
+                  
+                  <div class="preview-item" data-preview="birthday">
+                    <div class="preview-item-label">Birthday</div>
+                    <div class="preview-item-value placeholder">Not provided</div>
+                    <div class="preview-item-icon"></div>
+                  </div>
                 </div>
-                
-                <div class="form-group">
-                  <label for="birthday" class="label">Date of Birth</label>
-                  <input type="date" id="birthday" name="birthday" class="form-input" />
+
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border); text-align: center;">
+                  <p style="font-size: 0.85rem; color: rgba(17,24,39,0.6); margin: 0;">Profile <span id="completion-percent">0</span>% complete</p>
                 </div>
-                
-                <button type="submit" class="button button-primary">Save Changes</button>
-              </form>
+              </div>
             </div>
           </div>
 
@@ -529,6 +584,50 @@
         button.classList.add('active');
         document.getElementById(`${tabId}-tab`).classList.add('active');
       });
+    });
+
+    // Initialize form preview
+    const fieldMap = {
+      'email': 'email',
+      'phone': 'phone',
+      'birthday': 'birthday'
+    };
+
+    // Wait for formPreviewUtils to be available
+    function waitForFormUtils() {
+      if (window.formPreviewUtils) {
+        window.formPreviewUtils.initFormPreview(
+          '#personal-form',
+          '.form-with-preview__preview',
+          fieldMap
+        );
+      } else {
+        setTimeout(waitForFormUtils, 100);
+      }
+    }
+
+    waitForFormUtils();
+
+    // Update completion percentage
+    function updateCompletionPercent() {
+      const form = document.getElementById('personal-form');
+      const firstName = form.querySelector('[name="firstName"]').value;
+      const lastName = form.querySelector('[name="lastName"]').value;
+      const email = form.querySelector('[name="email"]').value;
+      const phone = form.querySelector('[name="phone"]').value;
+      const birthday = form.querySelector('[name="birthday"]').value;
+
+      const filledCount = [firstName, lastName, email, phone, birthday].filter(Boolean).length;
+      const totalCount = 5;
+      const percent = Math.round((filledCount / totalCount) * 100);
+
+      document.getElementById('completion-percent').textContent = percent;
+    }
+
+    // Listen to form changes to update percentage
+    document.getElementById('personal-form').querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', updateCompletionPercent);
+      input.addEventListener('change', updateCompletionPercent);
     });
 
     // Save personal info

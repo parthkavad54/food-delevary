@@ -1,8 +1,8 @@
 // routes/users.js
-import express from'express';
+import express from 'express';
 const router = express.Router();
-import User from'../models/user.model.js';
-import { protect } from'../middleware/auth.middleware.js';
+import User from '../models/user.model.js';
+import { protect } from '../middleware/auth.middleware.js';
 
 // @route   GET /api/users/profile
 // @desc    Get user profile

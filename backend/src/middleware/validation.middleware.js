@@ -1,5 +1,5 @@
 // middleware/validation.js
-import { validationResult } from'express-validator';
+import { validationResult } from 'express-validator';
 
 // Middleware to check validation results
 export const validate = (req, res, next) => {

@@ -4,6 +4,21 @@ import Restaurant from '../models/restaurant.model.js';
 import Order from '../models/order.model.js';
 
 // =================================================================
+// OTP UTILITY FUNCTIONS
+// =================================================================
+
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+};
+
+const sendOTPViaSMS = async (phoneNumber, otp) => {
+  // TODO: Implement actual SMS sending using Twilio or similar service
+  // For now, we'll just log it
+  console.log(`[OTP] Sent to ${phoneNumber}: ${otp}`);
+  return true;
+};
+
+// =================================================================
 // USER MANAGEMENT
 // =================================================================
 
@@ -178,13 +193,76 @@ export const deleteUser = async (req, res) => {
       });
     }
 
+    // Special handling for admin deactivation
+    if (user.role === 'admin') {
+      // Check if this is the last admin
+      const adminCount = await User.countDocuments({ role: 'admin', isActive: true });
+      
+      if (adminCount <= 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot deactivate the last admin. Please create another admin account first.'
+        });
+      }
+
+      // For admin deactivation, OTP verification is required
+      const { otp } = req.body;
+      
+      if (!otp) {
+        return res.status(400).json({
+          success: false,
+          message: 'OTP is required to deactivate an admin account. Request OTP first.',
+          requiresOTP: true
+        });
+      }
+
+      // Verify OTP
+      if (!user.otpCode || user.otpCode !== otp) {
+        user.otpAttempts = (user.otpAttempts || 0) + 1;
+        await user.save();
+
+        if (user.otpAttempts >= 3) {
+          user.otpCode = null;
+          user.otpExpiresAt = null;
+          user.otpAttempts = 0;
+          await user.save();
+          return res.status(400).json({
+            success: false,
+            message: 'Incorrect OTP. Too many attempts. Please request a new OTP.'
+          });
+        }
+
+        return res.status(400).json({
+          success: false,
+          message: 'Incorrect OTP. Please try again.'
+        });
+      }
+
+      // Check if OTP is expired
+      if (new Date() > user.otpExpiresAt) {
+        user.otpCode = null;
+        user.otpExpiresAt = null;
+        user.otpAttempts = 0;
+        await user.save();
+        return res.status(400).json({
+          success: false,
+          message: 'OTP has expired. Please request a new OTP.'
+        });
+      }
+
+      // OTP is valid, clear OTP fields
+      user.otpCode = null;
+      user.otpExpiresAt = null;
+      user.otpAttempts = 0;
+    }
+
     // Soft delete - deactivate user
     user.isActive = false;
     await user.save();
 
     res.status(200).json({
       success: true,
-      message: 'User deactivated successfully'
+      message: `${user.role === 'admin' ? 'Admin' : 'User'} deactivated successfully`
     });
   } catch (error) {
     console.error('Error deleting user:', error);
@@ -220,6 +298,75 @@ export const getUserStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while fetching user statistics'
+    });
+  }
+};
+
+// =================================================================
+// ADMIN DEACTIVATION WITH OTP
+// =================================================================
+
+// Request OTP for admin deactivation
+export const requestAdminDeactivationOTP = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Only allow OTP request for admin users
+    if (user.role !== 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'OTP deactivation is only for admin users'
+      });
+    }
+
+    // Check if this is the last admin
+    const adminCount = await User.countDocuments({ role: 'admin', isActive: true });
+    if (adminCount <= 1) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot request OTP for the last admin. Please create another admin account first.'
+      });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    user.otpCode = otp;
+    user.otpExpiresAt = expiresAt;
+    user.otpAttempts = 0;
+    await user.save();
+
+    // Send OTP via SMS
+    await sendOTPViaSMS(user.phone, otp);
+
+    res.status(200).json({
+      success: true,
+      message: `OTP sent to ${user.phone}. OTP expires in 10 minutes.`,
+      phoneNumber: user.phone.slice(-4), // Only show last 4 digits for security
+      expiresIn: 600 // 10 minutes in seconds
+    });
+  } catch (error) {
+    console.error('Error requesting OTP:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while requesting OTP'
     });
   }
 };

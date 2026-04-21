@@ -203,6 +203,32 @@ class FoodDeliveryAPI {
     });
   }
 
+  async updateOrder(id, updateData) {
+    return await this.request(`/orders/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData)
+    });
+  }
+
+  // Payment methods
+  async verifyPayment(paymentData) {
+    return await this.request('/payment/verify', {
+      method: 'POST',
+      body: JSON.stringify(paymentData)
+    });
+  }
+
+  async processPayment(paymentData) {
+    return await this.request('/payment/process', {
+      method: 'POST',
+      body: JSON.stringify(paymentData)
+    });
+  }
+
+  async getPaymentStatus(orderId) {
+    return await this.request(`/payment/${orderId}`);
+  }
+
   // Review methods
   async getReviews(restaurantId) {
     return await this.request(`/reviews?restaurantId=${restaurantId}`);
@@ -303,10 +329,26 @@ class FoodDeliveryAPI {
     });
   }
 
-  async deleteAdminUser(id) {
-    return await this.request(`/admin/users/${id}`, {
+  async deleteAdminUser(id, otpData = null) {
+    const config = {
       method: 'DELETE'
+    };
+    if (otpData) {
+      config.body = JSON.stringify(otpData);
+    }
+    return await this.request(`/admin/users/${id}`, config);
+  }
+
+  // Admin Deactivation with OTP
+  async requestAdminDeactivationOTP(userId) {
+    return await this.request('/admin/request-deactivation-otp', {
+      method: 'POST',
+      body: JSON.stringify({ userId })
     });
+  }
+
+  async verifyAdminDeactivationOTP(userId, otp) {
+    return await this.deleteAdminUser(userId, { otp });
   }
 
   // Restaurant Management (Admin)

@@ -1,8 +1,8 @@
 // routes/auth.js
 import express from "express";
 const router = express.Router();
-import jwt from'jsonwebtoken';
-import User from'../models/user.model.js';
+import jwt from 'jsonwebtoken';
+import User from '../models/user.model.js';
 import passport from 'passport';
 
 // Generate JWT Token

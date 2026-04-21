@@ -1,9 +1,9 @@
 // routes/menu.js
-import express from'express';
+import express from 'express';
 const router = express.Router();
-import MenuItem from'../models/menuItem.model.js';
-import Restaurant from'../models/restaurant.model.js';
-import { protect, authorize } from'../middleware/auth.middleware.js';
+import MenuItem from '../models/menuItem.model.js';
+import Restaurant from '../models/restaurant.model.js';
+import { protect, authorize } from '../middleware/auth.middleware.js';
 
 // @route   GET /api/menu/restaurant/:restaurantId
 // @desc    Get menu items for a restaurant

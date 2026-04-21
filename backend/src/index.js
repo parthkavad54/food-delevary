@@ -1,7 +1,8 @@
 // server.js
 import express from "express";
 import mongoose from 'mongoose';
-
+import http from 'http';
+import { Server as SocketServer } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import session from 'express-session';
@@ -121,7 +122,67 @@ export default app;
 
 const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-  app.listen(PORT, () => {
+  // Create HTTP server and attach Socket.io
+  const server = http.createServer(app);
+  const io = new SocketServer(server, {
+    cors: {
+      origin: [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://localhost:5000',
+        'http://127.0.0.1:5000',
+        'http://localhost:5500',
+        'file://',
+        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '',
+        'https://food-delevary-sable.vercel.app',
+      ],
+      credentials: true
+    }
+  });
+
+  // Socket.io connection handling
+  io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+
+    // Join order updates room for specific order
+    socket.on('join-order', (orderId, userId) => {
+      const roomName = `order-${orderId}`;
+      socket.join(roomName);
+      console.log(`User ${userId} joined room: ${roomName}`);
+    });
+
+    // Leave order room
+    socket.on('leave-order', (orderId) => {
+      const roomName = `order-${orderId}`;
+      socket.leave(roomName);
+      console.log(`User left room: ${roomName}`);
+    });
+
+    // Listen for order status updates from backend and broadcast to customer
+    socket.on('order-status-update', (data) => {
+      const { orderId, newStatus, userId } = data;
+      const roomName = `order-${orderId}`;
+      
+      // Broadcast to all clients in the order room
+      io.to(roomName).emit('order-status-changed', {
+        orderId,
+        newStatus,
+        timestamp: new Date()
+      });
+      
+      console.log(`Order ${orderId} status updated to ${newStatus}`);
+    });
+
+    // Disconnect handling
+    socket.on('disconnect', () => {
+      console.log('User disconnected:', socket.id);
+    });
+  });
+
+  // Make io accessible to routes
+  app.set('io', io);
+
+  server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 }

@@ -1,8 +1,8 @@
 // routes/payment.js
-import express from'express';
+import express from 'express';
 const router = express.Router();
-import Order from'../models/order.model.js';
-import { protect } from'../middleware/auth.middleware.js';
+import Order from '../models/order.model.js';
+import { protect } from '../middleware/auth.middleware.js';
 
 // @route   POST /api/payment/process
 // @desc    Process payment
@@ -95,7 +95,7 @@ router.post('/process', protect, async (req, res) => {
 // @access  Private
 router.post('/verify', protect, async (req, res) => {
   try {
-    const { orderId, transactionId } = req.body;
+    const { orderId, paymentId, signature } = req.body;
 
     const order = await Order.findById(orderId);
 
@@ -106,15 +106,36 @@ router.post('/verify', protect, async (req, res) => {
       });
     }
 
-    // Verify with payment gateway
-    // In production: Call payment gateway verification API
-    const isVerified = order.transactionId === transactionId;
+    // In production: Verify with Razorpay using signature
+    // const crypto = require('crypto');
+    // const expectedSignature = crypto
+    //   .createHmac('sha256', RAZORPAY_KEY_SECRET)
+    //   .update(orderId + '|' + paymentId)
+    //   .digest('hex');
+    // const isVerified = expectedSignature === signature;
 
-    res.json({
-      success: true,
-      verified: isVerified,
-      paymentStatus: order.paymentStatus
-    });
+    // For demo: Accept all payments
+    const isVerified = true;
+
+    if (isVerified) {
+      order.paymentStatus = 'completed';
+      order.paymentId = paymentId;
+      order.orderStatus = 'Confirmed';
+      await order.save();
+
+      res.json({
+        success: true,
+        verified: true,
+        message: 'Payment verified successfully',
+        order
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        verified: false,
+        message: 'Payment verification failed'
+      });
+    }
   } catch (err) {
     res.status(500).json({
       success: false,

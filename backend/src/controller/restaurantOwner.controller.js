@@ -115,7 +115,7 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
 
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).populate('user', '_id');
 
     if (!order) {
       return res.status(404).json({
@@ -140,6 +140,18 @@ export const updateOrderStatus = async (req, res) => {
     }
 
     await order.save();
+
+    // Emit real-time update via Socket.io
+    const io = req.app.get('io');
+    if (io) {
+      const roomName = `order-${order._id}`;
+      io.to(roomName).emit('order-status-changed', {
+        orderId: order._id,
+        newStatus: status,
+        timestamp: new Date(),
+        message: `Order status updated to ${status}`
+      });
+    }
 
     res.status(200).json({
       success: true,

@@ -369,30 +369,6 @@
     await saveCart(cart)
   }
 
-  // Handle dynamically-injected menu items too (event delegation)
-  document.addEventListener("click", async (e) => {
-    const btn = e.target?.closest?.(".add-to-cart")
-    if (!btn) return
-    const card = btn.closest(".menu-item")
-    if (!card) return
-    e.preventDefault()
-
-    const originalText = btn.textContent
-    btn.disabled = true
-    try {
-      await addMenuItemToCartFromCard(card)
-      btn.textContent = "✅ Added!"
-      setTimeout(() => {
-        btn.textContent = originalText
-      }, 1200)
-    } catch (err) {
-      console.error("Add to cart failed:", err)
-      alert(err?.message || "Failed to add to cart")
-    } finally {
-      btn.disabled = false
-    }
-  })
-
   initMenuCards()
 
   // RESTAURANT filters
@@ -640,6 +616,903 @@
   }
   initCartPage()
   // Mobile Menu Toggle
+  // PROFILE PAGE handling
+  async function initProfilePage() {
+    const personalForm = document.getElementById('personal-form');
+    if (!personalForm) return;
+
+    // Load user profile data
+    async function loadUserProfile() {
+      try {
+        const user = await window.foodAPI.me();
+        if (!user || !user.user) return;
+
+        const userData = user.user;
+
+        // Populate form fields
+        const firstNameInput = document.getElementById('firstName');
+        const lastNameInput = document.getElementById('lastName');
+        const emailInput = document.getElementById('email');
+        const phoneInput = document.getElementById('phone');
+        const birthdayInput = document.getElementById('birthday');
+        const profileName = document.getElementById('profile-name');
+        const profileEmail = document.getElementById('profile-email');
+        const avatarInitials = document.getElementById('avatar-initials');
+
+        if (firstNameInput) firstNameInput.value = userData.firstName || '';
+        if (lastNameInput) lastNameInput.value = userData.lastName || '';
+        if (emailInput) emailInput.value = userData.email || '';
+        if (phoneInput) phoneInput.value = userData.phone || '';
+        if (birthdayInput && userData.birthday) {
+          birthdayInput.value = new Date(userData.birthday).toISOString().split('T')[0];
+        }
+
+        // Update profile header
+        const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || userData.name || 'User';
+        if (profileName) profileName.textContent = fullName;
+        if (profileEmail) profileEmail.textContent = userData.email;
+
+        // Update avatar initials
+        const initials = (userData.firstName?.charAt(0) || 'U') + (userData.lastName?.charAt(0) || '');
+        if (avatarInitials) avatarInitials.textContent = initials.toUpperCase();
+      } catch (error) {
+        console.error('Error loading user profile:', error);
+      }
+    }
+
+    // Handle form submission
+    personalForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const firstNameInput = document.getElementById('firstName');
+      const lastNameInput = document.getElementById('lastName');
+      const phoneInput = document.getElementById('phone');
+      const birthdayInput = document.getElementById('birthday');
+
+      try {
+        const updateData = {
+          firstName: firstNameInput.value || '',
+          lastName: lastNameInput.value || '',
+          phone: phoneInput.value || '',
+          birthday: birthdayInput.value ? new Date(birthdayInput.value) : null
+        };
+
+        // Call API to update user profile
+        const result = await window.foodAPI.updateUserProfile(updateData);
+
+        if (result && result.success) {
+          alert('Profile updated successfully!');
+          // Refresh the profile data
+          await loadUserProfile();
+        } else {
+          alert(result?.message || 'Failed to update profile');
+        }
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        alert(error?.message || 'Failed to update profile');
+      }
+    });
+
+    // Load profile data on page load
+    await loadUserProfile();
+  }
+
+  initProfilePage();
+
+  // CART POPUP - Show modal when item is added to cart
+  function initAddToCartPopup() {
+    // Create modal HTML if it doesn't exist
+    let modal = document.getElementById('cart-popup-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'cart-popup-modal';
+      modal.style.cssText = `
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+      `;
+      modal.innerHTML = `
+        <div style="background: white; padding: 2rem; border-radius: 0.5rem; text-align: center; animation: popIn 0.3s ease; box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);">
+          <h3 style="margin: 0 0 1rem 0; font-size: 1.25rem; color: #2d3748;">✅ Item Added to Cart</h3>
+          <p style="margin: 0 0 1.5rem 0; color: #718096; font-size: 0.95rem;">Your item has been added successfully</p>
+          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <button id="popup-continue-shopping" style="padding: 0.75rem 1.5rem; background: #f7fafc; border: 1px solid #cbd5e0; border-radius: 0.375rem; cursor: pointer; font-weight: 600; transition: background 0.2s;">Continue Shopping</button>
+            <button id="popup-view-cart" style="padding: 0.75rem 1.5rem; background: #3182ce; color: white; border: none; border-radius: 0.375rem; cursor: pointer; font-weight: 600; transition: background 0.2s;">View Cart</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      // Add animation styles
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes popIn {
+          from { transform: scale(0.8); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        #popup-continue-shopping:hover { background: #edf2f7; }
+        #popup-view-cart:hover { background: #2c5aa0; }
+      `;
+      document.head.appendChild(style);
+    }
+
+    // Override the add-to-cart button click handler to show modal
+    // We need to replace the existing event listener
+    const originalHandler = document.addEventListener;
+    let handlerAttached = false;
+
+    // Only attach once
+    if (!window.addToCartPopupAttached) {
+      window.addToCartPopupAttached = true;
+      
+      document.addEventListener('click', async (e) => {
+        const btn = e.target?.closest?.('.add-to-cart');
+        if (!btn) return;
+        const card = btn.closest('.menu-item');
+        if (!card) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        try {
+          await addMenuItemToCartFromCard(card);
+          btn.textContent = '✅ Added!';
+
+          // Show cart popup modal
+          const modalEl = document.getElementById('cart-popup-modal');
+          if (modalEl) {
+            modalEl.style.display = 'flex';
+
+            // Handle popup buttons
+            const continueBtn = document.getElementById('popup-continue-shopping');
+            const viewCartBtn = document.getElementById('popup-view-cart');
+
+            const closeModal = () => {
+              modalEl.style.display = 'none';
+            };
+
+            const handleContinue = () => {
+              closeModal();
+            };
+
+            const handleViewCart = () => {
+              window.location.href = 'order.html';
+            };
+
+            if (continueBtn) continueBtn.onclick = handleContinue;
+            if (viewCartBtn) viewCartBtn.onclick = handleViewCart;
+
+            // Close modal when clicking outside
+            const handleBackdropClick = (event) => {
+              if (event.target === modalEl) {
+                closeModal();
+              }
+            };
+            modalEl.onclick = handleBackdropClick;
+
+            // Auto close after 2 seconds if user doesn't click
+            const autoCloseTimeout = setTimeout(closeModal, 2000);
+
+            // Update click handlers to clear timeout
+            if (continueBtn) {
+              continueBtn.onclick = () => {
+                clearTimeout(autoCloseTimeout);
+                handleContinue();
+              };
+            }
+            if (viewCartBtn) {
+              viewCartBtn.onclick = () => {
+                clearTimeout(autoCloseTimeout);
+                handleViewCart();
+              };
+            }
+          }
+
+          setTimeout(() => {
+            btn.textContent = originalText;
+          }, 1200);
+        } catch (err) {
+          console.error('Add to cart failed:', err);
+          alert(err?.message || 'Failed to add to cart');
+        } finally {
+          btn.disabled = false;
+        }
+      }, true); // Use capture phase to ensure this runs before other handlers
+    }
+  }
+
+  initAddToCartPopup();
+
+  // =================================================================
+  // FORM WITH LIVE PREVIEW - For Beautiful Form Filling Effects
+  // =================================================================
+  // =================================================================
+  // SOCKET.IO REAL-TIME ORDER TRACKING
+  // =================================================================
+  window.orderRealtimeUtils = {
+    io: null,
+    currentOrderId: null,
+    listeners: {},
+
+    // Show notification for order status change
+    showOrderStatusNotification(data) {
+      const { orderId, newStatus, message } = data;
+      
+      const notification = document.createElement('div');
+      notification.className = 'order-status-notification success';
+      notification.innerHTML = `
+        <button class="notification-close">✕</button>
+        <div class="notification-header">
+          <div class="notification-icon">✓</div>
+          <h4 class="notification-title">Order Updated</h4>
+        </div>
+        <p class="notification-message">${message || `Order status updated to ${newStatus}`}</p>
+      `;
+
+      document.body.appendChild(notification);
+
+      // Close button handler
+      notification.querySelector('.notification-close').addEventListener('click', () => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+      });
+
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        if (notification.parentElement) {
+          notification.style.animation = 'slideOut 0.3s ease';
+          setTimeout(() => notification.remove(), 300);
+        }
+      }, 5000);
+    },
+
+    // Initialize Socket.io connection
+    initSocket() {
+      // Load Socket.io library dynamically
+      if (typeof io === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.socket.io/4.5.4/socket.io.min.js';
+        script.onload = () => {
+          this._connectSocket();
+        };
+        document.head.appendChild(script);
+      } else {
+        this._connectSocket();
+      }
+    },
+
+    _connectSocket() {
+      // Get server URL
+      const socketURL = window.API_BASE_URL ? 
+        window.API_BASE_URL.replace('/api', '') : 
+        window.location.origin;
+
+      this.io = io(socketURL, {
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: 5
+      });
+
+      this.io.on('connect', () => {
+        console.log('Socket connected:', this.io.id);
+      });
+
+      this.io.on('order-status-changed', (data) => {
+        console.log('Order status changed:', data);
+        this.showOrderStatusNotification(data);
+        this._notifyListeners('order-status-changed', data);
+      });
+
+      this.io.on('disconnect', () => {
+        console.log('Socket disconnected');
+      });
+    },
+
+    // Join order room for real-time updates
+    joinOrderRoom(orderId, userId) {
+      if (!this.io) {
+        this.initSocket();
+      }
+      
+      this.currentOrderId = orderId;
+      this.io.emit('join-order', orderId, userId);
+      console.log(`Joined order room: order-${orderId}`);
+    },
+
+    // Leave order room
+    leaveOrderRoom(orderId) {
+      if (this.io && orderId) {
+        this.io.emit('leave-order', orderId);
+        this.currentOrderId = null;
+      }
+    },
+
+    // Listen for order status changes
+    onOrderStatusChanged(callback) {
+      this._addListener('order-status-changed', callback);
+    },
+
+    // Add event listener
+    _addListener(event, callback) {
+      if (!this.listeners[event]) {
+        this.listeners[event] = [];
+      }
+      this.listeners[event].push(callback);
+    },
+
+    // Notify all listeners
+    _notifyListeners(event, data) {
+      if (this.listeners[event]) {
+        this.listeners[event].forEach(callback => {
+          callback(data);
+        });
+      }
+    },
+
+    // Disconnect
+    disconnect() {
+      if (this.io) {
+        this.io.disconnect();
+        this.io = null;
+      }
+    }
+  };
+
+  // Initialize Socket.io when page loads
+  window.addEventListener('load', () => {
+    window.orderRealtimeUtils.initSocket();
+  });
+
+  // =================================================================
+  // MULTI-RESTAURANT CART MANAGEMENT
+  // =================================================================
+  // =================================================================
+  // GOOGLE MAPS INTEGRATION
+  // =================================================================
+  window.mapsUtils = {
+    map: null,
+    markers: [],
+    infoWindows: [],
+    GOOGLE_MAPS_API_KEY: 'AIzaSyDxd1d5xWz8PZdKEzEV-sN-Z_5P-9qM7k4',
+    DEFAULT_CENTER: { lat: 22.3039, lng: 70.8022 }, // Rajkot, Gujarat
+
+    // Load Google Maps API
+    loadGoogleMapsAPI() {
+      if (window.google && window.google.maps) {
+        return Promise.resolve();
+      }
+
+      return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${this.GOOGLE_MAPS_API_KEY}&libraries=places,marker`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => resolve();
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    },
+
+    // Initialize map on element
+    async initMap(elementId, center = this.DEFAULT_CENTER, zoom = 12) {
+      try {
+        await this.loadGoogleMapsAPI();
+
+        const element = document.getElementById(elementId);
+        if (!element) return null;
+
+        this.map = new google.maps.Map(element, {
+          center,
+          zoom,
+          mapTypeControl: true,
+          fullscreenControl: true,
+          zoomControl: true
+        });
+
+        return this.map;
+      } catch (error) {
+        console.error('Error initializing map:', error);
+      }
+    },
+
+    // Add marker to map
+    addMarker(position, title, icon = null) {
+      if (!this.map) return null;
+
+      const marker = new google.maps.Marker({
+        position,
+        map: this.map,
+        title,
+        icon
+      });
+
+      this.markers.push(marker);
+      return marker;
+    },
+
+    // Add info window to marker
+    addInfoWindow(marker, content) {
+      const infoWindow = new google.maps.InfoWindow({ content });
+      marker.addListener('click', () => {
+        this.infoWindows.forEach(iw => iw.close());
+        infoWindow.open(this.map, marker);
+      });
+      this.infoWindows.push(infoWindow);
+      return infoWindow;
+    },
+
+    // Clear all markers
+    clearMarkers() {
+      this.markers.forEach(marker => marker.setMap(null));
+      this.markers = [];
+      this.infoWindows = [];
+    },
+
+    // Pan to location
+    panTo(location) {
+      if (this.map) {
+        this.map.panTo(location);
+      }
+    },
+
+    // Get current user location
+    async getCurrentLocation() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error('Geolocation not supported'));
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            resolve({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            });
+          },
+          (error) => reject(error),
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+      });
+    },
+
+    // Calculate distance between two coordinates
+    calculateDistance(from, to) {
+      const R = 6371; // Earth's radius in km
+      const dLat = ((to.lat - from.lat) * Math.PI) / 180;
+      const dLng = ((to.lng - from.lng) * Math.PI) / 180;
+      const a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos((from.lat * Math.PI) / 180) * Math.cos((to.lat * Math.PI) / 180) *
+        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    },
+
+    // Get address from coordinates (reverse geocoding)
+    async getAddressFromCoordinates(lat, lng) {
+      await this.loadGoogleMapsAPI();
+      
+      return new Promise((resolve, reject) => {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+          if (status === 'OK' && results[0]) {
+            resolve(results[0].formatted_address);
+          } else {
+            reject(new Error('Geocoding failed'));
+          }
+        });
+      });
+    },
+
+    // Get coordinates from address
+    async getCoordinatesFromAddress(address) {
+      await this.loadGoogleMapsAPI();
+      
+      return new Promise((resolve, reject) => {
+        const geocoder = new google.maps.Geocoder();
+        geocoder.geocode({ address }, (results, status) => {
+          if (status === 'OK' && results[0]) {
+            const location = results[0].geometry.location;
+            resolve({
+              lat: location.lat(),
+              lng: location.lng(),
+              address: results[0].formatted_address
+            });
+          } else {
+            reject(new Error('Geocoding failed'));
+          }
+        });
+      });
+    },
+
+    // Watch delivery boy location (simulate with updates)
+    watchDeliveryLocation(orderId, onLocationUpdate) {
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          onLocationUpdate({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+            timestamp: new Date()
+          });
+        },
+        (error) => console.error('Location watch error:', error),
+        { enableHighAccuracy: true, maximumAge: 5000 }
+      );
+
+      return watchId;
+    }
+  };
+
+  window.multiRestaurantCart = {
+    STORAGE_KEY: 'foody_multi_restaurant_cart',
+
+    // Get cart from localStorage
+    load() {
+      try {
+        const stored = localStorage.getItem(this.STORAGE_KEY);
+        return stored ? JSON.parse(stored) : { restaurants: {} };
+      } catch (e) {
+        console.error('Error loading cart:', e);
+        return { restaurants: {} };
+      }
+    },
+
+    // Save cart to localStorage
+    save(cart) {
+      try {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cart));
+      } catch (e) {
+        console.error('Error saving cart:', e);
+      }
+    },
+
+    // Add item to cart for a specific restaurant
+    addItem(restaurantId, restaurantName, item) {
+      const cart = this.load();
+      
+      // Initialize restaurant section if not exists
+      if (!cart.restaurants[restaurantId]) {
+        cart.restaurants[restaurantId] = {
+          id: restaurantId,
+          name: restaurantName,
+          items: []
+        };
+      }
+
+      // Check if item already exists
+      const existingItem = cart.restaurants[restaurantId].items.find(
+        it => it.menuItemId === item.menuItemId && it.customizations === item.customizations
+      );
+
+      if (existingItem) {
+        existingItem.quantity += item.quantity || 1;
+      } else {
+        cart.restaurants[restaurantId].items.push({
+          ...item,
+          quantity: item.quantity || 1
+        });
+      }
+
+      this.save(cart);
+      return cart;
+    },
+
+    // Remove item from cart
+    removeItem(restaurantId, itemKey) {
+      const cart = this.load();
+      
+      if (cart.restaurants[restaurantId]) {
+        cart.restaurants[restaurantId].items = cart.restaurants[restaurantId].items.filter(
+          item => item.key !== itemKey
+        );
+
+        // Remove restaurant section if no items left
+        if (cart.restaurants[restaurantId].items.length === 0) {
+          delete cart.restaurants[restaurantId];
+        }
+      }
+
+      this.save(cart);
+      return cart;
+    },
+
+    // Update item quantity
+    updateQuantity(restaurantId, itemKey, quantity) {
+      const cart = this.load();
+      
+      if (cart.restaurants[restaurantId]) {
+        const item = cart.restaurants[restaurantId].items.find(it => it.key === itemKey);
+        if (item) {
+          if (quantity <= 0) {
+            return this.removeItem(restaurantId, itemKey);
+          }
+          item.quantity = quantity;
+          this.save(cart);
+        }
+      }
+
+      return cart;
+    },
+
+    // Clear all items
+    clear() {
+      this.save({ restaurants: {} });
+    },
+
+    // Get total count
+    getItemCount() {
+      const cart = this.load();
+      let count = 0;
+      Object.values(cart.restaurants).forEach(restaurant => {
+        restaurant.items.forEach(item => {
+          count += item.quantity || 1;
+        });
+      });
+      return count;
+    },
+
+    // Get restaurants in cart
+    getRestaurants() {
+      const cart = this.load();
+      return Object.values(cart.restaurants);
+    }
+  };
+
+  window.formPreviewUtils = {
+    // Initialize a form with live preview
+    initFormPreview(formSelector, previewSelector, fieldMap) {
+      const form = document.querySelector(formSelector);
+      const preview = document.querySelector(previewSelector);
+      
+      if (!form || !preview) return;
+
+      // Get all input elements
+      const inputs = form.querySelectorAll('input, textarea, select');
+
+      // Set up listeners for each input
+      inputs.forEach((input) => {
+        input.addEventListener('input', () => {
+          this.updatePreview(preview, form, fieldMap);
+          this.updateProgressIndicator(form, fieldMap);
+        });
+
+        input.addEventListener('change', () => {
+          this.updatePreview(preview, form, fieldMap);
+          this.updateProgressIndicator(form, fieldMap);
+        });
+
+        // Initial preview load
+        this.updatePreview(preview, form, fieldMap);
+        this.updateProgressIndicator(form, fieldMap);
+      });
+    },
+
+    // Update preview with form data
+    updatePreview(preview, form, fieldMap) {
+      // Update avatar initials
+      const firstName = form.querySelector('[name="firstName"]')?.value || '';
+      const lastName = form.querySelector('[name="lastName"]')?.value || '';
+      const avatarEl = preview.querySelector('.preview-avatar');
+      if (avatarEl) {
+        const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase();
+        avatarEl.textContent = initials || '👤';
+      }
+
+      // Update name
+      const nameEl = preview.querySelector('.preview-info h3');
+      if (nameEl) {
+        nameEl.textContent = `${firstName} ${lastName}`.trim() || 'Your Name';
+      }
+
+      // Update each preview item
+      Object.entries(fieldMap).forEach(([inputName, previewName]) => {
+        const input = form.querySelector(`[name="${inputName}"]`);
+        const previewItem = preview.querySelector(`[data-preview="${previewName}"]`);
+
+        if (input && previewItem) {
+          const value = input.value;
+          const valueEl = previewItem.querySelector('.preview-item-value');
+          const iconEl = previewItem.querySelector('.preview-item-icon');
+
+          if (value) {
+            valueEl.textContent = this.formatPreviewValue(inputName, value);
+            valueEl.classList.remove('placeholder');
+            previewItem.classList.add('filled');
+            if (iconEl) iconEl.textContent = '✓';
+          } else {
+            valueEl.textContent = `Not provided`;
+            valueEl.classList.add('placeholder');
+            previewItem.classList.remove('filled');
+            if (iconEl) iconEl.textContent = '';
+          }
+        }
+      });
+    },
+
+    // Format preview values based on field type
+    formatPreviewValue(fieldName, value) {
+      if (fieldName === 'email') {
+        return value.split('@')[0] + '@...';
+      }
+      if (fieldName === 'phone') {
+        return value.replace(/(\d{2})\d+(\d{2})/, '+91 $1**$2');
+      }
+      if (fieldName === 'birthday') {
+        const date = new Date(value);
+        return date.toLocaleDateString('en-IN', { month: 'short', day: '2-digit', year: 'numeric' });
+      }
+      if (fieldName === 'address') {
+        return value.substring(0, 30) + (value.length > 30 ? '...' : '');
+      }
+      return value;
+    },
+
+    // Update progress dots
+    updateProgressIndicator(form, fieldMap) {
+      const progressDots = form.querySelectorAll('.progress-dot');
+      let filledCount = 0;
+
+      Object.keys(fieldMap).forEach((inputName, index) => {
+        const input = form.querySelector(`[name="${inputName}"]`);
+        if (input && input.value) {
+          filledCount++;
+          if (progressDots[index]) {
+            progressDots[index].classList.add('filled');
+          }
+        } else {
+          if (progressDots[index]) {
+            progressDots[index].classList.remove('filled');
+          }
+        }
+      });
+
+      // Update current indicator
+      const totalFields = Object.keys(fieldMap).length;
+      const progressPercent = Math.round((filledCount / totalFields) * 100);
+
+      // Show "current" indicator on next field to fill
+      progressDots.forEach((dot, index) => {
+        dot.classList.remove('current');
+      });
+
+      const nextEmptyIndex = Object.keys(fieldMap).findIndex((inputName) => {
+        const input = form.querySelector(`[name="${inputName}"]`);
+        return !input || !input.value;
+      });
+
+      if (nextEmptyIndex >= 0 && progressDots[nextEmptyIndex]) {
+        progressDots[nextEmptyIndex].classList.add('current');
+      }
+    }
+  };
+
+  window.orderStatusUtils = {
+    statuses: ['Pending', 'Confirmed', 'Preparing', 'Ready For Pickup', 'Out For Delivery', 'Delivered'],
+    
+    // Create order status progression HTML
+    createStatusProgression(currentStatus) {
+      const statuses = this.statuses;
+      const currentIndex = statuses.indexOf(currentStatus) || 0;
+      
+      const progressionHTML = `
+        <div class="order-status-progression">
+          ${statuses.map((status, index) => {
+            const isCompleted = index < currentIndex;
+            const isActive = index === currentIndex;
+            const statusClass = isCompleted ? 'completed' : isActive ? 'active' : '';
+            
+            return `
+              <div class="order-status-step ${statusClass}">
+                <div class="status-dot">${index + 1}</div>
+                <div class="status-label">${status}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+      
+      return progressionHTML;
+    },
+
+    // Create status update buttons
+    createStatusControls(currentStatus, onStatusChange) {
+      const statuses = this.statuses;
+      const currentIndex = statuses.indexOf(currentStatus) || 0;
+      
+      const buttonsHTML = statuses
+        .map((status, index) => {
+          const isAvailable = index >= currentIndex;
+          const isActive = status === currentStatus;
+          const disabled = !isAvailable ? 'disabled' : '';
+          
+          return `
+            <button 
+              class="status-button ${isActive ? 'active' : ''}" 
+              ${disabled}
+              data-status="${status}"
+            >
+              ${status}
+            </button>
+          `;
+        })
+        .join('');
+      
+      const controlsHTML = `
+        <div class="order-status-controls">
+          <div class="status-button-group">
+            ${buttonsHTML}
+          </div>
+        </div>
+      `;
+      
+      return controlsHTML;
+    },
+
+    // Render order status in a card
+    renderOrderCard(order) {
+      const fmtINR = (n) =>
+        new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+      
+      const createdDate = new Date(order.createdAt).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const itemsHTML = order.items.map(item => `
+        <div class="order-item">
+          <div>
+            <strong>${item.name}</strong> × ${item.quantity}
+          </div>
+          <div>${fmtINR(item.price * item.quantity)}</div>
+        </div>
+      `).join('');
+
+      return `
+        <div class="order-card" data-order-id="${order._id}">
+          <div class="order-header">
+            <div>
+              <div class="order-id">Order #${order._id.slice(-8).toUpperCase()}</div>
+              <div class="order-time">${createdDate}</div>
+            </div>
+            <div style="text-align: right;">
+              <strong>${fmtINR(order.totalPrice)}</strong>
+              <div style="font-size: 0.85rem; color: var(--color-accent);">${order.orderStatus}</div>
+            </div>
+          </div>
+
+          ${this.createStatusProgression(order.orderStatus)}
+
+          <div class="order-customer">
+            <h4>Customer</h4>
+            <p style="margin: 0; font-size: 0.9rem;">${order.user?.name || 'Unknown'}</p>
+            <p style="margin: 0.25rem 0 0; font-size: 0.85rem; color: rgba(17,24,39,0.6);">${order.user?.phone || 'N/A'}</p>
+          </div>
+
+          <div class="order-items">
+            <h4 style="margin: 0 0 0.75rem; font-size: 0.9rem;">Items</h4>
+            ${itemsHTML}
+          </div>
+
+          ${this.createStatusControls(order.orderStatus)}
+        </div>
+      `;
+    }
+  };
+
   function initMobileMenu() {
     const toggle = document.createElement('button');
     toggle.className = 'menu-toggle';

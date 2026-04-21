@@ -1,8 +1,8 @@
 // routes/orders.js
-import express from'express';
+import express from 'express';
 const router = express.Router();
-import Order from'../models/order.model.js';
-import { protect, authorize } from'../middleware/auth.middleware.js';
+import Order from '../models/order.model.js';
+import { protect, authorize } from '../middleware/auth.middleware.js';
 
 // @route   POST /api/orders
 // @desc    Create a new order

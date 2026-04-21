@@ -6,6 +6,7 @@
   <title>Manage Orders — Restaurant Panel</title>
   <link rel="stylesheet" href="assets/styles.css" />
   <script defer src="assets/api.js"></script>
+  <script defer src="assets/script.js"></script>
 </head>
 <body>
   <header class="site-header">
@@ -131,43 +132,37 @@
       }
 
       container.innerHTML = orders.map(order => {
-        const statusColors = {
-          'Pending': '#fbbf24',
-          'Confirmed': '#3b82f6',
-          'Preparing': '#8b5cf6',
-          'Ready For Pickup': '#10b981',
-          'Out For Delivery': '#06b6d4',
-          'Delivered': '#10b981',
-          'Cancelled': '#ef4444'
-        };
-
-        return `
-          <div class="order-card" style="background: white; padding: 1.5rem; border-radius: var(--radius); margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-              <div>
-                <h3 style="margin: 0 0 0.5rem;">Order #${order._id.slice(-6)}</h3>
-                <p style="margin: 0; color: rgba(17,24,39,0.7);">${order.restaurant ? order.restaurant.name : 'Restaurant'}</p>
-                <p style="margin: 0.25rem 0 0; color: rgba(17,24,39,0.7);">Customer: ${order.user ? order.user.name : 'N/A'}</p>
-              </div>
-              <div style="text-align: right;">
-                <span class="badge" style="background: ${statusColors[order.orderStatus] || '#6b7280'}; color: white; padding: 0.25rem 0.75rem; border-radius: 999px;">
-                  ${order.orderStatus}
-                </span>
-                <p style="margin: 0.5rem 0 0; font-weight: 600; font-size: 1.25rem;">₹${order.grandTotal}</p>
-              </div>
-            </div>
-            <div style="margin-bottom: 1rem;">
-              <p style="margin: 0.25rem 0; font-size: 0.875rem;"><strong>Items:</strong></p>
-              ${order.items ? order.items.map(item => 
-                `<p style="margin: 0.25rem 0; font-size: 0.875rem;">${item.quantity}x ${item.name || item.menuItem?.name || 'Item'} - ₹${item.price}</p>`
-              ).join('') : ''}
-            </div>
-            <div style="display: flex; gap: 0.5rem;">
-              <button class="button button-primary" onclick="viewOrder('${order._id}')">View Details</button>
-            </div>
-          </div>
-        `;
+        return window.orderStatusUtils.renderOrderCard(order);
       }).join('');
+
+      // Attach event listeners to status buttons
+      orders.forEach(order => {
+        const orderCard = container.querySelector(`[data-order-id="${order._id}"]`);
+        if (orderCard) {
+          orderCard.querySelectorAll('.status-button').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const newStatus = e.target.dataset.status;
+              await updateOrderStatusDialog(order._id, newStatus);
+            });
+          });
+        }
+      });
+
+      // Alternative: Use event delegation
+      container.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('status-button')) {
+          const card = e.target.closest('.order-card');
+          if (card) {
+            const orderIdElement = card.querySelector('.order-id');
+            const orderText = orderIdElement ? orderIdElement.textContent : '';
+            const orderId = orderText.replace('Order #', '');
+            const newStatus = e.target.dataset.status;
+            if (orderId && newStatus) {
+              await updateOrderStatusDialog(orderId, newStatus);
+            }
+          }
+        }
+      });
     }
 
     function renderPagination(page, pages) {
@@ -245,6 +240,40 @@
         await window.foodAPI.updateRestaurantOrderStatus(currentOrderId, status);
         document.getElementById('order-modal').style.display = 'none';
         loadOrders();
+      } catch (error) {
+        alert('Error updating order status: ' + error.message);
+      }
+    }
+
+    // Handle direct status button clicks from the order status UI
+    async function updateOrderStatusDialog(orderId, status) {
+      try {
+        const data = await window.foodAPI.updateRestaurantOrderStatus(orderId, status);
+        if (data.success) {
+          // Show success feedback
+          const notification = document.createElement('div');
+          notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--color-accent);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+          `;
+          notification.textContent = '✓ Order updated to ' + status;
+          document.body.appendChild(notification);
+
+          setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+          }, 3000);
+
+          loadOrders();
+        }
       } catch (error) {
         alert('Error updating order status: ' + error.message);
       }

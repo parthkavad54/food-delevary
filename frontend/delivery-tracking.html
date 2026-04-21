@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Track Your Order — FOODY</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
+        <a href="profile.html" class="nav-link">Profile</a>
+        <button class="button button-outline" id="logout-btn">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h1 class="h2">Track Your Order</h1>
+          <p class="muted">Real-time delivery updates and live tracking</p>
+        </div>
+
+        <div id="loading-state" style="text-align: center; padding: 3rem;">
+          <p>Loading order details...</p>
+        </div>
+
+        <div id="tracking-container" style="display: none;">
+          <!-- Map Section -->
+          <div class="delivery-tracking-container">
+            <div class="delivery-map-section" id="map-container"></div>
+
+            <!-- Delivery Info Panel -->
+            <div class="delivery-info-panel">
+              <div class="delivery-person-info">
+                <div class="delivery-person-avatar" id="delivery-avatar">🚴</div>
+                <div class="delivery-person-details">
+                  <h3 id="delivery-person-name">Delivery Person</h3>
+                  <p id="delivery-person-phone">+91 98765 43210</p>
+                  <div class="delivery-person-rating">
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span id="delivery-rating-text" style="margin-left: 0.5rem;">4.9/5.0</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="delivery-estimate">
+                <div class="estimate-item">
+                  <div class="estimate-label">Distance</div>
+                  <div class="estimate-value" id="delivery-distance">2.3 km</div>
+                </div>
+                <div class="estimate-item">
+                  <div class="estimate-label">ETA</div>
+                  <div class="estimate-value" id="delivery-eta">8 min</div>
+                </div>
+              </div>
+
+              <div class="delivery-actions">
+                <button onclick="callDeliveryPerson()">📞 Call</button>
+                <button onclick="chatDeliveryPerson()" class="primary">💬 Chat</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Details -->
+          <div style="margin-top: 2rem;">
+            <div class="profile-card">
+              <h3 class="h3">Order Details</h3>
+              
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 1.5rem 0;">
+                <!-- From -->
+                <div>
+                  <p style="font-size: 0.85rem; font-weight: 600; color: rgba(17,24,39,0.6); text-transform: uppercase; margin-bottom: 0.5rem;">FROM</p>
+                  <h4 id="restaurant-name" style="margin: 0 0 0.25rem;">Restaurant</h4>
+                  <p id="restaurant-address" style="margin: 0; font-size: 0.9rem; color: rgba(17,24,39,0.7);">Address</p>
+                </div>
+
+                <!-- To -->
+                <div>
+                  <p style="font-size: 0.85rem; font-weight: 600; color: rgba(17,24,39,0.6); text-transform: uppercase; margin-bottom: 0.5rem;">DELIVERY TO</p>
+                  <h4 id="delivery-address-name" style="margin: 0 0 0.25rem;">Home</h4>
+                  <p id="delivery-address" style="margin: 0; font-size: 0.9rem; color: rgba(17,24,39,0.7);">Address</p>
+                </div>
+
+                <!-- Status -->
+                <div>
+                  <p style="font-size: 0.85rem; font-weight: 600; color: rgba(17,24,39,0.6); text-transform: uppercase; margin-bottom: 0.5rem;">STATUS</p>
+                  <h4 id="order-status" style="margin: 0 0 0.5rem; color: var(--color-accent);">In Transit</h4>
+                  <p id="status-time" style="margin: 0; font-size: 0.85rem; color: rgba(17,24,39,0.6);">Updated now</p>
+                </div>
+              </div>
+
+              <!-- Order Items -->
+              <div style="border-top: 1px solid var(--color-border); padding-top: 1.5rem; margin-top: 1.5rem;">
+                <h4 class="h4">Order Items</h4>
+                <div id="order-items-list" style="margin-top: 1rem;">
+                  <!-- Items injected by JS -->
+                </div>
+              </div>
+
+              <!-- Order Total -->
+              <div style="border-top: 1px solid var(--color-border); padding-top: 1.5rem; margin-top: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                  <span>Subtotal</span>
+                  <span id="order-subtotal">₹0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                  <span>Delivery Fee</span>
+                  <span id="order-delivery">₹0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.1rem;">
+                  <span>Total</span>
+                  <span id="order-total">₹0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-brand">
+            <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="footer-logo" />
+            <span class="brand-name">FOODY</span>
+          </div>
+          <p class="footer-description">Delivering delicious food from your favorite restaurants right to your doorstep. Fast, fresh, and always satisfying.</p>
+        </div>
+        <div class="footer-section">
+          <h4 class="footer-title">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="restaurants.html">Restaurants</a></li>
+            <li><a href="dashboard.html">Orders</a></li>
+            <li><a href="profile.html">Profile</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="copyright">© <span id="year"></span> FOODY — With love ♥</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const fmtINR = (n) =>
+      new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+
+    let currentOrder = null;
+    let deliveryWatchId = null;
+
+    async function loadOrderTracking() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('orderId');
+
+        if (!orderId) {
+          alert('No order ID provided');
+          window.location.href = 'dashboard.html';
+          return;
+        }
+
+        // Fetch order details
+        const response = await window.foodAPI.getOrder(orderId);
+        currentOrder = response.order;
+
+        // Initialize map
+        const restaurantLoc = currentOrder.restaurant.location || window.mapsUtils.DEFAULT_CENTER;
+        const map = await window.mapsUtils.initMap('map-container', restaurantLoc, 13);
+
+        // Add restaurant marker
+        window.mapsUtils.addMarker(restaurantLoc, currentOrder.restaurant.name, {
+          path: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z',
+          fillColor: '#F97316',
+          fillOpacity: 0.8,
+          scale: 1.5
+        });
+
+        // Add delivery location marker (if available)
+        if (currentOrder.deliveryAddress?.coordinates) {
+          const deliveryLoc = {
+            lat: currentOrder.deliveryAddress.coordinates[0],
+            lng: currentOrder.deliveryAddress.coordinates[1]
+          };
+          window.mapsUtils.addMarker(deliveryLoc, 'Delivery Location');
+        }
+
+        // Populate order details
+        document.getElementById('restaurant-name').textContent = currentOrder.restaurant.name;
+        document.getElementById('restaurant-address').textContent = currentOrder.restaurant.address || 'Address';
+        document.getElementById('delivery-address-name').textContent = currentOrder.deliveryAddress?.label || 'Home';
+        document.getElementById('delivery-address').textContent = 
+          [currentOrder.deliveryAddress?.street, currentOrder.deliveryAddress?.city].filter(Boolean).join(', ') || 'Address';
+        document.getElementById('order-status').textContent = currentOrder.orderStatus;
+
+        // Populate order items
+        const itemsHTML = currentOrder.items.map(item => `
+          <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--color-offwhite); border-radius: 0.375rem; margin-bottom: 0.5rem;">
+            <div>
+              <strong>${item.name}</strong>
+              <p style="margin: 0.25rem 0 0; font-size: 0.85rem; color: rgba(17,24,39,0.6);">Qty: ${item.quantity}</p>
+            </div>
+            <div style="font-weight: 600;">${fmtINR(item.price * item.quantity)}</div>
+          </div>
+        `).join('');
+        document.getElementById('order-items-list').innerHTML = itemsHTML;
+
+        // Update totals
+        const subtotal = currentOrder.totalPrice || 0;
+        const deliveryFee = 0; // TODO: Add delivery fee calculation
+        const total = subtotal + deliveryFee;
+
+        document.getElementById('order-subtotal').textContent = fmtINR(subtotal);
+        document.getElementById('order-delivery').textContent = fmtINR(deliveryFee);
+        document.getElementById('order-total').textContent = fmtINR(total);
+
+        // Populate delivery person info (mock data)
+        const deliveryPersonNames = ['Raj Kumar', 'Priya Singh', 'Arjun Patel', 'Deepak Sharma'];
+        const deliveryPerson = deliveryPersonNames[Math.floor(Math.random() * deliveryPersonNames.length)];
+        document.getElementById('delivery-person-name').textContent = deliveryPerson;
+        document.getElementById('delivery-person-phone').textContent = '+91 98765 ' + Math.floor(10000 + Math.random() * 90000);
+
+        // Start real-time tracking updates
+        window.orderRealtimeUtils.joinOrderRoom(orderId, JSON.parse(localStorage.getItem('foody_user'))?._id);
+        window.orderRealtimeUtils.onOrderStatusChanged((data) => {
+          document.getElementById('order-status').textContent = data.newStatus;
+          document.getElementById('status-time').textContent = 'Just updated';
+        });
+
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('tracking-container').style.display = 'block';
+
+        // Simulate delivery location updates
+        simulateDeliveryTracking(restaurantLoc);
+      } catch (error) {
+        console.error('Error loading order:', error);
+        alert('Failed to load order details');
+      }
+    }
+
+    function simulateDeliveryTracking(startLocation) {
+      // Simulate delivery person moving towards customer
+      const deliveryLoc = { lat: startLocation.lat + 0.01, lng: startLocation.lng + 0.01 };
+      const updateInterval = setInterval(() => {
+        deliveryLoc.lat += (Math.random() - 0.48) * 0.001;
+        deliveryLoc.lng += (Math.random() - 0.48) * 0.001;
+
+        const distance = window.mapsUtils.calculateDistance(deliveryLoc, startLocation);
+        const eta = Math.max(1, Math.round(distance * 4)); // Rough ETA calculation
+
+        document.getElementById('delivery-distance').textContent = distance.toFixed(1) + ' km';
+        document.getElementById('delivery-eta').textContent = eta + ' min';
+
+        // Update delivery marker on map
+        window.mapsUtils.clearMarkers();
+        window.mapsUtils.addMarker(startLocation, 'Restaurant');
+        window.mapsUtils.addMarker(deliveryLoc, 'Your Order');
+
+        if (distance < 0.1) {
+          clearInterval(updateInterval);
+          document.getElementById('order-status').textContent = 'Delivered';
+          document.getElementById('status-time').textContent = 'Just now';
+        }
+      }, 3000);
+    }
+
+    function callDeliveryPerson() {
+      const phone = document.getElementById('delivery-person-phone').textContent;
+      alert(`Calling ${phone}...`);
+      // In production: window.location.href = `tel:${phone}`;
+    }
+
+    function chatDeliveryPerson() {
+      alert('Chat with delivery person coming soon!');
+      // TODO: Implement chat functionality
+    }
+
+    // Initialize when page loads
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadOrderTracking);
+    } else {
+      loadOrderTracking();
+    }
+  </script>
+</body>
+</html>
