@@ -4,6 +4,9 @@ import mongoose from 'mongoose';
 
 import cors from 'cors';
 import dotenv from 'dotenv';
+import session from 'express-session';
+import passport from 'passport';
+import { configurePassport } from './config/passport.js';
 
 
 dotenv.config();
@@ -43,6 +46,20 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// OAuth (Google/Facebook) needs a session for callbacks
+app.use(session({
+  secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'foody_session_secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    sameSite: 'lax',
+    secure: false
+  }
+}));
+configurePassport();
+app.use(passport.initialize());
+app.use(passport.session());
 
 import path from 'path';
 import { fileURLToPath } from 'url';

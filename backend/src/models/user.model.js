@@ -3,6 +3,16 @@ import mongoose from 'mongoose';
 import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
+  firstName: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  lastName: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   name: {
     type: String,
     required: true,
@@ -14,6 +24,14 @@ const userSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true
+  },
+  googleId: {
+    type: String,
+    index: true
+  },
+  facebookId: {
+    type: String,
+    index: true
   },
   password: {
     type: String,
@@ -45,6 +63,14 @@ const userSchema = new mongoose.Schema({
       default: false
     }
   }],
+  birthday: {
+    type: Date
+  },
+  preferences: {
+    dietary: [{ type: String }],
+    spice: { type: String, enum: ['mild', 'medium', 'hot', ''], default: '' },
+    notifications: [{ type: String }]
+  },
   profileImage: {
     type: String,
     default: ''

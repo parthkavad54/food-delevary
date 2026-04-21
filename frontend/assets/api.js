@@ -240,6 +240,26 @@ class FoodDeliveryAPI {
     });
   }
 
+  async addUserAddress(addressData) {
+    return await this.request('/users/address', {
+      method: 'POST',
+      body: JSON.stringify(addressData)
+    });
+  }
+
+  async updateUserAddress(addressId, addressData) {
+    return await this.request(`/users/address/${addressId}`, {
+      method: 'PUT',
+      body: JSON.stringify(addressData)
+    });
+  }
+
+  async deleteUserAddress(addressId) {
+    return await this.request(`/users/address/${addressId}`, {
+      method: 'DELETE'
+    });
+  }
+
   // Health check
   async healthCheck() {
     return await this.request('/health');

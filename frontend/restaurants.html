@@ -30,7 +30,6 @@
       <nav class="nav">
         <a href="index.html" class="nav-link">Home</a>
         <a href="restaurants.html" class="nav-link is-active" aria-current="page">Restaurants</a>
-        <a href="menu.html" class="nav-link">Menu</a>
         <a href="reviews.html" class="nav-link">Reviews</a>
         <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
         <div class="nav-auth" id="nav-auth">
@@ -172,6 +171,12 @@
               </article>
             `;
           }).join('');
+
+          // If user came from "Order Now" with no restaurant chosen, auto-open first restaurant menu
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('autostart') === '1' && restaurantsWithMenu.length > 0) {
+            window.location.href = `menu.html?restaurant=${restaurantsWithMenu[0]._id}`;
+          }
         } else {
           restaurantList.innerHTML = `
             <div style="text-align: center; padding: 3rem; background: white; border-radius: var(--radius);">

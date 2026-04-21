@@ -1,5 +1,4 @@
 ;(() => {
-  const INR_RATE = 83 // simple USD→INR conversion
   const fmtINR = (n) =>
     new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n)
 
@@ -287,12 +286,20 @@
       try {
         await window.foodAPI.clearCart()
         for (const item of items) {
-          await window.foodAPI.addToCart(item)
+          await window.foodAPI.addToCart({
+            restaurantId: item.restaurantId,
+            menuItemId: item.menuItemId || item.id,
+            quantity: item.qty || 1
+          })
         }
       } catch (error) {
         console.error('Failed to sync cart with backend:', error)
       }
     }
+  }
+  window.foodyCart = {
+    load: loadCart,
+    save: saveCart,
   }
   function updateNavCartCount() {
     const link = document.getElementById("nav-cart-link")
@@ -307,57 +314,85 @@
   function initMenuCards() {
     const cards = document.querySelectorAll(".menu-item")
     cards.forEach((card) => {
-      const baseUsd = Number.parseFloat(card.getAttribute("data-base-price") || "0")
+      const basePrice = Number.parseFloat(card.getAttribute("data-base-price") || "0")
       const form = card.querySelector(".menu-form")
       const priceEl = card.querySelector("[data-price]")
-      const select = form?.querySelector('select[name="size"]')
-      const button = form?.querySelector(".add-to-cart")
+      const qtySelect = form?.querySelector('select[name="size"], select[name="quantity"]')
 
       function compute() {
-        const mult = Number.parseFloat(select?.value || "1")
-        const priceInr = baseUsd * mult * INR_RATE
-        if (priceEl) priceEl.textContent = fmt(priceInr)
-        return priceInr
+        const qty = Math.max(1, Number.parseInt(qtySelect?.value || "1", 10))
+        const total = basePrice * qty
+        if (priceEl) priceEl.textContent = fmt(total)
+        return { qty, total }
       }
 
-      if (select) select.addEventListener("change", compute)
+      if (qtySelect) qtySelect.addEventListener("change", compute)
       compute()
-
-      if (button) {
-        button.addEventListener("click", () => {
-          const id = card.getAttribute("data-id") || ""
-          const name = card.querySelector(".h4")?.textContent?.trim() || "Item"
-          const mult = Number.parseFloat(select?.value || "1")
-          const unitPriceInr = baseUsd * mult * INR_RATE
-          const notes = form?.querySelector('input[name="notes"]')?.value?.trim() || ""
-          const mods = Array.from(form?.querySelectorAll('input[name="mods"]:checked') || []).map((el) => el.value)
-
-          const cart = loadCart()
-          const restaurantId = card.getAttribute("data-restaurant-id") || null
-          const key = JSON.stringify({ id, mult, mods, notes, restaurantId })
-          const existing = cart.find((it) => it.key === key)
-          if (existing) {
-            existing.qty += 1
-          } else {
-            cart.push({
-              key,
-              id,
-              menuItemId: id,
-              restaurantId: restaurantId,
-              name,
-              unitPrice: Math.round(unitPriceInr),
-              qty: 1,
-              options: { sizeMultiplier: mult, mods, notes },
-            })
-          }
-          saveCart(cart)
-
-          button.textContent = "Added!"
-          setTimeout(() => (button.textContent = "Add to Cart"), 1000)
-        })
-      }
     })
   }
+  window.foodyInitMenuCards = initMenuCards
+
+  async function addMenuItemToCartFromCard(card) {
+    const id = card.getAttribute("data-id") || card.dataset.id || ""
+    const restaurantId = card.getAttribute("data-restaurant-id") || card.dataset.restaurantId || null
+    const name = card.querySelector(".h4")?.textContent?.trim() || "Item"
+    const basePrice = Number.parseFloat(card.getAttribute("data-base-price") || card.dataset.basePrice || "0")
+    const form = card.querySelector(".menu-form")
+    const qtySelect = form?.querySelector('select[name="size"], select[name="quantity"]')
+    const qty = Math.max(1, Number.parseInt(qtySelect?.value || "1", 10))
+    const notes = form?.querySelector('input[name="notes"]')?.value?.trim() || ""
+    const mods = Array.from(form?.querySelectorAll('input[name="mods"]:checked') || []).map((el) => el.value)
+
+    if (!restaurantId) {
+      alert("Please pick a restaurant first.")
+      window.location.href = "restaurants.html"
+      return
+    }
+
+    const cart = loadCart()
+    const key = JSON.stringify({ id, restaurantId, notes, mods })
+    const existing = cart.find((it) => it.key === key)
+    if (existing) {
+      existing.qty += qty
+    } else {
+      cart.push({
+        key,
+        id,
+        menuItemId: id,
+        restaurantId,
+        name,
+        unitPrice: Math.round(basePrice),
+        qty,
+        options: { mods, notes },
+      })
+    }
+    await saveCart(cart)
+  }
+
+  // Handle dynamically-injected menu items too (event delegation)
+  document.addEventListener("click", async (e) => {
+    const btn = e.target?.closest?.(".add-to-cart")
+    if (!btn) return
+    const card = btn.closest(".menu-item")
+    if (!card) return
+    e.preventDefault()
+
+    const originalText = btn.textContent
+    btn.disabled = true
+    try {
+      await addMenuItemToCartFromCard(card)
+      btn.textContent = "✅ Added!"
+      setTimeout(() => {
+        btn.textContent = originalText
+      }, 1200)
+    } catch (err) {
+      console.error("Add to cart failed:", err)
+      alert(err?.message || "Failed to add to cart")
+    } finally {
+      btn.disabled = false
+    }
+  })
+
   initMenuCards()
 
   // RESTAURANT filters
@@ -502,8 +537,7 @@
         })
       })
 
-      const DELIVERY_USD = 0.2
-      const delivery = cart.length ? Math.round(DELIVERY_USD * INR_RATE) : 0
+      const delivery = cart.length ? 50 : 0
       if (subtotalEl) subtotalEl.textContent = fmt(subtotal)
       if (deliveryEl) deliveryEl.textContent = fmt(delivery)
       if (totalEl) totalEl.textContent = fmt(subtotal + delivery)
@@ -573,9 +607,9 @@
               grandTotal: grandTotal,
               paymentMethod: 'COD',
               deliveryAddress: {
-                street: user?.address?.line1 || '123 Main St',
-                city: user?.address?.city || 'City',
-                postalCode: user?.address?.postalCode || '12345',
+                street: user?.addresses?.find(a => a.isDefault)?.street || user?.addresses?.[0]?.street || '123 Main St',
+                city: user?.addresses?.find(a => a.isDefault)?.city || user?.addresses?.[0]?.city || 'City',
+                postalCode: user?.addresses?.find(a => a.isDefault)?.zipCode || user?.addresses?.[0]?.zipCode || '12345',
                 country: 'India'
               }
             }
@@ -604,6 +638,7 @@
 
     render()
   }
+  initCartPage()
   // Mobile Menu Toggle
   function initMobileMenu() {
     const toggle = document.createElement('button');

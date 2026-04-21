@@ -30,7 +30,6 @@
       <nav class="nav">
         <a href="index.html" class="nav-link">Home</a>
         <a href="restaurants.html" class="nav-link">Restaurants</a>
-        <a href="menu.html" class="nav-link is-active" aria-current="page">Menu</a>
         <a href="reviews.html" class="nav-link">Reviews</a>
         <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
         <div class="nav-auth" id="nav-auth">
@@ -280,75 +279,10 @@
       if (loadingEl) loadingEl.style.display = 'none';
       if (menuContainer) menuContainer.style.display = 'block';
 
-      // Setup add to cart handlers for dynamically loaded items
-      setupAddToCart();
-    }
-
-    // Setup add to cart to include restaurant ID
-    function setupAddToCart() {
-      // Remove any existing listeners by using event delegation on document
-      document.addEventListener('click', async function(e) {
-        if (e.target.classList.contains('add-to-cart')) {
-          e.preventDefault();
-          e.stopPropagation();
-          const button = e.target;
-          const menuItem = button.closest('.menu-item');
-          if (!menuItem) return;
-          
-          const itemId = menuItem.dataset.id;
-          const restaurantId = menuItem.dataset.restaurantId || currentRestaurantId;
-          const form = menuItem.querySelector('.menu-form');
-          const name = menuItem.querySelector('.h4').textContent;
-          const basePrice = parseFloat(menuItem.dataset.basePrice) || 0;
-          const quantitySelect = form.querySelector('select[name="size"]');
-          const quantity = quantitySelect ? parseInt(quantitySelect.value) : 1;
-          const notes = form.querySelector('input[name="notes"]') ? form.querySelector('input[name="notes"]').value.trim() : '';
-          
-          // Calculate price (base price is already in the currency from API)
-          const unitPrice = basePrice;
-          const totalPrice = unitPrice * quantity;
-
-          // Load existing cart
-          const cart = JSON.parse(localStorage.getItem('dd_cart') || '[]');
-          
-          // Create cart item key for duplicate checking
-          const key = JSON.stringify({ id: itemId, restaurantId, qty: quantity, notes });
-          
-          // Check if item already exists in cart
-          const existing = cart.find((it) => it.key === key);
-          if (existing) {
-            existing.qty += quantity;
-            existing.price = existing.unitPrice * existing.qty;
-          } else {
-            cart.push({
-              key,
-              id: itemId,
-              menuItemId: itemId,
-              restaurantId: restaurantId,
-              name: name,
-              unitPrice: unitPrice,
-              price: totalPrice,
-              qty: quantity,
-              notes: notes,
-              options: { notes }
-            });
-          }
-          
-          localStorage.setItem('dd_cart', JSON.stringify(cart));
-
-          // Update cart count
-          if (typeof updateNavCartCount === 'function') {
-            updateNavCartCount();
-          }
-
-          // Visual feedback
-          const originalText = button.textContent;
-          button.textContent = '✅ Added!';
-          setTimeout(() => {
-            button.textContent = originalText;
-          }, 1500);
-        }
-      });
+      // Let global script wire handlers + prices for injected cards
+      if (typeof window.foodyInitMenuCards === 'function') {
+        window.foodyInitMenuCards();
+      }
     }
 
     // Initialize

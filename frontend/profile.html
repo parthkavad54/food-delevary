@@ -20,7 +20,6 @@
       <nav class="nav">
         <a href="index.html" class="nav-link">Home</a>
         <a href="restaurants.html" class="nav-link">Restaurants</a>
-        <a href="menu.html" class="nav-link">Menu</a>
         <a href="reviews.html" class="nav-link">Reviews</a>
         <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
         <div class="nav-auth" id="nav-auth" style="display: none;">
@@ -346,186 +345,247 @@
   </footer>
 
   <script>
-    // Check if user is logged in
-    const user = JSON.parse(localStorage.getItem('foody_user') || 'null');
-    
-    if (!user) {
-      window.location.href = 'login.html';
-    } else {
-      // Update profile info
-      document.getElementById('profile-name').textContent = user.name || 'User Name';
-      document.getElementById('profile-email').textContent = user.email || 'user@example.com';
-      document.getElementById('home-address').textContent = user.address || 'No address set';
-      
-      // Set avatar initials
-      const initials = (user.name || 'User').split(' ').map(n => n[0]).join('').toUpperCase();
-      document.getElementById('avatar-initials').textContent = initials;
-      
-      // Set member since date
-      const memberSince = new Date(user.signupTime || Date.now()).getFullYear();
-      document.getElementById('member-since').textContent = memberSince;
+    function pickDefaultAddress(addresses = []) {
+      return addresses.find(a => a.isDefault) || addresses[0] || null;
     }
-    
-    // Tab functionality
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-    
-    tabButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const tabId = button.dataset.tab;
-        
-        // Remove active class from all buttons and contents
-        tabButtons.forEach(btn => btn.classList.remove('active'));
-        tabContents.forEach(content => content.classList.remove('active'));
-        
-        // Add active class to clicked button and corresponding content
-        button.classList.add('active');
-        document.getElementById(`${tabId}-tab`).classList.add('active');
+
+    function setCheckboxValues(container, values) {
+      const set = new Set(values || []);
+      container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.checked = set.has(cb.value);
       });
-    });
-    
-    // Logout functionality
-    document.getElementById('logout-btn').addEventListener('click', function() {
-      localStorage.removeItem('foody_user');
-      window.location.href = 'index.html';
-    });
-    
-    // Form submissions
-    document.getElementById('personal-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      alert('Profile updated successfully!');
-    });
+    }
 
-    // Address management functionality
-    let addresses = JSON.parse(localStorage.getItem('foody_addresses') || '[]');
-    let editingAddressId = null;
+    function getCheckboxValues(container) {
+      return Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+    }
 
-    function renderAddresses() {
+    async function loadProfile() {
+      const token = localStorage.getItem('foody_token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const profileRes = await window.foodAPI.getUserProfile();
+      const user = profileRes.user;
+      localStorage.setItem('foody_user', JSON.stringify(user));
+
+      // Header
+      document.getElementById('profile-name').textContent = user.name || 'User';
+      document.getElementById('profile-email').textContent = user.email || '';
+      const initials = (user.name || 'User').split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase();
+      document.getElementById('avatar-initials').textContent = initials || 'U';
+      document.getElementById('member-since').textContent = new Date(user.createdAt || Date.now()).getFullYear();
+
+      // Personal form
+      const firstName = document.getElementById('firstName');
+      const lastName = document.getElementById('lastName');
+      const email = document.getElementById('email');
+      const phone = document.getElementById('phone');
+      const birthday = document.getElementById('birthday');
+
+      if (firstName) firstName.value = user.firstName || '';
+      if (lastName) lastName.value = user.lastName || '';
+      if (email) email.value = user.email || '';
+      if (phone) phone.value = user.phone || '';
+      if (birthday) birthday.value = user.birthday ? new Date(user.birthday).toISOString().slice(0, 10) : '';
+
+      // Address summary
+      const addr = pickDefaultAddress(user.addresses || []);
+      const homeAddress = document.getElementById('home-address');
+      if (homeAddress) {
+        homeAddress.textContent = addr
+          ? [addr.street, addr.city, addr.state, addr.zipCode].filter(Boolean).join(', ')
+          : 'No address set';
+      }
+
+      // Preferences
+      const prefsForm = document.querySelector('.preferences-form');
+      if (prefsForm) {
+        setCheckboxValues(prefsForm.querySelector('.preference-group:nth-of-type(1) .checkbox-group'), user.preferences?.dietary || []);
+        const spice = prefsForm.querySelector(`input[name="spice"][value="${user.preferences?.spice || ''}"]`);
+        if (spice) spice.checked = true;
+        setCheckboxValues(prefsForm.querySelector('.preference-group:nth-of-type(3) .checkbox-group'), user.preferences?.notifications || []);
+      }
+
+      // Addresses tab (read-only list)
+      renderAddresses(user.addresses || []);
+
+      // Orders history
+      await renderOrders();
+    }
+
+    function renderAddresses(addresses) {
       const addressesList = document.getElementById('addresses-list');
-      if (addresses.length === 0) {
+      if (!addressesList) return;
+      if (!addresses || addresses.length === 0) {
         addressesList.innerHTML = '<p class="muted">No addresses saved yet. Add your first address below.</p>';
         return;
       }
 
-      addressesList.innerHTML = addresses.map((address, index) => `
-        <div class="address-item ${address.isDefault ? 'default' : ''}">
-          <div class="address-info">
-            <h4 class="h4">${address.label}</h4>
-            <p>${address.fullAddress}</p>
-            <p class="meta">${address.city}, ${address.state} - ${address.pincode}</p>
-            ${address.landmark ? `<p class="meta">Near: ${address.landmark}</p>` : ''}
-            ${address.isDefault ? '<p class="meta">Default delivery address</p>' : ''}
+      addressesList.innerHTML = addresses.map(addr => {
+        const line = [addr.street, addr.city, addr.state, addr.zipCode].filter(Boolean).join(', ');
+        return `
+          <div class="address-item ${addr.isDefault ? 'default' : ''}">
+            <div class="address-info">
+              <h4 class="h4">${addr.label || 'Address'}</h4>
+              <p>${line || '-'}</p>
+              ${addr.isDefault ? '<p class="meta">Default delivery address</p>' : ''}
+            </div>
           </div>
-          <div class="address-actions">
-            <button class="button button-outline edit-address-btn" data-address-id="${index}">Edit</button>
-            ${!address.isDefault ? `<button class="button button-ghost remove-address-btn" data-address-id="${index}">Remove</button>` : ''}
-            ${!address.isDefault ? `<button class="button button-primary set-default-btn" data-address-id="${index}">Set Default</button>` : ''}
-          </div>
-        </div>
-      `).join('');
-
-      // Add event listeners
-      document.querySelectorAll('.edit-address-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => editAddress(parseInt(e.target.dataset.addressId)));
-      });
-
-      document.querySelectorAll('.remove-address-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => removeAddress(parseInt(e.target.dataset.addressId)));
-      });
-
-      document.querySelectorAll('.set-default-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => setDefaultAddress(parseInt(e.target.dataset.addressId)));
-      });
+        `;
+      }).join('');
     }
 
-    function editAddress(index) {
-      const address = addresses[index];
-      editingAddressId = index;
-      
-      document.getElementById('modal-title').textContent = 'Edit Address';
-      document.getElementById('address-id').value = index;
-      document.getElementById('address-label').value = address.label;
-      document.getElementById('full-address').value = address.fullAddress;
-      document.getElementById('pincode').value = address.pincode;
-      document.getElementById('city').value = address.city;
-      document.getElementById('state').value = address.state;
-      document.getElementById('landmark').value = address.landmark || '';
-      
-      document.getElementById('address-modal').style.display = 'flex';
-    }
+    async function renderOrders() {
+      const ordersTab = document.getElementById('orders-tab');
+      if (!ordersTab) return;
+      const list = ordersTab.querySelector('.orders-list');
+      if (!list) return;
 
-    function removeAddress(index) {
-      if (confirm('Are you sure you want to remove this address?')) {
-        addresses.splice(index, 1);
-        localStorage.setItem('foody_addresses', JSON.stringify(addresses));
-        renderAddresses();
+      list.innerHTML = '<div class="empty-state"><p>Loading your orders...</p></div>';
+
+      try {
+        const res = await window.foodAPI.getOrders();
+        const orders = res.orders || [];
+
+        if (orders.length === 0) {
+          list.innerHTML = '<div class="empty-state"><p>No orders yet.</p><a class="button button-primary" href="restaurants.html?autostart=1">Start Ordering</a></div>';
+          return;
+        }
+
+        list.innerHTML = orders.map(order => {
+          const date = new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+          const firstItem = order.items?.[0]?.name || 'Order';
+          const restName = order.restaurant?.name || 'Restaurant';
+          const status = order.orderStatus || 'Pending';
+          const total = order.grandTotal || order.totalPrice || 0;
+          return `
+            <div class="order-item" data-order-id="${order._id}">
+              <div class="order-info">
+                <h4 class="h4">${firstItem}${order.items?.length > 1 ? ` +${order.items.length - 1} more` : ''}</h4>
+                <p class="muted">${restName} • Order #${order._id.slice(-6).toUpperCase()}</p>
+                <p class="meta">${date}</p>
+              </div>
+              <div class="order-status-badge completed">${status}</div>
+              <div class="order-price">₹${Number(total).toLocaleString('en-IN')}</div>
+              <button class="button button-outline reorder-btn" data-order-id="${order._id}">Reorder</button>
+            </div>
+          `;
+        }).join('');
+
+        list.querySelectorAll('.reorder-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const orderId = btn.dataset.orderId;
+            const orderRes = await window.foodAPI.getOrder(orderId);
+            const order = orderRes.order;
+            if (!order || !order.items?.length) return;
+
+            const cartApi = window.foodyCart;
+            const cart = cartApi?.load ? cartApi.load() : [];
+            order.items.forEach(item => {
+              const menuItemId = item.menuItem?._id || item.menuItem;
+              const restaurantId = order.restaurant?._id || order.restaurant;
+              const key = JSON.stringify({ id: String(menuItemId), restaurantId: String(restaurantId), notes: '' })
+              const existing = cart.find(it => it.key === key);
+              if (existing) {
+                existing.qty += item.quantity;
+              } else {
+                cart.push({
+                  key,
+                  id: String(menuItemId),
+                  menuItemId: String(menuItemId),
+                  restaurantId: String(restaurantId),
+                  name: item.name,
+                  unitPrice: Math.round(Number(item.price)),
+                  qty: item.quantity,
+                  options: { notes: '' }
+                });
+              }
+            });
+            if (cartApi?.save) {
+              await cartApi.save(cart);
+            } else {
+              localStorage.setItem('dd_cart', JSON.stringify(cart));
+            }
+            window.location.href = 'order.html';
+          });
+        });
+      } catch (err) {
+        console.error('Failed to load orders:', err);
+        list.innerHTML = '<div class="empty-state"><p>Could not load orders. Please try again.</p></div>';
       }
     }
 
-    function setDefaultAddress(index) {
-      addresses.forEach(addr => addr.isDefault = false);
-      addresses[index].isDefault = true;
-      localStorage.setItem('foody_addresses', JSON.stringify(addresses));
-      renderAddresses();
-    }
-
-    function addNewAddress() {
-      editingAddressId = null;
-      document.getElementById('modal-title').textContent = 'Add New Address';
-      document.getElementById('address-form').reset();
-      document.getElementById('address-modal').style.display = 'flex';
-    }
-
-    // Modal functionality
-    document.getElementById('add-address-btn').addEventListener('click', addNewAddress);
-    
-    document.getElementById('close-modal').addEventListener('click', () => {
-      document.getElementById('address-modal').style.display = 'none';
+    // Tab functionality
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.dataset.tab;
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(`${tabId}-tab`).classList.add('active');
+      });
     });
 
-    document.getElementById('cancel-address').addEventListener('click', () => {
-      document.getElementById('address-modal').style.display = 'none';
-    });
-
-    // Close modal when clicking outside
-    document.getElementById('address-modal').addEventListener('click', (e) => {
-      if (e.target.id === 'address-modal') {
-        document.getElementById('address-modal').style.display = 'none';
-      }
-    });
-
-    // Address form submission
-    document.getElementById('address-form').addEventListener('submit', function(e) {
+    // Save personal info
+    document.getElementById('personal-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
-      const formData = new FormData(this);
-      const addressData = {
-        label: formData.get('label'),
-        fullAddress: formData.get('fullAddress'),
-        pincode: formData.get('pincode'),
-        city: formData.get('city'),
-        state: formData.get('state'),
-        landmark: formData.get('landmark') || '',
-        isDefault: addresses.length === 0 // First address is default
-      };
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const birthday = document.getElementById('birthday').value;
+      const name = [firstName, lastName].filter(Boolean).join(' ') || (JSON.parse(localStorage.getItem('foody_user') || 'null')?.name || 'User');
 
-      if (editingAddressId !== null) {
-        // Editing existing address
-        addresses[editingAddressId] = addressData;
-      } else {
-        // Adding new address
-        addresses.push(addressData);
+      try {
+        const res = await window.foodAPI.updateUserProfile({
+          firstName,
+          lastName,
+          name,
+          phone,
+          birthday: birthday || null
+        });
+        localStorage.setItem('foody_user', JSON.stringify(res.user));
+        document.getElementById('profile-name').textContent = res.user.name || 'User';
+        alert('Profile updated successfully!');
+      } catch (err) {
+        alert(err.message || 'Failed to update profile');
       }
-
-      localStorage.setItem('foody_addresses', JSON.stringify(addresses));
-      renderAddresses();
-      document.getElementById('address-modal').style.display = 'none';
-      
-      alert('Address saved successfully!');
     });
 
-    // Initialize addresses
-    renderAddresses();
+    // Save preferences
+    const prefsForm = document.querySelector('.preferences-form');
+    if (prefsForm) {
+      prefsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const dietary = getCheckboxValues(prefsForm.querySelector('.preference-group:nth-of-type(1) .checkbox-group'));
+        const spice = (prefsForm.querySelector('input[name="spice"]:checked')?.value) || '';
+        const notifications = getCheckboxValues(prefsForm.querySelector('.preference-group:nth-of-type(3) .checkbox-group'));
+        try {
+          const res = await window.foodAPI.updateUserProfile({ preferences: { dietary, spice, notifications } });
+          localStorage.setItem('foody_user', JSON.stringify(res.user));
+          alert('Preferences saved!');
+        } catch (err) {
+          alert(err.message || 'Failed to save preferences');
+        }
+      });
+    }
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await window.foodAPI.logout();
+      window.location.href = 'index.html';
+    });
+
+    // Init
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadProfile);
+    } else {
+      loadProfile();
+    }
   </script>
 </body>
 </html>

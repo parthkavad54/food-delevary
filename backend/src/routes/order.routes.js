@@ -46,7 +46,7 @@ router.get('/', protect, async (req, res) => {
 
     // Customer sees only their orders
     if (req.user.role === 'customer') {
-      query.customer = req.user._id;
+      query.user = req.user._id;
     }
     // Restaurant owner sees orders for their restaurants
     else if (req.user.role === 'restaurant_owner') {

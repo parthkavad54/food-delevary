@@ -29,11 +29,11 @@ router.get('/profile', protect, async (req, res) => {
 // @access  Private
 router.put('/profile', protect, async (req, res) => {
   try {
-    const { name, phone, profileImage } = req.body;
+    const { name, firstName, lastName, phone, profileImage, birthday, preferences } = req.body;
     
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { name, phone, profileImage },
+      { name, firstName, lastName, phone, profileImage, birthday, preferences },
       { new: true, runValidators: true }
     ).select('-password');
 

@@ -19,7 +19,6 @@
       <nav class="nav">
         <a href="index.html" class="nav-link">Home</a>
         <a href="restaurants.html" class="nav-link">Restaurants</a>
-        <a href="menu.html" class="nav-link">Menu</a>
         <a href="reviews.html" class="nav-link">Reviews</a>
         <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
         <div class="nav-auth" id="nav-auth">
@@ -92,11 +91,11 @@
             </div>
 
             <div class="social-login">
-              <button class="button button-outline social-btn">
+              <button class="button button-outline social-btn" type="button" id="google-login-btn">
                 <span class="social-icon">📧</span>
                 Continue with Google
               </button>
-              <button class="button button-outline social-btn">
+              <button class="button button-outline social-btn" type="button" id="facebook-login-btn">
                 <span class="social-icon">📘</span>
                 Continue with Facebook
               </button>
@@ -173,6 +172,26 @@
   </footer>
 
   <script>
+    // OAuth redirect handler (Google/Facebook callback)
+    (function handleOAuthToken() {
+      const url = new URL(window.location.href);
+      const token = url.searchParams.get('token');
+      if (!token) return;
+      localStorage.setItem('foody_token', token);
+      // Fetch user and redirect
+      window.foodAPI.me()
+        .then((me) => {
+          const user = me.user;
+          let redirectPath = 'dashboard.html';
+          if (user.role === 'admin') redirectPath = 'admin-dashboard.html';
+          else if (user.role === 'restaurant_owner') redirectPath = 'restaurant-dashboard.html';
+          window.location.href = redirectPath;
+        })
+        .catch(() => {
+          alert('OAuth login failed. Please try again.');
+        });
+    })();
+
     // Login form handling - real API call
     document.getElementById('login-form').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -203,6 +222,14 @@
       } catch (err) {
         alert(err.message || 'Login failed');
       }
+    });
+
+    // Social login buttons
+    document.getElementById('google-login-btn').addEventListener('click', () => {
+      window.location.href = '/api/auth/google';
+    });
+    document.getElementById('facebook-login-btn').addEventListener('click', () => {
+      window.location.href = '/api/auth/facebook';
     });
   </script>
 </body>

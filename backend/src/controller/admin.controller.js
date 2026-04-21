@@ -450,7 +450,7 @@ export const getAdminDashboardStats = async (req, res) => {
 
     // Calculate total revenue from completed orders
     const revenueData = await Order.aggregate([
-      { $match: { orderStatus: 'Delivered', isPaid: true } },
+      { $match: { orderStatus: 'Delivered' } },
       { $group: { _id: null, totalRevenue: { $sum: '$grandTotal' } } }
     ]);
     const totalRevenue = revenueData.length > 0 ? revenueData[0].totalRevenue : 0;

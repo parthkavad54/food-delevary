@@ -1,30 +1,19 @@
-// Import the necessary modules (e.g., your Cart model)
-import Cart from "../models/cart.model.js" 
-import MenuItem from '../models/menuItem.model.js'; 
+import Cart from "../models/cart.model.js";
+import MenuItem from "../models/menuItem.model.js";
 
-// Mock function to simulate finding a cart in the database
-const findOrCreateCart = async (userId) => {
-    // In a real application, you'd use: 
-    // let cart = await Cart.findOne({ user: userId }).populate('items.menuItem');
-    // if (!cart) { cart = await Cart.create({ user: userId, items: [] }); }
-    
-    // Mock Data for demonstration
-    const mockCart = {
-        _id: 'cart123',
-        user: userId,
-        items: [
-            { itemId: 'menuItemA', restaurantId: 'rest1', name: 'Burger', price: 10.00, quantity: 2 },
-            { itemId: 'menuItemB', restaurantId: 'rest2', name: 'Fries', price: 3.50, quantity: 1 }
-        ],
-        totalPrice: 23.50
-    };
-    return mockCart;
+const roundMoney = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+const recalcTotals = (cart) => {
+    const total = (cart.items || []).reduce((acc, item) => acc + (Number(item.price) * Number(item.quantity)), 0);
+    cart.totalPrice = roundMoney(total);
 };
 
-// Mock function to simulate saving the cart to the database
-const saveCart = async (cart) => {
-    // await cart.save();
-    return cart; // Returns the updated cart object
+const findOrCreateCart = async (userId) => {
+    let cart = await Cart.findOne({ user: userId });
+    if (!cart) {
+        cart = await Cart.create({ user: userId, items: [], totalPrice: 0 });
+    }
+    return cart;
 };
 
 // =================================================================
@@ -33,9 +22,10 @@ const saveCart = async (cart) => {
 export const getCart = async (req, res) => {
     try {
         // The user ID is typically attached to the request by the auth middleware (req.user.id)
-        const userId = req.user.id; 
+        const userId = req.user._id;
         
         const cart = await findOrCreateCart(userId);
+        await cart.populate([{ path: 'items.menuItemId', select: 'name price imageUrl restaurant' }]);
 
         res.status(200).json({ success: true, data: cart });
     } catch (error) {
@@ -49,46 +39,48 @@ export const getCart = async (req, res) => {
 // =================================================================
 export const addItemToCart = async (req, res) => {
     const { menuItemId, restaurantId, quantity } = req.body;
-    const userId = req.user.id;
-    const qty = parseInt(quantity) || 1; 
+    const userId = req.user._id;
+    const qty = Math.max(1, parseInt(quantity, 10) || 1);
 
     if (!menuItemId || !restaurantId) {
         return res.status(400).json({ success: false, message: 'Missing menu item or restaurant ID.' });
     }
 
     try {
-        let cart = await findOrCreateCart(userId);
+        const cart = await findOrCreateCart(userId);
         
-        // 1. Check if item already exists in the cart
-        const existingItemIndex = cart.items.findIndex(item => item.itemId === menuItemId);
-
-        if (existingItemIndex > -1) {
-            // Item exists: increase quantity
-            cart.items[existingItemIndex].quantity += qty;
-        } else {
-            // Item does not exist: fetch item details and add it
-            // NOTE: In a real app, you MUST fetch the price and details from the MenuItem model
-            // const itemDetails = await MenuItem.findById(menuItemId);
-            // if (!itemDetails) return res.status(404).json({ message: 'Menu item not found.' });
-
-            // Mock item details for demonstration
-            const newItem = {
-                itemId: menuItemId,
-                restaurantId: restaurantId,
-                name: 'New Item Mock', // Fetched from DB
-                price: 5.00,           // Fetched from DB
-                quantity: qty,
-            };
-            cart.items.push(newItem);
+        const menuItem = await MenuItem.findById(menuItemId).populate('restaurant', '_id');
+        if (!menuItem) {
+            return res.status(404).json({ success: false, message: 'Menu item not found.' });
         }
 
-        // 2. Recalculate total price (Crucial for security and accuracy)
-        cart.totalPrice = cart.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-        
-        // 3. Save changes
-        const updatedCart = await saveCart(cart);
+        if (menuItem.restaurant && String(menuItem.restaurant._id) !== String(restaurantId)) {
+            return res.status(400).json({ success: false, message: 'Restaurant ID does not match menu item.' });
+        }
 
-        res.status(200).json({ success: true, message: 'Item added to cart.', data: updatedCart });
+        // 1. Check if item already exists in the cart (same restaurant + same menu item)
+        const existingItemIndex = cart.items.findIndex(
+            item => String(item.menuItemId) === String(menuItemId) && String(item.restaurantId) === String(restaurantId)
+        );
+
+        if (existingItemIndex > -1) {
+            cart.items[existingItemIndex].quantity += qty;
+        } else {
+            cart.items.push({
+                menuItemId: menuItem._id,
+                restaurantId: restaurantId,
+                name: menuItem.name,
+                price: Number(menuItem.price),
+                quantity: qty,
+            });
+        }
+
+        recalcTotals(cart);
+        
+        await cart.save();
+        await cart.populate([{ path: 'items.menuItemId', select: 'name price imageUrl restaurant' }]);
+
+        res.status(200).json({ success: true, message: 'Item added to cart.', data: cart });
     } catch (error) {
         console.error("Error adding item to cart:", error);
         res.status(500).json({ success: false, message: 'Server error while adding item.' });
@@ -101,17 +93,17 @@ export const addItemToCart = async (req, res) => {
 export const updateCartItemQuantity = async (req, res) => {
     const { itemId } = req.params;
     const { quantity } = req.body;
-    const userId = req.user.id;
-    const newQty = parseInt(quantity);
+    const userId = req.user._id;
+    const newQty = parseInt(quantity, 10);
     
     if (isNaN(newQty) || newQty < 0) {
         return res.status(400).json({ success: false, message: 'Invalid quantity provided.' });
     }
 
     try {
-        let cart = await findOrCreateCart(userId);
+        const cart = await findOrCreateCart(userId);
         
-        const itemIndex = cart.items.findIndex(item => item.itemId === itemId);
+        const itemIndex = cart.items.findIndex(item => String(item.menuItemId) === String(itemId));
 
         if (itemIndex > -1) {
             if (newQty === 0) {
@@ -124,12 +116,12 @@ export const updateCartItemQuantity = async (req, res) => {
                 var message = 'Item quantity updated.';
             }
 
-            // Recalculate total price
-            cart.totalPrice = cart.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+            recalcTotals(cart);
             
-            const updatedCart = await saveCart(cart);
+            await cart.save();
+            await cart.populate([{ path: 'items.menuItemId', select: 'name price imageUrl restaurant' }]);
 
-            res.status(200).json({ success: true, message: message, data: updatedCart });
+            res.status(200).json({ success: true, message: message, data: cart });
         } else {
             res.status(404).json({ success: false, message: 'Item not found in cart.' });
         }
@@ -144,26 +136,25 @@ export const updateCartItemQuantity = async (req, res) => {
 // =================================================================
 export const removeItemFromCart = async (req, res) => {
     const { itemId } = req.params;
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     try {
-        let cart = await findOrCreateCart(userId);
+        const cart = await findOrCreateCart(userId);
 
         const initialLength = cart.items.length;
         
         // Filter out the item to be removed
-        cart.items = cart.items.filter(item => item.itemId !== itemId);
+        cart.items = cart.items.filter(item => String(item.menuItemId) !== String(itemId));
         
         if (cart.items.length === initialLength) {
             return res.status(404).json({ success: false, message: 'Item not found in cart.' });
         }
         
-        // Recalculate total price
-        cart.totalPrice = cart.items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+        recalcTotals(cart);
+        await cart.save();
+        await cart.populate([{ path: 'items.menuItemId', select: 'name price imageUrl restaurant' }]);
 
-        const updatedCart = await saveCart(cart);
-
-        res.status(200).json({ success: true, message: 'Item successfully removed.', data: updatedCart });
+        res.status(200).json({ success: true, message: 'Item successfully removed.', data: cart });
     } catch (error) {
         console.error("Error removing item:", error);
         res.status(500).json({ success: false, message: 'Server error while removing item.' });
@@ -174,18 +165,14 @@ export const removeItemFromCart = async (req, res) => {
 // 5. CLEAR CART (DELETE /api/cart/clear)
 // =================================================================
 export const clearCart = async (req, res) => {
-    const userId = req.user.id;
+    const userId = req.user._id;
 
     try {
-        let cart = await findOrCreateCart(userId);
-
-        // Reset the items array and total price
+        const cart = await findOrCreateCart(userId);
         cart.items = [];
         cart.totalPrice = 0;
-
-        const updatedCart = await saveCart(cart);
-
-        res.status(200).json({ success: true, message: 'Cart cleared successfully.', data: updatedCart });
+        await cart.save();
+        res.status(200).json({ success: true, message: 'Cart cleared successfully.', data: cart });
     } catch (error) {
         console.error("Error clearing cart:", error);
         res.status(500).json({ success: false, message: 'Server error while clearing cart.' });

@@ -19,7 +19,6 @@
       <nav class="nav">
         <a href="index.html" class="nav-link">Home</a>
         <a href="restaurants.html" class="nav-link">Restaurants</a>
-        <a href="menu.html" class="nav-link">Menu</a>
         <a href="reviews.html" class="nav-link">Reviews</a>
         <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
         <div class="nav-auth" id="nav-auth">
@@ -167,11 +166,11 @@
             </div>
 
             <div class="social-login">
-              <button class="button button-outline social-btn">
+              <button class="button button-outline social-btn" type="button" id="google-signup-btn">
                 <span class="social-icon">📧</span>
                 Sign up with Google
               </button>
-              <button class="button button-outline social-btn">
+              <button class="button button-outline social-btn" type="button" id="facebook-signup-btn">
                 <span class="social-icon">📘</span>
                 Sign up with Facebook
               </button>
@@ -270,6 +269,14 @@
       } catch (err) {
         alert(err.message || 'Signup failed');
       }
+    });
+
+    // Social signup buttons
+    document.getElementById('google-signup-btn').addEventListener('click', () => {
+      window.location.href = '/api/auth/google';
+    });
+    document.getElementById('facebook-signup-btn').addEventListener('click', () => {
+      window.location.href = '/api/auth/facebook';
     });
   </script>
 </body>

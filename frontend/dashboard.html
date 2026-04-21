@@ -20,7 +20,6 @@
       <nav class="nav">
         <a href="index.html" class="nav-link">Home</a>
         <a href="restaurants.html" class="nav-link">Restaurants</a>
-        <a href="menu.html" class="nav-link">Menu</a>
         <a href="reviews.html" class="nav-link">Reviews</a>
         <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
         <div class="nav-auth" id="nav-auth" style="display: none;">
@@ -44,9 +43,34 @@
           <p class="muted">Here's what's happening with your orders</p>
         </div>
 
+        <!-- Quick Stats -->
+        <div class="dashboard-stats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+          <div class="stat-card" style="background: white; border-radius: var(--radius); padding: 1.25rem; display: flex; gap: 1rem; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div style="font-size: 2rem;">📦</div>
+            <div>
+              <div style="font-size: 1.75rem; font-weight: 700; color: var(--color-primary);" id="stat-total-orders">0</div>
+              <div class="muted">Total orders</div>
+            </div>
+          </div>
+          <div class="stat-card" style="background: white; border-radius: var(--radius); padding: 1.25rem; display: flex; gap: 1rem; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div style="font-size: 2rem;">💸</div>
+            <div>
+              <div style="font-size: 1.75rem; font-weight: 700; color: var(--color-primary);" id="stat-total-spent">₹0</div>
+              <div class="muted">Total spent</div>
+            </div>
+          </div>
+          <div class="stat-card" style="background: white; border-radius: var(--radius); padding: 1.25rem; display: flex; gap: 1rem; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div style="font-size: 2rem;">⚡</div>
+            <div>
+              <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-primary);" id="stat-last-status">—</div>
+              <div class="muted">Last order status</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Quick Actions -->
         <div class="dashboard-actions">
-          <a href="menu.html" class="action-card">
+          <a href="restaurants.html?autostart=1" class="action-card">
             <div class="action-icon">🍽️</div>
             <h3>Order Food</h3>
             <p>Browse restaurants and place a new order</p>
@@ -217,31 +241,109 @@
   </footer>
 
   <script>
-    // Check if user is logged in
-    const user = JSON.parse(localStorage.getItem('foody_user') || 'null');
-    
-    if (!user) {
-      window.location.href = 'login.html';
-    } else {
-      // Redirect admin and restaurant_owner to their respective dashboards
+    function pickDefaultAddress(addresses = []) {
+      return addresses.find(a => a.isDefault) || addresses[0] || null;
+    }
+
+    async function loadDashboard() {
+      const token = localStorage.getItem('foody_token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const me = await window.foodAPI.me();
+      const user = me.user;
+      localStorage.setItem('foody_user', JSON.stringify(user));
+
       if (user.role === 'admin') {
         window.location.href = 'admin-dashboard.html';
         return;
-      } else if (user.role === 'restaurant_owner') {
+      }
+      if (user.role === 'restaurant_owner') {
         window.location.href = 'restaurant-dashboard.html';
         return;
       }
-      
-      // Update user info for customers
+
       document.getElementById('user-name').textContent = user.name || 'User';
-      document.getElementById('user-address').textContent = user.address || 'No address set';
+      const addr = pickDefaultAddress(user.addresses || []);
+      document.getElementById('user-address').textContent = addr
+        ? [addr.street, addr.city, addr.state, addr.zipCode].filter(Boolean).join(', ')
+        : 'No address set';
+
+      // Interesting bits: live stats + recent orders
+      try {
+        const res = await window.foodAPI.getOrders();
+        const orders = res.orders || [];
+
+        const totalSpent = orders.reduce((acc, o) => acc + Number(o.grandTotal || o.totalPrice || 0), 0);
+        document.getElementById('stat-total-orders').textContent = String(orders.length);
+        document.getElementById('stat-total-spent').textContent = `₹${Math.round(totalSpent).toLocaleString('en-IN')}`;
+        document.getElementById('stat-last-status').textContent = orders[0]?.orderStatus || '—';
+
+        // Current orders (not delivered/cancelled)
+        const active = orders.filter(o => !['Delivered', 'Cancelled'].includes(o.orderStatus));
+        const currentEl = document.getElementById('current-orders');
+        if (currentEl) {
+          if (active.length === 0) {
+            currentEl.innerHTML = `
+              <div class="empty-state">
+                <p>No active orders</p>
+                <a href="restaurants.html?autostart=1" class="button button-primary">Start Ordering</a>
+              </div>
+            `;
+          } else {
+            currentEl.innerHTML = active.slice(0, 3).map(o => {
+              const date = new Date(o.createdAt || Date.now()).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+              return `
+                <div class="order-item">
+                  <div class="order-info">
+                    <h4 class="h4">${o.restaurant?.name || 'Restaurant'}</h4>
+                    <p class="muted">${o.items?.[0]?.name || 'Order'}${o.items?.length > 1 ? ` +${o.items.length - 1} more` : ''}</p>
+                    <p class="meta">${date}</p>
+                  </div>
+                  <div class="order-status-badge completed">${o.orderStatus}</div>
+                  <div class="order-price">₹${Number(o.grandTotal || 0).toLocaleString('en-IN')}</div>
+                </div>
+              `;
+            }).join('');
+          }
+        }
+
+        // Recent orders list
+        const historyEl = document.getElementById('order-history');
+        if (historyEl) {
+          historyEl.innerHTML = orders.slice(0, 5).map(o => {
+            const date = new Date(o.createdAt || Date.now()).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+            return `
+              <div class="order-item">
+                <div class="order-info">
+                  <h4 class="h4">${o.items?.[0]?.name || 'Order'}${o.items?.length > 1 ? ` +${o.items.length - 1} more` : ''}</h4>
+                  <p class="muted">${o.restaurant?.name || 'Restaurant'} • Order #${o._id.slice(-6).toUpperCase()}</p>
+                  <p class="meta">${date}</p>
+                </div>
+                <div class="order-status-badge completed">${o.orderStatus}</div>
+                <div class="order-price">₹${Number(o.grandTotal || 0).toLocaleString('en-IN')}</div>
+              </div>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Failed to load orders:', err);
+      }
     }
-    
-    // Logout functionality
-    document.getElementById('logout-btn').addEventListener('click', function() {
-      window.foodAPI.logout();
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await window.foodAPI.logout();
       window.location.href = 'index.html';
     });
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadDashboard);
+    } else {
+      loadDashboard();
+    }
   </script>
 </body>
 </html>
