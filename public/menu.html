@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Menu — FOODY</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      
+      <div class="location-selector">
+        <span class="location-icon">📍</span>
+        <div class="location-input-group">
+          <input type="text" id="pincode-input" placeholder="Enter pincode" class="pincode-input" maxlength="6" />
+          <select class="location-dropdown" id="location-select" disabled>
+            <option value="">Select City</option>
+          </select>
+        </div>
+        <button class="location-search-btn" id="location-search-btn" disabled>🔍</button>
+      </div>
+      
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="restaurants.html" class="nav-link">Restaurants</a>
+        <a href="reviews.html" class="nav-link">Reviews</a>
+        <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
+        <div class="nav-auth" id="nav-auth">
+          <a href="login.html" class="button button-ghost" id="login-link">Login</a>
+          <a href="signup.html" class="button button-primary" id="signup-link">Sign Up</a>
+        </div>
+        <div class="nav-user" id="nav-user" style="display: none;">
+          <a href="dashboard.html" class="nav-link" id="dashboard-link">Dashboard</a>
+          <a href="profile.html" class="nav-link" id="profile-link">Profile</a>
+          <button class="button button-outline" id="logout-btn">Logout</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h1 class="h2" id="restaurant-name">Explore the Menu</h1>
+          <p class="muted" id="restaurant-description">Customize portions, add notes, and make it yours. Click "Add to Cart" to begin.</p>
+        </div>
+
+        <div id="menu-loading" style="text-align: center; padding: 3rem;">
+          <p>Loading menu items...</p>
+        </div>
+
+        <div id="menu-container" style="display: none;">
+          <div id="menu-items-grid" class="menu-grid">
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-brand">
+            <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="footer-logo" />
+            <span class="brand-name">FOODY</span>
+          </div>
+          <p class="footer-description">Delivering delicious food from your favorite restaurants right to your doorstep. Fast, fresh, and always satisfying.</p>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Facebook">📘</a>
+            <a href="#" class="social-link" aria-label="Twitter">🐦</a>
+            <a href="#" class="social-link" aria-label="Instagram">📷</a>
+            <a href="#" class="social-link" aria-label="LinkedIn">💼</a>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="restaurants.html">Restaurants</a></li>
+            <li><a href="menu.html">Menu</a></li>
+            <li><a href="reviews.html">Reviews</a></li>
+            <li><a href="order.html">Order</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Customer Service</h4>
+          <ul class="footer-links">
+            <li><a href="https://wa.me/919925177306" target="_blank">Help Center</a></li>
+            <li><a href="mailto:kavadparth54@gmail.com">Contact Us</a></li>
+            <li><a href="dashboard.html">Track Order</a></li>
+            <li><a href="#">Refund Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Contact Info</h4>
+          <div class="contact-info">
+            <p>📞 +91 9925177306</p>
+            <p>📧 kavadparth54@gmail.com</p>
+            <p>📍 303 foody  khav-gali, Rajkot, Gujrat 360005</p>
+            <p>🕒 Mon-Sun: 8:00 AM - 11:00 PM</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p class="copyright">© <span id="year"></span> FOODY — With love ♥</p>
+        <div class="footer-bottom-links">
+          <a href="signup.html">Privacy Policy</a>
+          <a href="signup.html">Terms of Service</a>
+          <a href="#">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Wait for API to be available
+    function waitForAPI(callback) {
+      if (window.foodAPI) {
+        callback();
+      } else {
+        setTimeout(() => waitForAPI(callback), 100);
+      }
+    }
+
+    let currentRestaurantId = null;
+    let currentRestaurant = null;
+    let menuItems = [];
+
+    // Get restaurant ID from URL
+    function getRestaurantIdFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('restaurantId') || params.get('restaurant');
+    }
+
+    // Load restaurant details
+    async function loadRestaurant(restaurantId) {
+      try {
+        const response = await window.foodAPI.getRestaurant(restaurantId);
+        if (response && response.success) {
+          currentRestaurant = response.data.restaurant || response.data;
+          const nameEl = document.getElementById('restaurant-name');
+          const descEl = document.getElementById('restaurant-description');
+          if (nameEl) nameEl.textContent = currentRestaurant.name || 'Menu';
+          if (descEl) descEl.textContent = currentRestaurant.description || 'Browse our delicious menu items';
+        }
+      } catch (error) {
+        console.error('Error loading restaurant:', error);
+      }
+    }
+
+    // Load menu items for restaurant
+    async function loadMenuItems() {
+      const restaurantId = getRestaurantIdFromURL();
+      
+      if (!restaurantId) {
+        document.getElementById('menu-loading').innerHTML = `
+          <div style="text-align: center; padding: 3rem;">
+            <h3>No Restaurant Selected</h3>
+            <p class="muted">Please select a restaurant from the <a href="restaurants.html">restaurants page</a> to view its menu.</p>
+          </div>
+        `;
+        return;
+      }
+
+      currentRestaurantId = restaurantId;
+
+      try {
+        // Load restaurant details
+        await loadRestaurant(restaurantId);
+
+        // Load menu items
+        const response = await window.foodAPI.getMenuItemsByRestaurant(restaurantId);
+        
+        if (response && response.success && response.menuItems) {
+          menuItems = response.menuItems;
+          renderMenuItems(menuItems);
+        } else {
+          document.getElementById('menu-loading').innerHTML = `
+            <div style="text-align: center; padding: 3rem;">
+              <h3>No Menu Items Available</h3>
+              <p class="muted">This restaurant hasn't added any menu items yet.</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading menu items:', error);
+        document.getElementById('menu-loading').innerHTML = `
+          <div style="text-align: center; padding: 3rem;">
+            <h3>Error Loading Menu</h3>
+            <p class="muted">Please try again later.</p>
+          </div>
+        `;
+      }
+    }
+
+    // Render menu items
+    function renderMenuItems(items) {
+      const container = document.getElementById('menu-items-grid');
+      const loadingEl = document.getElementById('menu-loading');
+      const menuContainer = document.getElementById('menu-container');
+      
+      if (!container) return;
+
+      if (items.length === 0) {
+        container.innerHTML = '<p style="text-align: center; padding: 2rem;">No menu items available.</p>';
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (menuContainer) menuContainer.style.display = 'block';
+        return;
+      }
+
+      // Group items by category
+      const itemsByCategory = {};
+      items.forEach(item => {
+        const category = item.category || 'Other';
+        if (!itemsByCategory[category]) {
+          itemsByCategory[category] = [];
+        }
+        itemsByCategory[category].push(item);
+      });
+
+      // Render items grouped by category
+      let html = '';
+      Object.keys(itemsByCategory).forEach(category => {
+        html += `<h2 class="h3" style="margin-top: 2rem; margin-bottom: 1rem;">${category}</h2>`;
+        html += itemsByCategory[category].map(item => {
+          const imageUrl = item.imageUrl || './public/images/pizza.jpg';
+          return `
+            <article class="menu-item" data-id="${item._id}" data-base-price="${item.price}" data-restaurant-id="${currentRestaurantId}">
+              <img src="${imageUrl}" alt="${item.name}" onerror="this.src='./public/images/pizza.jpg'" />
+              <div class="menu-body">
+                <h3 class="h4">${item.name}</h3>
+                <p class="muted">${item.description || ''}</p>
+
+                <form class="menu-form">
+                  <label>
+                    <span class="label">Quantity</span>
+                    <select name="size">
+                      <option value="1">1x</option>
+                      <option value="2">2x</option>
+                      <option value="3">3x</option>
+                      <option value="4">4x</option>
+                      <option value="5">5x</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    <span class="label">Special instructions</span>
+                    <input type="text" name="notes" placeholder="e.g., extra spicy, no onions" />
+                  </label>
+
+                  <div class="menu-actions">
+                    <span class="price" data-price>₹${item.price}</span>
+                    <button type="button" class="button add-to-cart">Add to Cart</button>
+                  </div>
+                </form>
+              </div>
+            </article>
+          `;
+        }).join('');
+      });
+
+      container.innerHTML = html;
+
+      // Hide loading, show menu
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (menuContainer) menuContainer.style.display = 'block';
+
+      // Let global script wire handlers + prices for injected cards
+      if (typeof window.foodyInitMenuCards === 'function') {
+        window.foodyInitMenuCards();
+      }
+    }
+
+    // Initialize
+    waitForAPI(() => {
+      loadMenuItems();
+    });
+  </script>
+</body>
+</html>

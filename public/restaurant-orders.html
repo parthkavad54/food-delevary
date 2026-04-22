@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Manage Orders — Restaurant Panel</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <a href="restaurant-dashboard.html" class="nav-link">Dashboard</a>
+        <a href="restaurant-orders.html" class="nav-link is-active">Orders</a>
+        <a href="restaurant-menu.html" class="nav-link">Menu Items</a>
+        <!-- <a href="index.html" class="nav-link">Home</a> -->
+        <button class="button button-outline" id="logout-btn">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="dashboard-header">
+          <h1 class="h2">Manage Orders</h1>
+          <div style="display: flex; gap: 1rem; align-items: center; margin-top: 1rem;">
+            <select id="status-filter" class="input" style="max-width: 200px;">
+              <option value="">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Confirmed">Confirmed</option>
+              <option value="Preparing">Preparing</option>
+              <option value="Ready For Pickup">Ready For Pickup</option>
+              <option value="Out For Delivery">Out For Delivery</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="orders-container">
+          <div style="text-align: center; padding: 2rem;">Loading orders...</div>
+        </div>
+
+        <div id="pagination" style="margin-top: 2rem; display: flex; justify-content: center; gap: 0.5rem;"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Order Details Modal -->
+  <div id="order-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+      <span class="modal-close">&times;</span>
+      <h2>Order Details</h2>
+      <div id="order-details"></div>
+      <div style="margin-top: 1.5rem;">
+        <label>Update Status:</label>
+        <select id="status-select" class="input" style="margin-top: 0.5rem;">
+          <option value="Pending">Pending</option>
+          <option value="Confirmed">Confirmed</option>
+          <option value="Preparing">Preparing</option>
+          <option value="Ready For Pickup">Ready For Pickup</option>
+          <option value="Out For Delivery">Out For Delivery</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+        <button class="button button-primary" style="margin-top: 1rem;" onclick="updateOrderStatus()">Update Status</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Wait for API to be available
+    function waitForAPI(callback) {
+      if (window.foodAPI) {
+        callback();
+      } else {
+        setTimeout(() => waitForAPI(callback), 100);
+      }
+    }
+
+    let currentPage = 1;
+    let currentFilters = {};
+    let currentOrderId = null;
+
+    async function checkAuth() {
+      const token = localStorage.getItem('foody_token');
+      const userStr = localStorage.getItem('foody_user');
+      
+      if (!token || !userStr) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+      if (user.role !== 'restaurant_owner' && user.role !== 'admin') {
+        alert('Access denied. Restaurant owner access required.');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      loadOrders();
+    }
+
+    async function loadOrders() {
+      try {
+        const filters = { ...currentFilters, page: currentPage, limit: 10 };
+        const data = await window.foodAPI.getRestaurantOrders(filters);
+        
+        if (data.success) {
+          renderOrders(data.data);
+          renderPagination(data.page, data.pages);
+        }
+      } catch (error) {
+        console.error('Error loading orders:', error);
+        document.getElementById('orders-container').innerHTML = 
+          '<div style="text-align: center; padding: 2rem;">Error loading orders</div>';
+      }
+    }
+
+    function renderOrders(orders) {
+      const container = document.getElementById('orders-container');
+      if (orders.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 2rem;">No orders found</div>';
+        return;
+      }
+
+      container.innerHTML = orders.map(order => {
+        return window.orderStatusUtils.renderOrderCard(order);
+      }).join('');
+
+      // Attach event listeners to status buttons
+      orders.forEach(order => {
+        const orderCard = container.querySelector(`[data-order-id="${order._id}"]`);
+        if (orderCard) {
+          orderCard.querySelectorAll('.status-button').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const newStatus = e.target.dataset.status;
+              await updateOrderStatusDialog(order._id, newStatus);
+            });
+          });
+        }
+      });
+
+      // Alternative: Use event delegation
+      container.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('status-button')) {
+          const card = e.target.closest('.order-card');
+          if (card) {
+            const orderIdElement = card.querySelector('.order-id');
+            const orderText = orderIdElement ? orderIdElement.textContent : '';
+            const orderId = orderText.replace('Order #', '');
+            const newStatus = e.target.dataset.status;
+            if (orderId && newStatus) {
+              await updateOrderStatusDialog(orderId, newStatus);
+            }
+          }
+        }
+      });
+    }
+
+    function renderPagination(page, pages) {
+      const pagination = document.getElementById('pagination');
+      if (pages <= 1) {
+        pagination.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      if (page > 1) {
+        html += `<button class="button button-outline" onclick="changePage(${page - 1})">Previous</button>`;
+      }
+      html += `<span style="padding: 0.5rem 1rem;">Page ${page} of ${pages}</span>`;
+      if (page < pages) {
+        html += `<button class="button button-outline" onclick="changePage(${page + 1})">Next</button>`;
+      }
+      pagination.innerHTML = html;
+    }
+
+    function changePage(page) {
+      currentPage = page;
+      loadOrders();
+    }
+
+    async function viewOrder(orderId) {
+      try {
+        const data = await window.foodAPI.getRestaurantOrderById(orderId);
+        if (data.success) {
+          const order = data.data;
+          currentOrderId = orderId;
+          
+          document.getElementById('order-details').innerHTML = `
+            <div style="margin-bottom: 1rem;">
+              <p><strong>Order ID:</strong> ${order._id}</p>
+              <p><strong>Customer:</strong> ${order.user ? order.user.name : 'N/A'}</p>
+              <p><strong>Email:</strong> ${order.user ? order.user.email : 'N/A'}</p>
+              <p><strong>Phone:</strong> ${order.user ? order.user.phone : 'N/A'}</p>
+              <p><strong>Restaurant:</strong> ${order.restaurant ? order.restaurant.name : 'N/A'}</p>
+              <p><strong>Status:</strong> ${order.orderStatus}</p>
+              <p><strong>Total:</strong> ₹${order.grandTotal}</p>
+              <p><strong>Payment Method:</strong> ${order.paymentMethod}</p>
+              <p><strong>Payment Status:</strong> ${order.isPaid ? 'Paid' : 'Pending'}</p>
+              <div style="margin-top: 1rem;">
+                <strong>Items:</strong>
+                ${order.items ? order.items.map(item => 
+                  `<div style="margin: 0.5rem 0; padding: 0.5rem; background: var(--color-offwhite); border-radius: var(--radius);">
+                    ${item.quantity}x ${item.name || item.menuItem?.name || 'Item'} - ₹${item.price} each
+                  </div>`
+                ).join('') : ''}
+              </div>
+              ${order.deliveryAddress ? `
+                <div style="margin-top: 1rem;">
+                  <strong>Delivery Address:</strong>
+                  <p>${order.deliveryAddress.street}, ${order.deliveryAddress.city}, ${order.deliveryAddress.postalCode}</p>
+                </div>
+              ` : ''}
+            </div>
+          `;
+          
+          document.getElementById('status-select').value = order.orderStatus;
+          document.getElementById('order-modal').style.display = 'block';
+        }
+      } catch (error) {
+        alert('Error loading order: ' + error.message);
+      }
+    }
+
+    async function updateOrderStatus() {
+      if (!currentOrderId) return;
+      
+      const status = document.getElementById('status-select').value;
+      
+      try {
+        await window.foodAPI.updateRestaurantOrderStatus(currentOrderId, status);
+        document.getElementById('order-modal').style.display = 'none';
+        loadOrders();
+      } catch (error) {
+        alert('Error updating order status: ' + error.message);
+      }
+    }
+
+    // Handle direct status button clicks from the order status UI
+    async function updateOrderStatusDialog(orderId, status) {
+      try {
+        const data = await window.foodAPI.updateRestaurantOrderStatus(orderId, status);
+        if (data.success) {
+          // Show success feedback
+          const notification = document.createElement('div');
+          notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--color-accent);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+          `;
+          notification.textContent = '✓ Order updated to ' + status;
+          document.body.appendChild(notification);
+
+          setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+          }, 3000);
+
+          loadOrders();
+        }
+      } catch (error) {
+        alert('Error updating order status: ' + error.message);
+      }
+    }
+
+    document.getElementById('status-filter').addEventListener('change', (e) => {
+      currentFilters.status = e.target.value || undefined;
+      currentPage = 1;
+      loadOrders();
+    });
+
+    document.querySelector('.modal-close').addEventListener('click', () => {
+      document.getElementById('order-modal').style.display = 'none';
+    });
+
+    window.viewOrder = viewOrder;
+    window.changePage = changePage;
+    window.updateOrderStatus = updateOrderStatus;
+
+    // Initialize when API is ready
+    waitForAPI(() => {
+      checkAuth();
+      
+      // Setup logout button after API is available
+      const logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+          window.foodAPI.logout();
+          window.location.href = 'login.html';
+        });
+      }
+    });
+  </script>
+
+  <style>
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius);
+      width: 90%;
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .input {
+      width: 100%;
+      padding: 0.625rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      font-size: 1rem;
+    }
+  </style>
+</body>
+</html>
+

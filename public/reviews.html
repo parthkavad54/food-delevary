@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Customer Reviews — FOODY</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="restaurants.html" class="nav-link">Restaurants</a>
+        <a href="reviews.html" class="nav-link is-active" aria-current="page">Reviews</a>
+        <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
+        <div class="nav-auth" id="nav-auth">
+          <a href="login.html" class="button button-ghost" id="login-link">Login</a>
+          <a href="signup.html" class="button button-primary" id="signup-link">Sign Up</a>
+        </div>
+        <div class="nav-user" id="nav-user" style="display: none;">
+          <a href="dashboard.html" class="nav-link" id="dashboard-link">Dashboard</a>
+          <a href="profile.html" class="nav-link" id="profile-link">Profile</a>
+          <button class="button button-outline" id="logout-btn">Logout</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h1 class="h2">Customer Reviews</h1>
+          <p class="muted">Hear from customers who’ve already enjoyed FOODY.</p>
+        </div>
+
+        <div class="review-list">
+          <article class="review">
+            <div class="stars" aria-label="Rated 5 out of 5">★★★★★</div>
+            <p>Delivery was quick and the food tasted amazing—still hot and fresh. I’m impressed!</p>
+            <footer>— Alex W.</footer>
+          </article>
+
+          <article class="review">
+            <div class="stars" aria-label="Rated 4 out of 5">★★★★☆</div>
+            <p>Great variety and easy checkout. Would love even more vegetarian options.</p>
+            <footer>— Priya S.</footer>
+          </article>
+
+          <article class="review">
+            <div class="stars" aria-label="Rated 5 out of 5">★★★★★</div>
+            <p>Best sushi delivery in town. Excellent quality and careful packaging.</p>
+            <footer>— Diego M.</footer>
+          </article>
+
+          <article class="review">
+            <div class="stars" aria-label="Rated 4.5 out of 5">★★★★☆</div>
+            <p>The burgers are awesome. Delivery time was accurate. Will order again!</p>
+            <footer>— Casey L.</footer>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-brand">
+            <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="footer-logo" />
+            <span class="brand-name">FOODY</span>
+          </div>
+          <p class="footer-description">Delivering delicious food from your favorite restaurants right to your doorstep. Fast, fresh, and always satisfying.</p>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Facebook">📘</a>
+            <a href="#" class="social-link" aria-label="Twitter">🐦</a>
+            <a href="#" class="social-link" aria-label="Instagram">📷</a>
+            <a href="#" class="social-link" aria-label="LinkedIn">💼</a>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="restaurants.html">Restaurants</a></li>
+            <li><a href="menu.html">Menu</a></li>
+            <li><a href="reviews.html">Reviews</a></li>
+            <li><a href="order.html">Order</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Customer Service</h4>
+          <ul class="footer-links">
+            <li><a href="https://wa.me/919925177306" target="_blank">Help Center</a></li>
+            <li><a href="mailto:kavadparth54@gmail.com">Contact Us</a></li>
+            <li><a href="dashboard.html">Track Order</a></li>
+            <li><a href="#">Refund Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Contact Info</h4>
+          <div class="contact-info">
+            <p>📞 +91 9925177306</p>
+            <p>📧 kavadparth54@gmail.com</p>
+            <p>📍 303 foody  khav-gali, Rajkot, Gujrat 360005</p>
+            <p>🕒 Mon-Sun: 8:00 AM - 11:00 PM</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p class="copyright">© <span id="year"></span> FOODY — With love ♥</p>
+        <div class="footer-bottom-links">
+          <a href="signup.html">Privacy Policy</a>
+          <a href="signup.html">Terms of Service</a>
+          <a href="#">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

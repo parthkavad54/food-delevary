@@ -1,7 +1,8 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "buildCommand": "npm install && cd backend && npm install && cp -r frontend/* public/ || xcopy frontend public /E /Y",
+  "buildCommand": "npm install && cd backend && npm install && cd .. && npm run build",
+  "outputDirectory": "public",
   "env": {
     "NODE_ENV": "production"
   },
@@ -12,14 +13,6 @@
     },
     {
       "source": "/health",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/(.*)\\..*",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/(.*)",
       "destination": "/api/index.js"
     }
   ]

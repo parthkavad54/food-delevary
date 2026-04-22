@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Restaurants — FOODY</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      
+      <div class="location-selector">
+        <span class="location-icon">📍</span>
+        <div class="location-input-group">
+          <input type="text" id="pincode-input" placeholder="Enter pincode" class="pincode-input" maxlength="6" />
+          <select class="location-dropdown" id="location-select" disabled>
+            <option value="">Select City</option>
+          </select>
+        </div>
+        <button class="location-search-btn" id="location-search-btn" disabled>🔍</button>
+      </div>
+      
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="restaurants.html" class="nav-link is-active" aria-current="page">Restaurants</a>
+        <a href="reviews.html" class="nav-link">Reviews</a>
+        <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
+        <div class="nav-auth" id="nav-auth">
+          <a href="login.html" class="button button-ghost" id="login-link">Login</a>
+          <a href="signup.html" class="button button-primary" id="signup-link">Sign Up</a>
+        </div>
+        <div class="nav-user" id="nav-user" style="display: none;">
+          <a href="dashboard.html" class="nav-link" id="dashboard-link">Dashboard</a>
+          <a href="profile.html" class="nav-link" id="profile-link">Profile</a>
+          <button class="button button-outline" id="logout-btn">Logout</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h1 class="h2">Find Your Next Favorite</h1>
+          <p class="muted">Filter by cuisine, price, dietary preference, and rating.</p>
+        </div>
+        <form class="filters" id="restaurant-filters" aria-label="Restaurant filters">
+          <label>
+            <span class="label">Cuisine</span>
+            <select name="cuisine">
+              <option value="">Any</option>
+              <option>Italian</option>
+              <option>Japanese</option>
+              <option>American</option>
+              <option>Mediterranean</option>
+              <option>Indian</option>
+              <option>Chinese</option>
+              <option>Mexican</option>
+              <option>Thai</option>
+              <option>Korean</option>
+            </select>
+          </label>
+
+          <label>
+            <span class="label">Price</span>
+            <select name="price">
+              <option value="">Any</option>
+              <option>$</option>
+              <option>$$</option>
+              <option>$$$</option>
+            </select>
+          </label>
+
+          <fieldset>
+            <legend class="label">Dietary</legend>
+            <label class="checkbox">
+              <input type="checkbox" name="diet" value="vegan" /> Vegan
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" name="diet" value="vegetarian" /> Vegetarian
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" name="diet" value="gluten-free" /> Gluten-free
+            </label>
+          </fieldset>
+
+          <label>
+            <span class="label">Min Rating</span>
+            <select name="rating">
+              <option value="">Any</option>
+              <option value="3">3+</option>
+              <option value="4">4+</option>
+              <option value="4.5">4.5+</option>
+            </select>
+          </label>
+
+          <button type="reset" class="button button-ghost" id="reset-filters">Reset</button>
+        </form>
+
+        <div class="restaurant-list" id="restaurant-list">
+          <div style="text-align: center; padding: 3rem;">
+            <p>Loading restaurants...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Load restaurants dynamically
+    async function loadRestaurants() {
+      const restaurantList = document.getElementById('restaurant-list');
+      if (!restaurantList) return;
+
+      try {
+        const response = await window.foodAPI.getRestaurants({});
+        
+        if (response && response.success && response.data) {
+          const restaurants = response.data;
+          
+          // Filter restaurants that have menu items
+          const restaurantsWithMenu = restaurants.filter(rest => 
+            rest.menuItems && rest.menuItems.length > 0
+          );
+
+          if (restaurantsWithMenu.length === 0) {
+            restaurantList.innerHTML = `
+              <div style="text-align: center; padding: 3rem; background: white; border-radius: var(--radius);">
+                <h3>No restaurants available</h3>
+                <p class="muted">Check back soon for new restaurants!</p>
+              </div>
+            `;
+            return;
+          }
+
+          // Render restaurants
+          restaurantList.innerHTML = restaurantsWithMenu.map(restaurant => {
+            const cuisine = restaurant.cuisine && restaurant.cuisine.length > 0 
+              ? restaurant.cuisine.join(', ') 
+              : 'Various';
+            
+            const address = restaurant.address 
+              ? `${restaurant.address.line1 || ''}, ${restaurant.address.city || ''}`.trim()
+              : 'Address not available';
+            
+            const rating = restaurant.averageRating || 0;
+            const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
+            const menuItemCount = restaurant.menuItems ? restaurant.menuItems.length : 0;
+
+            return `
+              <article class="restaurant-card"
+                       data-cuisine="${cuisine}"
+                       data-rating="${rating}">
+                <img src="./public/images/pizza.jpg" alt="${restaurant.name} logo" class="rest-logo" />
+                <div class="rest-content">
+                  <h3 class="h4">${restaurant.name}</h3>
+                  <div class="stars" aria-label="Rated ${rating} out of 5">${stars}</div>
+                  <p class="muted">${restaurant.description || 'Delicious food awaits you'}</p>
+                  <p class="meta">${address} • ${menuItemCount} menu items</p>
+                  <p class="meta">Cuisine: ${cuisine}</p>
+                  <a href="menu.html?restaurant=${restaurant._id}" class="button button-ghost">View Menu</a>
+                </div>
+              </article>
+            `;
+          }).join('');
+
+          // If user came from "Order Now" with no restaurant chosen, auto-open first restaurant menu
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('autostart') === '1' && restaurantsWithMenu.length > 0) {
+            window.location.href = `menu.html?restaurant=${restaurantsWithMenu[0]._id}`;
+          }
+        } else {
+          restaurantList.innerHTML = `
+            <div style="text-align: center; padding: 3rem; background: white; border-radius: var(--radius);">
+              <h3>Error loading restaurants</h3>
+              <p class="muted">Please try again later.</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading restaurants:', error);
+        restaurantList.innerHTML = `
+          <div style="text-align: center; padding: 3rem; background: white; border-radius: var(--radius);">
+            <h3>Error loading restaurants</h3>
+            <p class="muted">Please refresh the page or try again later.</p>
+          </div>
+        `;
+      }
+    }
+
+    // Load restaurants when page loads
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadRestaurants);
+    } else {
+      loadRestaurants();
+    }
+  </script>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-brand">
+            <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="footer-logo" />
+            <span class="brand-name">FOODY</span>
+          </div>
+          <p class="footer-description">Delivering delicious food from your favorite restaurants right to your doorstep. Fast, fresh, and always satisfying.</p>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Facebook">📘</a>
+            <a href="#" class="social-link" aria-label="Twitter">🐦</a>
+            <a href="#" class="social-link" aria-label="Instagram">📷</a>
+            <a href="#" class="social-link" aria-label="LinkedIn">💼</a>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="restaurants.html">Restaurants</a></li>
+            <li><a href="menu.html">Menu</a></li>
+            <li><a href="reviews.html">Reviews</a></li>
+            <li><a href="order.html">Order</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Customer Service</h4>
+          <ul class="footer-links">
+            <li><a href="https://wa.me/919925177306" target="_blank">Help Center</a></li>
+            <li><a href="mailto:kavadparth54@gmail.com">Contact Us</a></li>
+            <li><a href="dashboard.html">Track Order</a></li>
+            <li><a href="#">Refund Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Contact Info</h4>
+          <div class="contact-info">
+            <p>📞 +91 9925177306</p>
+            <p>📧 kavadparth54@gmail.com</p>
+            <p>📍 303 foody  khav-gali, Rajkot, Gujrat 3600055</p>
+            <p>🕒 Mon-Sun: 8:00 AM - 11:00 PM</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p class="copyright">© <span id="year"></span> FOODY — With love ♥</p>
+        <div class="footer-bottom-links">
+          <a href="signup.html">Privacy Policy</a>
+          <a href="signup.html">Terms of Service</a>
+          <a href="#">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

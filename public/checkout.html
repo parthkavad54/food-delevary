@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Checkout — FOODY</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script defer src="assets/api.js"></script>
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <a href="order.html" class="button button-outline">← Back to Cart</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h1 class="h2">Checkout</h1>
+          <p class="muted">Review your order and select payment method</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem; margin-top: 2rem;">
+          <!-- Checkout Form -->
+          <div>
+            <!-- Delivery Address Selection -->
+            <div class="profile-card">
+              <h3 class="h3">Delivery Address</h3>
+              <div id="addresses-list" style="margin: 1rem 0;"></div>
+              <button class="button button-outline" onclick="openAddressModal()">+ Add New Address</button>
+            </div>
+
+            <!-- Payment Method Selection -->
+            <div class="profile-card" style="margin-top: 2rem;">
+              <h3 class="h3">Payment Method</h3>
+              
+              <div style="display: flex; flex-direction: column; gap: 1rem; margin: 1.5rem 0;">
+                <!-- Razorpay -->
+                <label class="payment-option">
+                  <input type="radio" name="payment-method" value="razorpay" checked />
+                  <div class="payment-option-content">
+                    <h4>Razorpay</h4>
+                    <p>Credit Card, Debit Card, UPI, Net Banking</p>
+                  </div>
+                </label>
+
+                <!-- Cash on Delivery -->
+                <label class="payment-option">
+                  <input type="radio" name="payment-method" value="cod" />
+                  <div class="payment-option-content">
+                    <h4>Cash on Delivery (COD)</h4>
+                    <p>Pay when your order arrives</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Order Notes -->
+            <div class="profile-card" style="margin-top: 2rem;">
+              <h3 class="h3">Delivery Instructions</h3>
+              <textarea 
+                id="delivery-notes" 
+                placeholder="Add any special instructions for the delivery..." 
+                style="width: 100%; padding: 0.75rem; border: 1px solid var(--color-border); border-radius: 0.375rem; resize: vertical; min-height: 100px; font-family: inherit;"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Order Summary -->
+          <aside>
+            <div class="profile-card" style="position: sticky; top: 100px;">
+              <h3 class="h3">Order Summary</h3>
+              
+              <div id="orders-summary" style="margin: 1.5rem 0;">
+                <!-- Orders injected by JS -->
+              </div>
+
+              <div style="border-top: 2px solid var(--color-border); padding-top: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                  <span>Subtotal</span>
+                  <span id="summary-subtotal">₹0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                  <span>Delivery Fee</span>
+                  <span id="summary-delivery">₹0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem;">
+                  <span>GST (5%)</span>
+                  <span id="summary-gst">₹0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.1rem; color: var(--color-primary);">
+                  <span>Total Amount</span>
+                  <span id="summary-total">₹0</span>
+                </div>
+              </div>
+
+              <button id="place-order-btn" class="button button-primary" style="width: 100%; margin-top: 1.5rem; padding: 1rem;">
+                Place Order
+              </button>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Address Modal -->
+  <div id="address-modal" class="location-picker-modal" style="display: none;">
+    <div class="location-picker-content">
+      <div class="location-picker-header">
+        <h3>Add Delivery Address</h3>
+        <button class="location-picker-close" onclick="closeAddressModal()">✕</button>
+      </div>
+      <div class="location-picker-body">
+        <form id="address-form" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div>
+            <label class="label">Street Address</label>
+            <input type="text" name="street" required placeholder="Enter street address" class="form-input" />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label class="label">City</label>
+              <input type="text" name="city" required placeholder="City" class="form-input" />
+            </div>
+            <div>
+              <label class="label">State</label>
+              <input type="text" name="state" required placeholder="State" class="form-input" />
+            </div>
+          </div>
+          <div>
+            <label class="label">Zip Code</label>
+            <input type="text" name="zipCode" required placeholder="Zip Code" class="form-input" />
+          </div>
+          <div>
+            <label class="label">Address Label (Home/Office/Other)</label>
+            <input type="text" name="label" placeholder="e.g., Home" class="form-input" />
+          </div>
+          <div>
+            <label class="checkbox">
+              <input type="checkbox" name="isDefault" /> Set as default address
+            </label>
+          </div>
+          <div style="display: flex; gap: 1rem;">
+            <button type="button" class="button button-outline" style="flex: 1;" onclick="closeAddressModal()">Cancel</button>
+            <button type="submit" class="button button-primary" style="flex: 1;">Save Address</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-brand">
+            <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="footer-logo" />
+            <span class="brand-name">FOODY</span>
+          </div>
+          <p class="footer-description">Delivering delicious food from your favorite restaurants right to your doorstep.</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="copyright">© <span id="year"></span> FOODY — With love ♥</p>
+      </div>
+    </div>
+  </footer>
+
+  <style>
+    .payment-option {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      border: 2px solid var(--color-border);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .payment-option:hover {
+      border-color: var(--color-primary);
+      background: var(--color-offwhite);
+    }
+
+    .payment-option input[type="radio"] {
+      margin-right: 1rem;
+      cursor: pointer;
+      width: 20px;
+      height: 20px;
+    }
+
+    .payment-option input[type="radio"]:checked + .payment-option-content {
+      color: var(--color-primary);
+    }
+
+    .payment-option-content h4 {
+      margin: 0 0 0.25rem;
+      font-weight: 600;
+    }
+
+    .payment-option-content p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: rgba(17, 24, 39, 0.6);
+    }
+
+    .address-card-checkout {
+      padding: 1rem;
+      border: 2px solid var(--color-border);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .address-card-checkout:hover {
+      border-color: var(--color-primary);
+      background: var(--color-offwhite);
+    }
+
+    .address-card-checkout input[type="radio"] {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      cursor: pointer;
+      width: 20px;
+      height: 20px;
+    }
+
+    .address-card-checkout-content h4 {
+      margin: 0 0 0.25rem;
+      font-weight: 600;
+    }
+
+    .address-card-checkout-content p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: rgba(17, 24, 39, 0.7);
+    }
+  </style>
+
+  <script>
+    const fmtINR = (n) =>
+      new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+
+    let userAddresses = [];
+    let orderTotal = 0;
+
+    async function loadCheckout() {
+      try {
+        // Load user profile to get addresses
+        const profileRes = await window.foodAPI.getUserProfile();
+        userAddresses = profileRes.user.addresses || [];
+        renderAddresses();
+
+        // Load cart data
+        const cart = window.multiRestaurantCart.load();
+        const restaurants = Object.values(cart.restaurants);
+
+        if (restaurants.length === 0) {
+          window.location.href = 'order.html';
+          return;
+        }
+
+        // Render order summary
+        let grandTotal = 0;
+        const summaryHTML = restaurants.map(restaurant => {
+          let subtotal = 0;
+          const itemsHTML = restaurant.items.map(item => {
+            const itemTotal = (item.unitPrice || item.price) * item.quantity;
+            subtotal += itemTotal;
+            return `<p style="font-size: 0.9rem; color: rgba(17,24,39,0.7); margin: 0.25rem 0;">${item.name} × ${item.quantity}</p>`;
+          }).join('');
+
+          grandTotal += subtotal;
+
+          return `
+            <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--color-border);">
+              <p style="font-weight: 600; margin: 0 0 0.5rem; color: var(--color-text);">${restaurant.name}</p>
+              ${itemsHTML}
+              <p style="font-weight: 600; margin-top: 0.5rem; color: var(--color-primary);">${fmtINR(subtotal)}</p>
+            </div>
+          `;
+        }).join('');
+
+        document.getElementById('orders-summary').innerHTML = summaryHTML;
+
+        const deliveryFee = 0; // TODO: Calculate based on distance
+        const gst = Math.round(grandTotal * 0.05);
+        orderTotal = grandTotal + deliveryFee + gst;
+
+        document.getElementById('summary-subtotal').textContent = fmtINR(grandTotal);
+        document.getElementById('summary-delivery').textContent = fmtINR(deliveryFee);
+        document.getElementById('summary-gst').textContent = fmtINR(gst);
+        document.getElementById('summary-total').textContent = fmtINR(orderTotal);
+
+        // Place order button handler
+        document.getElementById('place-order-btn').addEventListener('click', async () => {
+          const selectedAddress = document.querySelector('input[name="address"]:checked');
+          const selectedPaymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value;
+
+          if (!selectedAddress) {
+            alert('Please select a delivery address');
+            return;
+          }
+
+          if (!selectedPaymentMethod) {
+            alert('Please select a payment method');
+            return;
+          }
+
+          const deliveryNotes = document.getElementById('delivery-notes').value;
+          const btn = document.getElementById('place-order-btn');
+          const originalText = btn.textContent;
+          btn.disabled = true;
+          btn.textContent = 'Processing...';
+
+          try {
+            // Create orders for each restaurant
+            const orders = await createOrders(selectedAddress.value, deliveryNotes, selectedPaymentMethod);
+
+            if (!orders || orders.length === 0) {
+              throw new Error('No orders were created');
+            }
+
+            if (selectedPaymentMethod === 'razorpay') {
+              processRazorpayPayment(orders, orderTotal);
+            } else if (selectedPaymentMethod === 'cod') {
+              processCODPayment(orders);
+            }
+          } catch (error) {
+            console.error('Checkout error:', error);
+            alert(`Checkout failed: ${error.message}`);
+            btn.disabled = false;
+            btn.textContent = originalText;
+          }
+        });
+      } catch (error) {
+        console.error('Error loading checkout:', error);
+        alert('Failed to load checkout');
+      }
+    }
+
+    function renderAddresses() {
+      const addressesHTML = userAddresses.map((addr, index) => `
+        <label class="address-card-checkout">
+          <input type="radio" name="address" value="${index}" ${index === 0 ? 'checked' : ''} />
+          <div class="address-card-checkout-content">
+            <h4>${addr.label || 'Address'}</h4>
+            <p>${[addr.street, addr.city, addr.state, addr.zipCode].filter(Boolean).join(', ')}</p>
+            ${addr.isDefault ? '<p style="font-size: 0.8rem; color: var(--color-primary); margin-top: 0.25rem;">Default Address</p>' : ''}
+          </div>
+        </label>
+      `).join('');
+
+      document.getElementById('addresses-list').innerHTML = addressesHTML || '<p class="muted">No addresses found. Add one below.</p>';
+    }
+
+    function openAddressModal() {
+      document.getElementById('address-modal').style.display = 'flex';
+    }
+
+    function closeAddressModal() {
+      document.getElementById('address-modal').style.display = 'none';
+    }
+
+    document.getElementById('address-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const newAddress = {
+        street: formData.get('street'),
+        city: formData.get('city'),
+        state: formData.get('state'),
+        zipCode: formData.get('zipCode'),
+        label: formData.get('label') || 'Home',
+        isDefault: formData.get('isDefault') === 'on'
+      };
+
+      try {
+        const res = await window.foodAPI.updateUserProfile({ addresses: [...userAddresses, newAddress] });
+        userAddresses = res.user.addresses || [];
+        renderAddresses();
+        closeAddressModal();
+      } catch (error) {
+        alert('Failed to add address');
+      }
+    });
+
+    async function createOrders(addressIndex, notes, paymentMethod) {
+      const cart = window.multiRestaurantCart.load();
+      const restaurants = Object.values(cart.restaurants);
+      const selectedAddress = userAddresses[parseInt(addressIndex)];
+      const orders = [];
+
+      // Map frontend payment method to backend enum values
+      const paymentMethodMap = {
+        'razorpay': 'CreditCard',
+        'cod': 'COD'
+      };
+
+      for (const restaurant of restaurants) {
+        const subtotal = restaurant.items.reduce((sum, item) => sum + ((item.unitPrice || item.price) * item.quantity), 0);
+        const deliveryFee = 0; // TODO: Calculate based on distance
+        const taxAmount = Math.round(subtotal * 0.05);
+        const grandTotal = subtotal + deliveryFee + taxAmount;
+
+        const orderData = {
+          restaurant: restaurant.id,
+          items: restaurant.items.map(item => ({
+            menuItem: item.menuItemId,
+            name: item.name,
+            price: item.unitPrice || item.price,
+            quantity: item.quantity
+          })),
+          deliveryAddress: {
+            street: selectedAddress.street,
+            city: selectedAddress.city,
+            postalCode: selectedAddress.zipCode,
+            country: 'India'
+          },
+          paymentMethod: paymentMethodMap[paymentMethod] || 'COD',
+          totalPrice: subtotal,
+          deliveryFee: deliveryFee,
+          taxAmount: taxAmount,
+          grandTotal: grandTotal,
+          orderStatus: 'Pending'
+        };
+
+        try {
+          const res = await window.foodAPI.createOrder(orderData);
+          if (res.order) {
+            orders.push(res.order);
+          } else {
+            throw new Error('Invalid order response from server');
+          }
+        } catch (error) {
+          console.error('Order creation error:', error);
+          throw new Error(`Failed to create order: ${error.message}`);
+        }
+      }
+
+      return orders;
+    }
+
+    function processRazorpayPayment(orders, totalAmount) {
+      let userEmail = '';
+      let userPhone = '';
+      
+      try {
+        const userData = JSON.parse(localStorage.getItem('foody_user'));
+        userEmail = userData?.email || '';
+        userPhone = userData?.phone || '';
+      } catch (e) {
+        console.error('Could not read user data from localStorage:', e);
+      }
+
+      const options = {
+        key: 'rzp_test_1DP5mmOlF5G0m4', // TODO: Replace with your Razorpay key
+        amount: totalAmount * 100, // Razorpay expects amount in paise
+        currency: 'INR',
+        name: 'FOODY',
+        description: `Order for ${orders.length} restaurant(s)`,
+        order_id: orders[0]._id,
+        handler: async function(response) {
+          try {
+            // Verify payment with backend
+            const paymentRes = await window.foodAPI.verifyPayment({
+              orderId: orders[0]._id,
+              paymentId: response.razorpay_payment_id,
+              signature: response.razorpay_signature
+            });
+
+            if (paymentRes.success) {
+              window.multiRestaurantCart.clear();
+              alert('Order placed successfully!');
+              window.location.href = `delivery-tracking.html?orderId=${orders[0]._id}`;
+            } else {
+              alert('Payment verification failed. Please contact support.');
+            }
+          } catch (error) {
+            console.error('Payment verification error:', error);
+            alert('Payment verification failed: ' + error.message);
+          }
+        },
+        prefill: {
+          email: userEmail,
+          contact: userPhone
+        }
+      };
+
+      try {
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } catch (error) {
+        console.error('Razorpay initialization error:', error);
+        alert('Failed to open payment gateway. Please try again.');
+      }
+    }
+
+    async function processCODPayment(orders) {
+      try {
+        window.multiRestaurantCart.clear();
+        alert('Order placed successfully! Pay on delivery.');
+        window.location.href = `delivery-tracking.html?orderId=${orders[0]._id}`;
+      } catch (error) {
+        alert('Failed to process order');
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadCheckout);
+    } else {
+      loadCheckout();
+    }
+  </script>
+</body>
+</html>

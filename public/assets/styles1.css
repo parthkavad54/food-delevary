@@ -1,0 +1,380 @@
+:root {
+    /* Define color variables for easy theming */
+    --color-primary: #ff4757; /* A vibrant red/pink for action */
+    --color-secondary: #2f3640; /* Dark color for text and background contrast */
+    --color-text: #333;
+    --color-muted: #6b6b6b;
+    --color-background: #f4f4f4;
+    --color-light: #fff;
+    --color-border: #ddd;
+
+    --font-family-body: 'Arial', sans-serif;
+    --font-family-heading: 'Helvetica Neue', sans-serif;
+    --border-radius: 8px;
+    --transition-speed: 0.2s;
+}
+
+/* -------------------------------------------
+   Base & Typography
+   ------------------------------------------- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-family-body);
+    color: var(--color-text);
+    background-color: var(--color-background);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem; /* Padding on the sides for mobile and desktop */
+}
+
+/* Headings */
+.h2 { font-size: 2rem; margin-bottom: 0.5rem; }
+.h3 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; }
+.h4 { font-size: 1.25rem; }
+
+.muted {
+    color: var(--color-muted);
+}
+
+/* -------------------------------------------
+   Buttons & Forms
+   ------------------------------------------- */
+.button {
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: bold;
+    text-align: center;
+    transition: background-color var(--transition-speed);
+    display: inline-block;
+}
+
+.button-primary {
+    background-color: var(--color-primary);
+    color: var(--color-light);
+    border: 2px solid var(--color-primary);
+}
+.button-primary:hover {
+    background-color: #e0414f; /* Slightly darker hover */
+}
+
+.button-outline {
+    background-color: transparent;
+    color: var(--color-primary);
+    border: 2px solid var(--color-primary);
+}
+.button-outline:hover {
+    background-color: var(--color-primary);
+    color: var(--color-light);
+}
+
+.button-pill {
+    padding: 0.4rem 0.8rem;
+    border-radius: 50px;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-light);
+    color: var(--color-text);
+    white-space: nowrap; /* Keep pills from breaking */
+}
+.button-pill:hover {
+    background-color: var(--color-primary);
+    color: var(--color-light);
+    border-color: var(--color-primary);
+}
+
+/* Form Elements */
+.label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+    margin-top: 0.5rem;
+}
+
+select, input[type="text"], input[type="search"] {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+}
+
+/* Checkbox/Fieldset styling */
+.inline-checks {
+    border: none;
+    padding: 0;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column; /* Stack checkboxes vertically on small screens */
+    gap: 0.5rem;
+}
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+.checkbox input[type="checkbox"] {
+    width: auto;
+}
+
+
+/* -------------------------------------------
+   Header & Navigation
+   ------------------------------------------- */
+.site-header {
+    background-color: var(--color-light);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 0.8rem 0;
+    /* We'll make the header sticky for better usability */
+    position: sticky;
+    top: 0;
+    z-index: 10; 
+}
+
+.header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--color-secondary);
+    font-weight: bold;
+}
+
+.brand-mark {
+    width: 30px;
+    height: 30px;
+    margin-right: 0.5rem;
+    border-radius: 50%;
+}
+
+.brand-name {
+    font-size: 1.5rem;
+    font-family: var(--font-family-heading);
+}
+
+.nav {
+    display: none; /* Hide full nav links on mobile initially */
+    gap: 1rem;
+}
+.nav-link {
+    text-decoration: none;
+    color: var(--color-text);
+    padding: 0.2rem 0;
+    position: relative;
+}
+.nav-link.is-active, .nav-link:hover {
+    color: var(--color-primary);
+}
+.nav-link.is-active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--color-primary);
+}
+
+/* Hide header cart link on mobile */
+@media (max-width: 767px) {
+    #nav-cart-link {
+        display: none; 
+    }
+}
+
+
+/* -------------------------------------------
+   Main Content & Filters
+   ------------------------------------------- */
+.section {
+    padding: 2rem 0;
+}
+.section-head {
+    margin-bottom: 2rem;
+}
+
+/* Menu Filters (Highly Responsive) */
+.menu-filters {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    overflow-x: auto; /* Allows horizontal scrolling of filters */
+    padding-bottom: 1rem;
+    -webkit-overflow-scrolling: touch; /* Improves scrolling on iOS */
+}
+.menu-filters a, .menu-filters input {
+    flex-shrink: 0; /* Important: Prevents buttons/input from shrinking */
+}
+.menu-filters .search-input {
+    flex-shrink: 1; /* Allow the search input to shrink/grow */
+    min-width: 150px;
+    max-width: 300px;
+}
+
+/* -------------------------------------------
+   Menu Grid (Responsive Layout)
+   ------------------------------------------- */
+.menu-grid {
+    display: grid;
+    /* MOBILE: One column */
+    grid-template-columns: 1fr; 
+    gap: 2rem;
+}
+
+/* TABS/SMALL DESKTOP: Two columns */
+@media (min-width: 700px) {
+    .menu-grid {
+        grid-template-columns: repeat(2, 1fr); 
+    }
+    .inline-checks {
+        /* On tablet, try to lay out checkboxes in a row if there's room */
+        flex-direction: row; 
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+}
+
+/* LARGE DESKTOP: Three columns */
+@media (min-width: 1100px) {
+    .menu-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.menu-item {
+    background-color: var(--color-light);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    transition: transform var(--transition-speed);
+}
+.menu-item:hover {
+    transform: translateY(-3px);
+}
+
+.menu-item img {
+    width: 100%;
+    height: 180px; /* Fixed height for consistent look */
+    object-fit: cover;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.menu-body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.item-description {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.menu-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--color-border);
+}
+
+.price {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--color-primary);
+}
+
+/* -------------------------------------------
+   Footer
+   ------------------------------------------- */
+.site-footer {
+    background-color: var(--color-secondary);
+    color: var(--color-background);
+    padding: 1.5rem 0;
+}
+.footer-inner {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+}
+.site-footer .muted {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+.foot-nav a {
+    color: var(--color-light);
+    text-decoration: none;
+    margin: 0 0.5rem;
+    font-size: 0.9rem;
+}
+.foot-nav a:hover {
+    color: var(--color-primary);
+}
+
+/* Desktop/Tablet Footer Layout */
+@media (min-width: 600px) {
+    .footer-inner {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+    }
+}
+
+/* Desktop Navigation (Show links) */
+@media (min-width: 768px) {
+    .nav {
+        display: flex;
+        align-items: center;
+    }
+}
+
+
+/* -------------------------------------------
+   Fixed Mobile Cart Button
+   ------------------------------------------- */
+#fixed-cart-button {
+    /* Fixed position */
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    z-index: 50; /* Above regular content, below sticky header */
+
+    /* Styling */
+    padding: 10px 18px;
+    background-color: var(--color-primary);
+    color: var(--color-light);
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    transition: opacity var(--transition-speed);
+}
+
+/* Hide the fixed button on larger screens */
+@media (min-width: 768px) {
+    #fixed-cart-button {
+        display: none; 
+    }
+}

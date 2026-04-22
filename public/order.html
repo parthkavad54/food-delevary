@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Your Order — FOODY</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="restaurants.html" class="nav-link">Restaurants</a>
+        <a href="reviews.html" class="nav-link">Reviews</a>
+        <a href="order.html" class="button button-outline is-active" aria-current="page" id="nav-cart-link">Cart</a>
+        <div class="nav-auth" id="nav-auth">
+          <a href="login.html" class="button button-ghost" id="login-link">Login</a>
+          <a href="signup.html" class="button button-primary" id="signup-link">Sign Up</a>
+        </div>
+        <div class="nav-user" id="nav-user" style="display: none;">
+          <a href="dashboard.html" class="nav-link" id="dashboard-link">Dashboard</a>
+          <a href="profile.html" class="nav-link" id="profile-link">Profile</a>
+          <button class="button button-outline" id="logout-btn">Logout</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h1 class="h2">Your Cart</h1>
+          <p class="muted">Modify quantities, remove items, or continue shopping.</p>
+        </div>
+
+        <div id="cart-empty" class="empty-state" hidden>
+          <p>Your cart is empty.</p>
+          <div class="section-cta">
+            <a href="restaurants.html" class="button">Browse Restaurants</a>
+          </div>
+        </div>
+
+        <div id="cart-container" class="cart" hidden>
+          <ul class="cart-list" id="cart-list">
+             Items injected by JS 
+          </ul>
+
+          <aside class="cart-summary">
+            <div class="summary-row">
+              <span>Subtotal</span><span id="subtotal">₹0</span>
+            </div>
+            <div class="summary-row">
+              <span>Delivery</span><span id="delivery">₹0</span>
+            </div>
+            <div class="summary-row total">
+              <span>Total</span><span id="total">₹0</span>
+            </div>
+            <div class="summary-actions">
+              <a href="restaurants.html" class="button button-ghost">Continue Shopping</a>
+              <a href="checkout.html" class="button button-primary">Proceed to Checkout</a>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-brand">
+            <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="footer-logo" />
+            <span class="brand-name">FOODY</span>
+          </div>
+          <p class="footer-description">Delivering delicious food from your favorite restaurants right to your doorstep. Fast, fresh, and always satisfying.</p>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Facebook">📘</a>
+            <a href="#" class="social-link" aria-label="Twitter">🐦</a>
+            <a href="#" class="social-link" aria-label="Instagram">📷</a>
+            <a href="#" class="social-link" aria-label="LinkedIn">💼</a>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="restaurants.html">Restaurants</a></li>
+            <li><a href="menu.html">Menu</a></li>
+            <li><a href="reviews.html">Reviews</a></li>
+            <li><a href="order.html">Order</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Customer Service</h4>
+          <ul class="footer-links">
+            <li><a href="#">Help Center</a></li>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Track Order</a></li>
+            <li><a href="#">Refund Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Contact Info</h4>
+          <div class="contact-info">
+            <p>📞 +191 9925177306</p>
+            <p>📧 kavadparth54@gmail.com</p>
+            <p>📍 303 foody  khav-gali, Rajkot, Gujrat 360005</p>
+            <p>🕒 Mon-Sun: 8:00 AM - 11:00 PM</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p class="copyright">© <span id="year"></span> FOODY — With love ♥</p>
+        <div class="footer-bottom-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const fmtINR = (n) =>
+      new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+
+    function renderMultiRestaurantCart() {
+      const cartList = document.getElementById('cart-list');
+      const cart = window.multiRestaurantCart.load();
+      const restaurants = Object.values(cart.restaurants);
+
+      if (restaurants.length === 0) {
+        document.getElementById('cart-empty').hidden = false;
+        document.getElementById('cart-container').hidden = true;
+        return;
+      }
+
+      let html = '';
+      let grandTotal = 0;
+
+      restaurants.forEach(restaurant => {
+        let restaurantTotal = 0;
+
+        const itemsHTML = restaurant.items.map(item => {
+          const itemTotal = (item.unitPrice || item.price || 0) * item.quantity;
+          restaurantTotal += itemTotal;
+
+          return `
+            <div class="cart-item" data-item-id="${item.id || item.key}">
+              <div class="cart-item-info">
+                <p class="cart-item-name">${item.name}</p>
+                ${item.customizations ? `<p class="cart-item-notes">${JSON.stringify(item.customizations).slice(1, 50)}...</p>` : ''}
+              </div>
+              <div class="cart-item-controls">
+                <div class="quantity-control">
+                  <button onclick="decrementQuantity('${restaurant.id}', '${item.id || item.key}')">−</button>
+                  <div class="quantity-display">${item.quantity}</div>
+                  <button onclick="incrementQuantity('${restaurant.id}', '${item.id || item.key}')">+</button>
+                </div>
+                <div class="cart-item-price">${fmtINR((item.unitPrice || item.price) * item.quantity)}</div>
+                <button class="cart-item-remove" onclick="removeCartItem('${restaurant.id}', '${item.id || item.key}')">×</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        grandTotal += restaurantTotal;
+
+        html += `
+          <li class="cart-restaurant-section">
+            <div class="cart-restaurant-header">
+              <div class="cart-restaurant-name">
+                <div class="restaurant-icon">🍽️</div>
+                <div class="restaurant-info">
+                  <h3>${restaurant.name}</h3>
+                  <p>${restaurant.items.length} item${restaurant.items.length !== 1 ? 's' : ''}</p>
+                </div>
+              </div>
+              <div class="cart-restaurant-actions">
+                <button onclick="clearRestaurantCart('${restaurant.id}')">Clear</button>
+                <button onclick="viewRestaurantMenu('${restaurant.id}')">Add More</button>
+              </div>
+            </div>
+            <div class="cart-item-group">
+              ${itemsHTML}
+            </div>
+            <div class="restaurant-subtotal">
+              <span class="restaurant-subtotal-label">Subtotal:</span>
+              <span class="restaurant-subtotal-amount">${fmtINR(restaurantTotal)}</span>
+            </div>
+            <button class="separate-order-btn" onclick="checkoutRestaurant('${restaurant.id}', '${restaurant.name}')">
+              Checkout ${restaurant.name}
+            </button>
+          </li>
+        `;
+      });
+
+      cartList.innerHTML = html;
+      document.getElementById('cart-empty').hidden = true;
+      document.getElementById('cart-container').hidden = false;
+
+      // Update summary
+      document.getElementById('subtotal').textContent = fmtINR(grandTotal);
+      document.getElementById('delivery').textContent = fmtINR(0); // TODO: Add delivery fee calculation
+      document.getElementById('total').textContent = fmtINR(grandTotal);
+    }
+
+    function incrementQuantity(restaurantId, itemId) {
+      const cart = window.multiRestaurantCart.load();
+      const item = cart.restaurants[restaurantId].items.find(it => it.id === itemId || it.key === itemId);
+      if (item) {
+        item.quantity += 1;
+        window.multiRestaurantCart.save(cart);
+        renderMultiRestaurantCart();
+      }
+    }
+
+    function decrementQuantity(restaurantId, itemId) {
+      const cart = window.multiRestaurantCart.load();
+      const item = cart.restaurants[restaurantId].items.find(it => it.id === itemId || it.key === itemId);
+      if (item) {
+        item.quantity = Math.max(1, item.quantity - 1);
+        window.multiRestaurantCart.save(cart);
+        renderMultiRestaurantCart();
+      }
+    }
+
+    function removeCartItem(restaurantId, itemId) {
+      window.multiRestaurantCart.removeItem(restaurantId, itemId);
+      renderMultiRestaurantCart();
+    }
+
+    function clearRestaurantCart(restaurantId) {
+      if (confirm('Clear all items from this restaurant?')) {
+        const cart = window.multiRestaurantCart.load();
+        delete cart.restaurants[restaurantId];
+        window.multiRestaurantCart.save(cart);
+        renderMultiRestaurantCart();
+      }
+    }
+
+    function viewRestaurantMenu(restaurantId) {
+      window.location.href = `menu.html?restaurantId=${restaurantId}`;
+    }
+
+    async function checkoutRestaurant(restaurantId, restaurantName) {
+      // TODO: Implement checkout for a single restaurant
+      alert(`Checkout for ${restaurantName} coming soon!`);
+    }
+
+    // Initialize
+    function waitForAPI() {
+      if (window.multiRestaurantCart) {
+        renderMultiRestaurantCart();
+      } else {
+        setTimeout(waitForAPI, 100);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', waitForAPI);
+  </script>
+</body>
+</html>

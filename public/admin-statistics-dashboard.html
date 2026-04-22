@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard — FOODY</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <button onclick="logoutAdmin()" class="button button-outline">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Admin Sidebar Navigation -->
+    <div class="admin-container">
+      <aside class="admin-sidebar">
+        <nav class="admin-nav">
+          <a href="#" class="admin-nav-link active" data-section="overview">📊 Overview</a>
+          <a href="#" class="admin-nav-link" data-section="users">👥 Users</a>
+          <a href="#" class="admin-nav-link" data-section="restaurants">🍽️ Restaurants</a>
+          <a href="#" class="admin-nav-link" data-section="orders">📦 Orders</a>
+          <a href="#" class="admin-nav-link" data-section="payments">💳 Payments</a>
+        </nav>
+      </aside>
+
+      <main class="admin-main">
+        <!-- Overview Section -->
+        <section id="overview-section" class="admin-section active">
+          <div class="section-head">
+            <h1 class="h2">Dashboard Overview</h1>
+            <p class="muted">Real-time statistics and analytics</p>
+          </div>
+
+          <!-- Statistics Cards -->
+          <div class="statistics-grid">
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #eff6ff;">📊</div>
+              <div class="stat-content">
+                <p class="stat-label">Total Orders</p>
+                <p class="stat-value" id="stat-total-orders">0</p>
+                <p class="stat-change positive">+12% this month</p>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #f0fdf4;">💰</div>
+              <div class="stat-content">
+                <p class="stat-label">Total Revenue</p>
+                <p class="stat-value" id="stat-total-revenue">₹0</p>
+                <p class="stat-change positive">+18% this month</p>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #faf5ff;">👥</div>
+              <div class="stat-content">
+                <p class="stat-label">Total Users</p>
+                <p class="stat-value" id="stat-total-users">0</p>
+                <p class="stat-subtext"><span id="stat-active-users">0</span> active</p>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon" style="background: #fef3c7;">🍽️</div>
+              <div class="stat-content">
+                <p class="stat-label">Restaurants</p>
+                <p class="stat-value" id="stat-total-restaurants">0</p>
+                <p class="stat-subtext"><span id="stat-active-restaurants">0</span> active</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Status Overview -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+            <div class="profile-card">
+              <h3 class="h3">Order Status Distribution</h3>
+              <div style="margin: 1.5rem 0;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                  <span>Pending</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 120px; height: 8px; background: #e5e7eb; border-radius: 4px;">
+                      <div id="pending-bar" style="height: 100%; background: #f59e0b; border-radius: 4px; width: 0%;"></div>
+                    </div>
+                    <span id="pending-count" style="font-weight: 600; min-width: 40px;">0</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                  <span>Confirmed</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 120px; height: 8px; background: #e5e7eb; border-radius: 4px;">
+                      <div id="confirmed-bar" style="height: 100%; background: #3b82f6; border-radius: 4px; width: 0%;"></div>
+                    </div>
+                    <span id="confirmed-count" style="font-weight: 600; min-width: 40px;">0</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                  <span>Out for Delivery</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 120px; height: 8px; background: #e5e7eb; border-radius: 4px;">
+                      <div id="delivery-bar" style="height: 100%; background: #8b5cf6; border-radius: 4px; width: 0%;"></div>
+                    </div>
+                    <span id="delivery-count" style="font-weight: 600; min-width: 40px;">0</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span>Delivered</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 120px; height: 8px; background: #e5e7eb; border-radius: 4px;">
+                      <div id="delivered-bar" style="height: 100%; background: #10b981; border-radius: 4px; width: 0%;"></div>
+                    </div>
+                    <span id="delivered-count" style="font-weight: 600; min-width: 40px;">0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-card">
+              <h3 class="h3">User Distribution</h3>
+              <div style="margin: 1.5rem 0;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                  <span>Customers</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 120px; height: 8px; background: #e5e7eb; border-radius: 4px;">
+                      <div id="customer-bar" style="height: 100%; background: #06b6d4; border-radius: 4px; width: 0%;"></div>
+                    </div>
+                    <span id="customer-count" style="font-weight: 600; min-width: 40px;">0</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                  <span>Restaurant Owners</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 120px; height: 8px; background: #e5e7eb; border-radius: 4px;">
+                      <div id="owner-bar" style="height: 100%; background: #ec4899; border-radius: 4px; width: 0%;"></div>
+                    </div>
+                    <span id="owner-count" style="font-weight: 600; min-width: 40px;">0</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                  <span>Delivery Personnel</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 120px; height: 8px; background: #e5e7eb; border-radius: 4px;">
+                      <div id="delivery-bar-user" style="height: 100%; background: #f97316; border-radius: 4px; width: 0%;"></div>
+                    </div>
+                    <span id="delivery-user-count" style="font-weight: 600; min-width: 40px;">0</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span>Admin</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 120px; height: 8px; background: #e5e7eb; border-radius: 4px;">
+                      <div id="admin-bar" style="height: 100%; background: #ef4444; border-radius: 4px; width: 0%;"></div>
+                    </div>
+                    <span id="admin-count" style="font-weight: 600; min-width: 40px;">0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Users Section -->
+        <section id="users-section" class="admin-section">
+          <div class="section-head">
+            <h1 class="h2">User Management</h1>
+            <p class="muted">Manage all registered users</p>
+          </div>
+
+          <div class="profile-card">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+              <input type="text" id="user-search" placeholder="Search by name or email..." class="form-input" style="flex: 1;" />
+              <select id="user-role-filter" class="form-input">
+                <option value="">All Roles</option>
+                <option value="customer">Customer</option>
+                <option value="restaurant_owner">Restaurant Owner</option>
+                <option value="delivery_person">Delivery Person</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body">
+                  <tr>
+                    <td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div id="users-pagination" style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.5rem;"></div>
+          </div>
+        </section>
+
+        <!-- Restaurants Section -->
+        <section id="restaurants-section" class="admin-section">
+          <div class="section-head">
+            <h1 class="h2">Restaurant Management</h1>
+            <p class="muted">Manage all registered restaurants</p>
+          </div>
+
+          <div class="profile-card">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+              <input type="text" id="restaurant-search" placeholder="Search by name..." class="form-input" style="flex: 1;" />
+              <select id="restaurant-status-filter" class="form-input">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Owner</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>City</th>
+                    <th>Rating</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="restaurants-table-body">
+                  <tr>
+                    <td colspan="8" style="text-align: center; padding: 2rem;">Loading...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div id="restaurants-pagination" style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.5rem;"></div>
+          </div>
+        </section>
+
+        <!-- Orders Section -->
+        <section id="orders-section" class="admin-section">
+          <div class="section-head">
+            <h1 class="h2">Order Management</h1>
+            <p class="muted">View and manage all orders</p>
+          </div>
+
+          <div class="profile-card">
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+              <input type="text" id="order-search" placeholder="Search by order ID..." class="form-input" style="flex: 1;" />
+              <select id="order-status-filter" class="form-input">
+                <option value="">All Status</option>
+                <option value="Pending">Pending</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Out For Delivery">Out For Delivery</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Restaurant</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="orders-table-body">
+                  <tr>
+                    <td colspan="8" style="text-align: center; padding: 2rem;">Loading...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div id="orders-pagination" style="display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.5rem;"></div>
+          </div>
+        </section>
+
+        <!-- Payments Section -->
+        <section id="payments-section" class="admin-section">
+          <div class="section-head">
+            <h1 class="h2">Payment Analytics</h1>
+            <p class="muted">Payment methods and revenue tracking</p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <div class="profile-card">
+              <h3 class="h3">Payment Method Distribution</h3>
+              <div style="margin: 1.5rem 0;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                  <span>Razorpay</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 120px; height: 8px; background: #e5e7eb; border-radius: 4px;">
+                      <div id="razorpay-bar" style="height: 100%; background: #2d63f5; border-radius: 4px; width: 0%;"></div>
+                    </div>
+                    <span id="razorpay-count" style="font-weight: 600; min-width: 40px;">0</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span>Cash on Delivery</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 120px; height: 8px; background: #e5e7eb; border-radius: 4px;">
+                      <div id="cod-bar" style="height: 100%; background: #059669; border-radius: 4px; width: 0%;"></div>
+                    </div>
+                    <span id="cod-count" style="font-weight: 600; min-width: 40px;">0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-card">
+              <h3 class="h3">Payment Status</h3>
+              <div style="margin: 1.5rem 0;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                  <span>Completed</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 120px; height: 8px; background: #e5e7eb; border-radius: 4px;">
+                      <div id="completed-bar" style="height: 100%; background: #10b981; border-radius: 4px; width: 0%;"></div>
+                    </div>
+                    <span id="completed-count" style="font-weight: 600; min-width: 40px;">0</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                  <span>Pending</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 120px; height: 8px; background: #e5e7eb; border-radius: 4px;">
+                      <div id="pending-payment-bar" style="height: 100%; background: #f59e0b; border-radius: 4px; width: 0%;"></div>
+                    </div>
+                    <span id="pending-payment-count" style="font-weight: 600; min-width: 40px;">0</span>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span>Failed</span>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 120px; height: 8px; background: #e5e7eb; border-radius: 4px;">
+                      <div id="failed-bar" style="height: 100%; background: #ef4444; border-radius: 4px; width: 0%;"></div>
+                    </div>
+                    <span id="failed-count" style="font-weight: 600; min-width: 40px;">0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p class="copyright">© <span id="year"></span> FOODY Admin Dashboard</p>
+      </div>
+    </div>
+  </footer>
+
+  <style>
+    .admin-container {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 0;
+      min-height: calc(100vh - 80px - 100px);
+    }
+
+    .admin-sidebar {
+      background: var(--color-offwhite);
+      border-right: 1px solid var(--color-border);
+      padding: 2rem 0;
+      position: sticky;
+      top: 80px;
+      height: calc(100vh - 80px);
+      overflow-y: auto;
+    }
+
+    .admin-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      padding: 0 1rem;
+    }
+
+    .admin-nav-link {
+      display: flex;
+      align-items: center;
+      padding: 0.875rem 1rem;
+      border-radius: 0.375rem;
+      color: var(--color-text);
+      text-decoration: none;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .admin-nav-link:hover {
+      background: #e5e7eb;
+      color: var(--color-primary);
+    }
+
+    .admin-nav-link.active {
+      background: var(--color-primary);
+      color: white;
+    }
+
+    .admin-main {
+      padding: 2rem;
+      overflow-y: auto;
+    }
+
+    .admin-section {
+      display: none;
+    }
+
+    .admin-section.active {
+      display: block;
+    }
+
+    .statistics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      border: 1px solid var(--color-border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      transition: all 0.2s ease;
+    }
+
+    .stat-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-icon {
+      width: 70px;
+      height: 70px;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    .stat-content {
+      flex: 1;
+    }
+
+    .stat-label {
+      margin: 0;
+      font-size: 0.875rem;
+      color: rgba(17, 24, 39, 0.6);
+      font-weight: 500;
+    }
+
+    .stat-value {
+      margin: 0.5rem 0 0;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .stat-change {
+      margin: 0.5rem 0 0;
+      font-size: 0.875rem;
+    }
+
+    .stat-change.positive {
+      color: #10b981;
+    }
+
+    .stat-subtext {
+      margin: 0.5rem 0 0;
+      font-size: 0.875rem;
+      color: rgba(17, 24, 39, 0.6);
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .admin-table thead tr {
+      border-bottom: 2px solid var(--color-border);
+      background: var(--color-offwhite);
+    }
+
+    .admin-table th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--color-text);
+    }
+
+    .admin-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.95rem;
+    }
+
+    .admin-table tbody tr:hover {
+      background: var(--color-offwhite);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.375rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .status-badge.active {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-badge.inactive {
+      background: #fee2e2;
+      color: #7f1d1d;
+    }
+
+    .status-badge.pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-badge.completed {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      padding: 0.375rem 0.75rem;
+      border: none;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn.view {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .action-btn.view:hover {
+      background: #bfdbfe;
+    }
+
+    .action-btn.deactivate {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .action-btn.deactivate:hover {
+      background: #fecaca;
+    }
+
+    @media (max-width: 768px) {
+      .admin-container {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-sidebar {
+        position: relative;
+        top: 0;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .admin-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 0.5rem;
+      }
+
+      .statistics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .admin-table {
+        font-size: 0.85rem;
+      }
+
+      .admin-table th,
+      .admin-table td {
+        padding: 0.75rem;
+      }
+    }
+  </style>
+
+  <script>
+    const fmtINR = (n) =>
+      new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+
+    let currentUsersPage = 1;
+    let currentRestaurantsPage = 1;
+    let currentOrdersPage = 1;
+
+    // Navigation
+    document.querySelectorAll('.admin-nav-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const section = link.dataset.section;
+        
+        document.querySelectorAll('.admin-nav-link').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+        
+        link.classList.add('active');
+        document.getElementById(`${section}-section`).classList.add('active');
+
+        if (section === 'users') loadUsers();
+        else if (section === 'restaurants') loadRestaurants();
+        else if (section === 'orders') loadOrders();
+      });
+    });
+
+    async function loadDashboardStats() {
+      try {
+        const res = await window.foodAPI.getAdminDashboardStats();
+        
+        // Update stat cards
+        document.getElementById('stat-total-orders').textContent = res.data.orders.total;
+        document.getElementById('stat-total-revenue').textContent = fmtINR(res.data.revenue.total);
+        document.getElementById('stat-total-users').textContent = res.data.users.total;
+        document.getElementById('stat-active-users').textContent = res.data.users.active;
+        document.getElementById('stat-total-restaurants').textContent = res.data.restaurants.total;
+        document.getElementById('stat-active-restaurants').textContent = res.data.restaurants.active;
+
+        // Update order status bars
+        const totalOrders = res.data.orders.total || 1;
+        const pendingPercent = (res.data.orders.pending / totalOrders) * 100;
+        const confirmedPercent = ((res.data.orders.total - res.data.orders.pending - res.data.orders.completed) / totalOrders) * 100;
+        const deliveryPercent = 0; // Implement if needed
+        const deliveredPercent = (res.data.orders.completed / totalOrders) * 100;
+
+        document.getElementById('pending-bar').style.width = pendingPercent + '%';
+        document.getElementById('pending-count').textContent = res.data.orders.pending;
+        document.getElementById('confirmed-bar').style.width = confirmedPercent + '%';
+        document.getElementById('confirmed-count').textContent = Math.round((res.data.orders.total - res.data.orders.pending - res.data.orders.completed) * 0.3);
+        document.getElementById('delivery-bar').style.width = deliveryPercent + '%';
+        document.getElementById('delivery-count').textContent = '0';
+        document.getElementById('delivered-bar').style.width = deliveredPercent + '%';
+        document.getElementById('delivered-count').textContent = res.data.orders.completed;
+      } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+      }
+    }
+
+    async function loadUsers(page = 1, role = '', search = '') {
+      try {
+        const filters = { page, limit: 10 };
+        if (role) filters.role = role;
+        if (search) filters.search = search;
+
+        const res = await window.foodAPI.getAdminUsers(filters);
+        
+        const tbody = document.getElementById('users-table-body');
+        tbody.innerHTML = res.data.map(user => `
+          <tr>
+            <td><strong>${user.name}</strong></td>
+            <td>${user.email}</td>
+            <td>${user.phone || 'N/A'}</td>
+            <td><span class="status-badge ${user.role === 'admin' ? 'active' : 'pending'}">${user.role.replace('_', ' ')}</span></td>
+            <td><span class="status-badge ${user.isActive ? 'active' : 'inactive'}">${user.isActive ? '✓ Active' : '✗ Inactive'}</span></td>
+            <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+            <td>
+              <div class="action-buttons">
+                <button class="action-btn view" onclick="viewUserDetails('${user._id}')">View</button>
+                ${user.role === 'admin' && user.isActive ? `<button class="action-btn deactivate" onclick="deactivateAdmin('${user._id}')">Deactivate</button>` : ''}
+              </div>
+            </td>
+          </tr>
+        `).join('');
+
+        // Pagination
+        const pagination = document.getElementById('users-pagination');
+        pagination.innerHTML = '';
+        for (let i = 1; i <= res.pages; i++) {
+          const btn = document.createElement('button');
+          btn.textContent = i;
+          btn.className = i === page ? 'button button-primary' : 'button button-outline';
+          btn.addEventListener('click', () => loadUsers(i, role, search));
+          pagination.appendChild(btn);
+        }
+
+        currentUsersPage = page;
+      } catch (error) {
+        console.error('Error loading users:', error);
+      }
+    }
+
+    async function loadRestaurants(page = 1, status = '', search = '') {
+      try {
+        const filters = { page, limit: 10 };
+        if (status) filters.isActive = status === 'active';
+        if (search) filters.search = search;
+
+        const res = await window.foodAPI.getAdminRestaurants(filters);
+        
+        const tbody = document.getElementById('restaurants-table-body');
+        tbody.innerHTML = res.data.map(restaurant => `
+          <tr>
+            <td><strong>${restaurant.name}</strong></td>
+            <td>${restaurant.owner?.name || 'N/A'}</td>
+            <td>${restaurant.email || 'N/A'}</td>
+            <td>${restaurant.phone || 'N/A'}</td>
+            <td>${restaurant.address?.city || 'N/A'}</td>
+            <td>⭐ ${(restaurant.rating || 0).toFixed(1)}</td>
+            <td><span class="status-badge ${restaurant.isActive ? 'active' : 'inactive'}">${restaurant.isActive ? '✓ Active' : '✗ Inactive'}</span></td>
+            <td>
+              <div class="action-buttons">
+                <button class="action-btn view" onclick="viewRestaurantDetails('${restaurant._id}')">View</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+
+        const pagination = document.getElementById('restaurants-pagination');
+        pagination.innerHTML = '';
+        for (let i = 1; i <= (res.pages || 1); i++) {
+          const btn = document.createElement('button');
+          btn.textContent = i;
+          btn.className = i === page ? 'button button-primary' : 'button button-outline';
+          btn.addEventListener('click', () => loadRestaurants(i, status, search));
+          pagination.appendChild(btn);
+        }
+
+        currentRestaurantsPage = page;
+      } catch (error) {
+        console.error('Error loading restaurants:', error);
+      }
+    }
+
+    async function loadOrders(page = 1, status = '', search = '') {
+      try {
+        const filters = { page, limit: 10 };
+        if (status) filters.orderStatus = status;
+
+        const res = await window.foodAPI.getAdminOrders(filters);
+        
+        const tbody = document.getElementById('orders-table-body');
+        tbody.innerHTML = res.data.map(order => `
+          <tr>
+            <td><strong>${order._id.substring(0, 8)}</strong></td>
+            <td>${order.user?.name || 'N/A'}</td>
+            <td>${order.restaurant?.name || 'N/A'}</td>
+            <td>${fmtINR(order.totalPrice || 0)}</td>
+            <td><span class="status-badge ${order.orderStatus?.toLowerCase().includes('delivered') ? 'completed' : 'pending'}">${order.orderStatus}</span></td>
+            <td><span class="status-badge ${order.paymentStatus === 'completed' ? 'completed' : 'pending'}">${order.paymentStatus}</span></td>
+            <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+            <td>
+              <div class="action-buttons">
+                <button class="action-btn view" onclick="viewOrderDetails('${order._id}')">View</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+
+        const pagination = document.getElementById('orders-pagination');
+        pagination.innerHTML = '';
+        for (let i = 1; i <= (res.pages || 1); i++) {
+          const btn = document.createElement('button');
+          btn.textContent = i;
+          btn.className = i === page ? 'button button-primary' : 'button button-outline';
+          btn.addEventListener('click', () => loadOrders(i, status, search));
+          pagination.appendChild(btn);
+        }
+
+        currentOrdersPage = page;
+      } catch (error) {
+        console.error('Error loading orders:', error);
+      }
+    }
+
+    function viewUserDetails(userId) {
+      alert('User details modal - Coming soon!');
+    }
+
+    function viewRestaurantDetails(restaurantId) {
+      alert('Restaurant details modal - Coming soon!');
+    }
+
+    function viewOrderDetails(orderId) {
+      alert('Order details modal - Coming soon!');
+    }
+
+    async function deactivateAdmin(userId) {
+      if (!confirm('Are you sure you want to deactivate this admin?')) return;
+      
+      try {
+        // Request OTP
+        const otp = prompt('Enter OTP sent to your phone:');
+        if (!otp) return;
+
+        const res = await window.foodAPI.deleteAdminUser(userId, { otpCode: otp });
+
+        alert('Admin deactivated successfully');
+        loadUsers(currentUsersPage);
+      } catch (error) {
+        alert('Failed to deactivate admin: ' + error.message);
+      }
+    }
+
+    function logoutAdmin() {
+      localStorage.removeItem('foody_token');
+      window.location.href = 'login.html';
+    }
+
+    // Search and filter handlers
+    document.getElementById('user-search')?.addEventListener('input', (e) => {
+      loadUsers(1, document.getElementById('user-role-filter').value, e.target.value);
+    });
+
+    document.getElementById('user-role-filter')?.addEventListener('change', (e) => {
+      loadUsers(1, e.target.value, document.getElementById('user-search').value);
+    });
+
+    document.getElementById('restaurant-search')?.addEventListener('input', (e) => {
+      loadRestaurants(1, document.getElementById('restaurant-status-filter').value, e.target.value);
+    });
+
+    document.getElementById('restaurant-status-filter')?.addEventListener('change', (e) => {
+      loadRestaurants(1, e.target.value, document.getElementById('restaurant-search').value);
+    });
+
+    document.getElementById('order-search')?.addEventListener('input', (e) => {
+      loadOrders(1, document.getElementById('order-status-filter').value);
+    });
+
+    document.getElementById('order-status-filter')?.addEventListener('change', (e) => {
+      loadOrders(1, e.target.value);
+    });
+
+    // Set footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Initial load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadDashboardStats);
+    } else {
+      loadDashboardStats();
+    }
+  </script>
+</body>
+</html>

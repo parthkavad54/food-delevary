@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FOODY — Food Delivery</title>
+  <meta name="description" content="FOODY delivers from top restaurants to your door. Explore menus, read reviews, and order in minutes." />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <script defer src="assets/api.js"></script>
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      
+      <div class="location-selector">
+        <span class="location-icon">📍</span>
+        <div class="location-input-group">
+          <input type="text" id="pincode-input" placeholder="Enter pincode" class="pincode-input" maxlength="6" />
+          <select class="location-dropdown" id="location-select" disabled>
+            <option value="">Select City</option>
+          </select>
+        </div>
+        <button class="location-search-btn" id="location-search-btn" disabled>🔍</button>
+      </div>
+      
+      <nav class="nav">
+        <a href="index.html" class="nav-link is-active" aria-current="page">Home</a>
+        <a href="restaurants.html" class="nav-link">Restaurants</a>
+        <a href="reviews.html" class="nav-link">Reviews</a>
+        <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
+        <div class="nav-auth" id="nav-auth">
+          <a href="login.html" class="button button-ghost" id="login-link">Login</a>
+          <a href="signup.html" class="button button-primary" id="signup-link">Sign Up</a>
+        </div>
+        <div class="nav-user" id="nav-user" style="display: none;">
+          <a href="dashboard.html" class="nav-link" id="dashboard-link">Dashboard</a>
+          <a href="profile.html" class="nav-link" id="profile-link">Profile</a>
+          <button class="button button-outline" id="logout-btn">Logout</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="section-hero">
+      <div class="container">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <h1 class="h1 text-balance">Fast, fresh, and delicious—delivered to your door</h1>
+            <p class="lead">Order from your favorite restaurants and get your food delivered in minutes. From Italian pasta to Japanese sushi, we've got it all!</p>
+            <div class="hero-actions">
+              <a href="restaurants.html?autostart=1" class="button button-primary">Order Now</a>
+              <a href="restaurants.html" class="button button-outline">Browse Restaurants</a>
+            </div>
+            <ul class="key-features">
+              <li>🚀 Lightning-fast delivery</li>
+              <li>🍽️ 100+ restaurants</li>
+              <li>⭐ 4.8/5 customer rating</li>
+              <li>💳 Secure payments</li>
+            </ul>
+          </div>
+          <div class="hero-media">
+            <img src="./public/images/hero-platter.jpg" alt="Delicious food platter" class="hero-image" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Restaurants -->
+    <section class="section alt">
+      <div class="container">
+        <div class="section-head">
+          <h2 class="h2">Featured Restaurants</h2>
+          <p class="muted">Discover the most popular restaurants in your area</p>
+        </div>
+        <div class="restaurant-grid">
+          <article class="restaurant-card-featured">
+            <img src="./public/images/pizza.jpg" alt="Bella Roma" class="rest-logo" />
+            <div class="rest-content">
+              <h3 class="h4">Bella Roma</h3>
+              <div class="stars" aria-label="Rated 4.6 out of 5">★★★★☆</div>
+              <p class="muted">Authentic Italian cuisine with hand-tossed pizzas</p>
+              <p class="meta">🍕 Italian • ⏱️ 30-45 min • 💰 $$</p>
+              <a href="restaurants.html" class="button button-ghost">Order Now</a>
+            </div>
+          </article>
+
+          <article class="restaurant-card-featured">
+            <img src="./public/images/sushi.jpg" alt="Sora Sushi" class="rest-logo" />
+            <div class="rest-content">
+              <h3 class="h4">Sora Sushi</h3>
+              <div class="stars" aria-label="Rated 4.8 out of 5">★★★★★</div>
+              <p class="muted">Premium Japanese sushi and sashimi</p>
+              <p class="meta">🍣 Japanese • ⏱️ 35-50 min • 💰 $$$</p>
+              <a href="restaurants.html" class="button button-ghost">Order Now</a>
+            </div>
+          </article>
+
+          <article class="restaurant-card-featured">
+            <img src="./public/images/burger.jpg" alt="Patty Palace" class="rest-logo" />
+            <div class="rest-content">
+              <h3 class="h4">Patty Palace</h3>
+              <div class="stars" aria-label="Rated 4.2 out of 5">★★★★☆</div>
+              <p class="muted">Juicy burgers and crispy fries</p>
+              <p class="meta">🍔 American • ⏱️ 20-35 min • 💰 $</p>
+              <a href="restaurants.html" class="button button-ghost">Order Now</a>
+            </div>
+          </article>
+
+          <article class="restaurant-card-featured">
+            <img src="./public/images/curry.jpg" alt="Spice Route" class="rest-logo" />
+            <div class="rest-content">
+              <h3 class="h4">Spice Route</h3>
+              <div class="stars" aria-label="Rated 4.7 out of 5">★★★★★</div>
+              <p class="muted">Authentic Indian curries and tandoori</p>
+              <p class="meta">🌶️ Indian • ⏱️ 30-50 min • 💰 $$</p>
+              <a href="restaurants.html" class="button button-ghost">Order Now</a>
+            </div>
+          </article>
+        </div>
+        <div class="section-cta">
+          <a href="restaurants.html" class="button button-primary">View All Restaurants</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Popular Food Items -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2 class="h2">Popular This Week</h2>
+          <p class="muted">The dishes everyone's ordering right now</p>
+        </div>
+        <div class="food-grid">
+          <article class="food-card">
+            <img src="./public/images/pizza.jpg" alt="Margherita Pizza" />
+            <div class="food-body">
+              <h3 class="h4">Margherita Pizza</h3>
+              <p class="muted">Fresh mozzarella, tomato, basil</p>
+              <div class="food-meta">
+                <span class="price">₹299</span>
+                <span class="rating">⭐ 4.6</span>
+              </div>
+              <a href="restaurants.html?autostart=1" class="button button-primary">Order Now</a>
+            </div>
+          </article>
+
+          <article class="food-card">
+            <img src="./public/images/sushi.jpg" alt="Sushi Platter" />
+            <div class="food-body">
+              <h3 class="h4">Sushi Platter</h3>
+              <p class="muted">Chef's selection of nigiri and rolls</p>
+              <div class="food-meta">
+                <span class="price">₹350</span>
+                <span class="rating">⭐ 4.8</span>
+              </div>
+              <a href="restaurants.html?autostart=1" class="button button-primary">Order Now</a>
+            </div>
+          </article>
+
+          <article class="food-card">
+            <img src="./public/images/burger.jpg" alt="Cheeseburger Combo" />
+            <div class="food-body">
+              <h3 class="h4">Cheeseburger Combo</h3>
+              <p class="muted">Grilled patty, cheese, fries, drink</p>
+              <div class="food-meta">
+                <span class="price">₹149</span>
+                <span class="rating">⭐ 4.2</span>
+              </div>
+              <a href="restaurants.html?autostart=1" class="button button-primary">Order Now</a>
+            </div>
+          </article>
+
+          <article class="food-card">
+            <img src="./public/images/curry.jpg" alt="Butter Chicken" />
+            <div class="food-body">
+              <h3 class="h4">Butter Chicken</h3>
+              <p class="muted">Creamy tomato sauce with rice</p>
+              <div class="food-meta">
+                <span class="price">₹139</span>
+                <span class="rating">⭐ 4.7</span>
+              </div>
+              <a href="restaurants.html?autostart=1" class="button button-primary">Order Now</a>
+            </div>
+          </article>
+
+          <article class="food-card">
+            <img src="./public/images/pasta.jpg" alt="Pasta Alfredo" />
+            <div class="food-body">
+              <h3 class="h4">Pasta Alfredo</h3>
+              <p class="muted">Creamy parmesan sauce</p>
+              <div class="food-meta">
+                <span class="price">₹111</span>
+                <span class="rating">⭐ 4.5</span>
+              </div>
+              <a href="restaurants.html?autostart=1" class="button button-primary">Order Now</a>
+            </div>
+          </article>
+
+          <article class="food-card">
+            <img src="./public/images/salad.jpg" alt="Green Goddess Salad" />
+            <div class="food-body">
+              <h3 class="h4">Green Goddess Salad</h3>
+              <p class="muted">Seasonal greens with avocado</p>
+              <div class="food-meta">
+                <span class="price">₹119</span>
+                <span class="rating">⭐ 4.3</span>
+              </div>
+              <a href="restaurants.html?autostart=1" class="button button-primary">Order Now</a>
+            </div>
+          </article>
+        </div>
+        <div class="section-cta">
+          <a href="menu.html" class="button button-primary">View Full Menu</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Customer Reviews -->
+    <section class="section alt">
+      <div class="container">
+        <div class="section-head">
+          <h2 class="h2">What Our Customers Say</h2>
+          <p class="muted">Real reviews from satisfied customers who love our service</p>
+        </div>
+        <div class="reviews-grid">
+          <article class="review-card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <div class="reviewer-avatar">A</div>
+                <div class="reviewer-details">
+                  <h4 class="reviewer-name">Alex W.</h4>
+                  <p class="reviewer-location">Downtown</p>
+                </div>
+              </div>
+              <div class="stars" aria-label="Rated 5 out of 5">★★★★★</div>
+            </div>
+            <p class="review-text">"Delivery was quick and the food tasted amazing—still hot and fresh. I'm impressed with the quality and speed!"</p>
+            <div class="review-meta">
+              <span class="review-date">2 days ago</span>
+              <span class="review-restaurant">• Bella Roma</span>
+            </div>
+          </article>
+
+          <article class="review-card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <div class="reviewer-avatar">P</div>
+                <div class="reviewer-details">
+                  <h4 class="reviewer-name">Priya S.</h4>
+                  <p class="reviewer-location">Uptown</p>
+                </div>
+              </div>
+              <div class="stars" aria-label="Rated 4 out of 5">★★★★☆</div>
+            </div>
+            <p class="review-text">"Great variety and easy checkout. Would love even more vegetarian options, but overall excellent service!"</p>
+            <div class="review-meta">
+              <span class="review-date">1 week ago</span>
+              <span class="review-restaurant">• Agora Kitchen</span>
+            </div>
+          </article>
+
+          <article class="review-card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <div class="reviewer-avatar">D</div>
+                <div class="reviewer-details">
+                  <h4 class="reviewer-name">Diego M.</h4>
+                  <p class="reviewer-location">Midtown</p>
+                </div>
+              </div>
+              <div class="stars" aria-label="Rated 5 out of 5">★★★★★</div>
+            </div>
+            <p class="review-text">"Best sushi delivery in town. Excellent quality and careful packaging. Will definitely order again!"</p>
+            <div class="review-meta">
+              <span class="review-date">3 days ago</span>
+              <span class="review-restaurant">• Sora Sushi</span>
+            </div>
+          </article>
+
+          <article class="review-card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <div class="reviewer-avatar">C</div>
+                <div class="reviewer-details">
+                  <h4 class="reviewer-name">Casey L.</h4>
+                  <p class="reviewer-location">Suburbs</p>
+                </div>
+              </div>
+              <div class="stars" aria-label="Rated 4.5 out of 5">★★★★☆</div>
+            </div>
+            <p class="review-text">"The burgers are awesome. Delivery time was accurate and the food arrived hot. Will order again!"</p>
+            <div class="review-meta">
+              <span class="review-date">5 days ago</span>
+              <span class="review-restaurant">• Patty Palace</span>
+            </div>
+          </article>
+
+          <article class="review-card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <div class="reviewer-avatar">S</div>
+                <div class="reviewer-details">
+                  <h4 class="reviewer-name">Sarah K.</h4>
+                  <p class="reviewer-location">Airport Area</p>
+                </div>
+              </div>
+              <div class="stars" aria-label="Rated 5 out of 5">★★★★★</div>
+            </div>
+            <p class="review-text">"Amazing Indian food! The butter chicken was perfect and delivery was super fast. Highly recommended!"</p>
+            <div class="review-meta">
+              <span class="review-date">1 day ago</span>
+              <span class="review-restaurant">• Spice Route</span>
+            </div>
+          </article>
+
+          <article class="review-card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <div class="reviewer-avatar">M</div>
+                <div class="reviewer-details">
+                  <h4 class="reviewer-name">Mike R.</h4>
+                  <p class="reviewer-location">Downtown</p>
+                </div>
+              </div>
+              <div class="stars" aria-label="Rated 4 out of 5">★★★★☆</div>
+            </div>
+            <p class="review-text">"Great selection of restaurants and easy to use app. Food always arrives on time and tastes great!"</p>
+            <div class="review-meta">
+              <span class="review-date">4 days ago</span>
+              <span class="review-restaurant">• Multiple restaurants</span>
+            </div>
+          </article>
+        </div>
+        <div class="section-cta">
+          <a href="reviews.html" class="button button-primary">Read More Reviews</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Banner -->
+    <section class="section-cta-banner">
+      <div class="container">
+        <div class="cta-banner">
+          <div class="cta-copy">
+            <h2 class="h2">Ready to order?</h2>
+            <p>Join thousands of satisfied customers and get your food delivered today!</p>
+          </div>
+          <a href="restaurants.html?autostart=1" class="button button-invert">Start Ordering</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-brand">
+            <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="footer-logo" />
+            <span class="brand-name">FOODY</span>
+          </div>
+          <p class="footer-description">Delivering delicious food from your favorite restaurants right to your doorstep. Fast, fresh, and always satisfying.</p>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Facebook">📘</a>
+            <a href="#" class="social-link" aria-label="Twitter">🐦</a>
+            <a href="#" class="social-link" aria-label="Instagram">📷</a>
+            <a href="#" class="social-link" aria-label="LinkedIn">💼</a>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="restaurants.html">Restaurants</a></li>
+            <li><a href="menu.html">Menu</a></li>
+            <li><a href="reviews.html">Reviews</a></li>
+            <li><a href="order.html">Order</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Customer Service</h4>
+          <ul class="footer-links">
+            <li><a href="https://wa.me/919925177306" target="_blank">Help Center</a></li>
+            <li><a href="mailto:kavadparth54@gmail.com">Contact Us</a></li>
+            <li><a href="dashboard.html">Track Order</a></li>
+            <li><a href="#">Refund Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Contact Info</h4>
+          <div class="contact-info">
+            <p>📞 +91 9925177306</p>
+            <p>📧 kavadparth54@gmail.com</p>
+            <p>📍 303 foody  khav-gali, Rajkot, Gujrat 360005</p>
+            <p>🕒 Mon-Sun: 8:00 AM - 11:00 PM</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p class="copyright">© <span id="year"></span> FOODY — With love ♥</p>
+        <div class="footer-bottom-links">
+          <a href="signup.html">Privacy Policy</a>
+          <a href="signup.html">Terms of Service</a>
+          <a href="#">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

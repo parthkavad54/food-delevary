@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Manage Restaurants — Admin Panel</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <a href="admin-dashboard.html" class="nav-link">Dashboard</a>
+        <a href="admin-restaurants.html" class="nav-link is-active">Restaurants</a>
+        <a href="admin-users.html" class="nav-link">Users</a>
+        <!-- <a href="index.html" class="nav-link">Home</a> -->
+        <button class="button button-outline" id="logout-btn">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="dashboard-header">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 class="h2">Manage Restaurants</h1>
+            <button class="button button-primary" onclick="showCreateModal()">+ Create Restaurant</button>
+          </div>
+          <div style="display: flex; gap: 1rem; align-items: center; margin-top: 1rem;">
+            <input type="text" id="search-input" placeholder="Search restaurants..." class="input" style="flex: 1; max-width: 300px;">
+            <select id="status-filter" class="input" style="max-width: 200px;">
+              <option value="">All Status</option>
+              <option value="true">Active</option>
+              <option value="false">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Owner</th>
+                <th>Phone</th>
+                <th>City</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="restaurants-table-body">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 2rem;">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="pagination" style="margin-top: 2rem; display: flex; justify-content: center; gap: 0.5rem;"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Create Restaurant Modal -->
+  <div id="create-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+      <span class="modal-close" onclick="closeCreateModal()">&times;</span>
+      <h2>Create Restaurant</h2>
+      <form id="create-restaurant-form">
+        <div class="form-group">
+          <label>Restaurant Owner *</label>
+          <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
+            <select id="create-owner" class="input" required style="flex: 1;">
+              <option value="">Select Owner</option>
+            </select>
+            <button type="button" class="button button-outline" onclick="showCreateOwnerModal()" style="white-space: nowrap;">
+              + New Owner
+            </button>
+          </div>
+          <small style="color: rgba(17,24,39,0.6);">Select a restaurant owner to assign this restaurant to, or create a new one</small>
+        </div>
+        <div class="form-group">
+          <label>Restaurant Name *</label>
+          <input type="text" id="create-name" class="input" required>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="create-description" class="input" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Phone Number *</label>
+          <input type="tel" id="create-phone" class="input" required>
+        </div>
+        <div class="form-group">
+          <label>Cuisine Types (comma-separated)</label>
+          <input type="text" id="create-cuisine" class="input" placeholder="e.g., Italian, Pizza, Fast Food">
+        </div>
+        <div class="form-group">
+          <label>Address *</label>
+          <input type="text" id="create-address-line1" class="input" placeholder="Street Address" required style="margin-bottom: 0.5rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <input type="text" id="create-address-city" class="input" placeholder="City" required>
+            <input type="text" id="create-address-state" class="input" placeholder="State" required>
+          </div>
+          <input type="text" id="create-address-postal" class="input" placeholder="Postal Code" required>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+          <button type="submit" class="button button-primary">Create Restaurant</button>
+          <button type="button" class="button button-outline" onclick="closeCreateModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Create Owner Modal -->
+  <div id="create-owner-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+      <span class="modal-close" onclick="closeCreateOwnerModal()">&times;</span>
+      <h2>Create Restaurant Owner</h2>
+      <form id="create-owner-form">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" id="owner-name" class="input" required>
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="owner-email" class="input" required>
+        </div>
+        <div class="form-group">
+          <label>Password *</label>
+          <input type="password" id="owner-password" class="input" required minlength="6">
+          <small style="color: rgba(17,24,39,0.6);">Minimum 6 characters</small>
+        </div>
+        <div class="form-group">
+          <label>Phone *</label>
+          <input type="tel" id="owner-phone" class="input" required>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+          <button type="submit" class="button button-primary">Create Owner</button>
+          <button type="button" class="button button-outline" onclick="closeCreateOwnerModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Restaurant Modal -->
+  <div id="edit-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeEditModal()">&times;</span>
+      <h2>Edit Restaurant</h2>
+      <form id="edit-restaurant-form">
+        <input type="hidden" id="edit-restaurant-id">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="edit-name" class="input" required>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="edit-description" class="input" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" id="edit-phone" class="input">
+        </div>
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" id="edit-city" class="input">
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="edit-isActive"> Active
+          </label>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+          <button type="submit" class="button button-primary">Update</button>
+          <button type="button" class="button button-outline" id="cancel-edit">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Wait for API to be available
+    function waitForAPI(callback) {
+      if (window.foodAPI) {
+        callback();
+      } else {
+        setTimeout(() => waitForAPI(callback), 100);
+      }
+    }
+
+    let currentPage = 1;
+    let currentFilters = {};
+
+    async function checkAuth() {
+      const token = localStorage.getItem('foody_token');
+      const userStr = localStorage.getItem('foody_user');
+      
+      if (!token || !userStr) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+      if (user.role !== 'admin') {
+        alert('Access denied. Admin access required.');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      await loadRestaurantOwners();
+      loadRestaurants();
+    }
+
+    let restaurantOwners = [];
+
+    async function loadRestaurantOwners() {
+      try {
+        const response = await window.foodAPI.getRestaurantOwners();
+        if (response && response.success) {
+          restaurantOwners = response.data || [];
+          const select = document.getElementById('create-owner');
+          if (select) {
+            if (restaurantOwners.length === 0) {
+              select.innerHTML = '<option value="">No restaurant owners available. Please create one first.</option>';
+            } else {
+              // Show all owners, but indicate which ones already have restaurants
+              select.innerHTML = '<option value="">Select Owner</option>' + 
+                restaurantOwners.map(owner => 
+                  `<option value="${owner._id}" ${owner.hasRestaurant ? 'disabled' : ''}>
+                    ${owner.name} (${owner.email})${owner.hasRestaurant ? ' - Already has restaurant' : ''}
+                  </option>`
+                ).join('');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading restaurant owners:', error);
+        const select = document.getElementById('create-owner');
+        if (select) {
+          select.innerHTML = '<option value="">Error loading owners</option>';
+        }
+      }
+    }
+
+    function showCreateModal() {
+      document.getElementById('create-modal').style.display = 'block';
+      document.getElementById('create-restaurant-form').reset();
+    }
+
+    function closeCreateModal() {
+      document.getElementById('create-modal').style.display = 'none';
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').style.display = 'none';
+    }
+
+    function showCreateOwnerModal() {
+      document.getElementById('create-owner-modal').style.display = 'block';
+      document.getElementById('create-owner-form').reset();
+    }
+
+    function closeCreateOwnerModal() {
+      document.getElementById('create-owner-modal').style.display = 'none';
+    }
+
+    async function loadRestaurants() {
+      try {
+        const filters = { ...currentFilters, page: currentPage, limit: 10 };
+        const data = await window.foodAPI.getAdminRestaurants(filters);
+        
+        if (data && data.success) {
+          renderRestaurants(data.data || []);
+          renderPagination(data.page || 1, data.pages || 1);
+        } else {
+          const tbody = document.getElementById('restaurants-table-body');
+          if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">Error loading restaurants</td></tr>';
+          }
+        }
+      } catch (error) {
+        console.error('Error loading restaurants:', error);
+        const tbody = document.getElementById('restaurants-table-body');
+        if (tbody) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">Error loading restaurants: ' + (error.message || 'Unknown error') + '</td></tr>';
+        }
+      }
+    }
+
+    function renderRestaurants(restaurants) {
+      const tbody = document.getElementById('restaurants-table-body');
+      if (!tbody) return;
+      
+      if (!restaurants || restaurants.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">No restaurants found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = restaurants.map(restaurant => {
+        const ownerName = restaurant.owner ? (restaurant.owner.name || restaurant.owner.email || '-') : '-';
+        const ownerEmail = restaurant.owner ? (restaurant.owner.email || '') : '';
+        const city = restaurant.address ? (restaurant.address.city || '-') : '-';
+        const phone = restaurant.phone || '-';
+        const isActive = restaurant.isActive !== false;
+        const statusClass = isActive ? 'badge-success' : 'badge-danger';
+        const statusText = isActive ? 'Active' : 'Inactive';
+        
+        return `
+        <tr>
+          <td>${restaurant.name || '-'}</td>
+          <td>${ownerName}${ownerEmail ? ' (' + ownerEmail + ')' : ''}</td>
+          <td>${phone}</td>
+          <td>${city}</td>
+          <td>
+            <span class="badge ${statusClass}">
+              ${statusText}
+            </span>
+          </td>
+          <td>
+            <button class="button button-ghost" onclick="editRestaurant('${restaurant._id}')">Edit</button>
+            <button class="button button-ghost" onclick="deleteRestaurant('${restaurant._id}')" ${!isActive ? 'disabled' : ''}>
+              ${isActive ? 'Deactivate' : 'Activate'}
+            </button>
+          </td>
+        </tr>
+      `;
+      }).join('');
+    }
+
+    function renderPagination(page, pages) {
+      const pagination = document.getElementById('pagination');
+      if (!pagination) return;
+      
+      if (!pages || pages <= 1) {
+        pagination.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      if (page > 1) {
+        html += `<button class="button button-outline" onclick="changePage(${page - 1})">Previous</button>`;
+      }
+      html += `<span style="padding: 0.5rem 1rem;">Page ${page} of ${pages}</span>`;
+      if (page < pages) {
+        html += `<button class="button button-outline" onclick="changePage(${page + 1})">Next</button>`;
+      }
+      pagination.innerHTML = html;
+    }
+
+    function changePage(page) {
+      currentPage = page;
+      loadRestaurants();
+    }
+
+    async function editRestaurant(restaurantId) {
+      try {
+        const data = await window.foodAPI.getRestaurant(restaurantId);
+        if (data.success) {
+          const restaurant = data.data.restaurant || data.data;
+          document.getElementById('edit-restaurant-id').value = restaurant._id;
+          document.getElementById('edit-name').value = restaurant.name;
+          document.getElementById('edit-description').value = restaurant.description || '';
+          document.getElementById('edit-phone').value = restaurant.phone || '';
+          document.getElementById('edit-city').value = restaurant.address ? restaurant.address.city || '' : '';
+          document.getElementById('edit-isActive').checked = restaurant.isActive;
+          document.getElementById('edit-modal').style.display = 'block';
+        }
+      } catch (error) {
+        alert('Error loading restaurant: ' + error.message);
+      }
+    }
+
+    async function deleteRestaurant(restaurantId) {
+      if (!confirm('Are you sure you want to deactivate this restaurant?')) return;
+      
+      try {
+        await window.foodAPI.deleteAdminRestaurant(restaurantId);
+        loadRestaurants();
+      } catch (error) {
+        alert('Error deleting restaurant: ' + error.message);
+      }
+    }
+
+    // Event listeners
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      currentFilters.search = e.target.value;
+      currentPage = 1;
+      loadRestaurants();
+    });
+
+    document.getElementById('status-filter').addEventListener('change', (e) => {
+      currentFilters.isActive = e.target.value || undefined;
+      currentPage = 1;
+      loadRestaurants();
+    });
+
+    // Create restaurant form
+    document.getElementById('create-restaurant-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const ownerId = document.getElementById('create-owner').value;
+      const name = document.getElementById('create-name').value.trim();
+      const description = document.getElementById('create-description').value.trim();
+      const phone = document.getElementById('create-phone').value.trim();
+      const cuisineInput = document.getElementById('create-cuisine').value.trim();
+      const line1 = document.getElementById('create-address-line1').value.trim();
+      const city = document.getElementById('create-address-city').value.trim();
+      const state = document.getElementById('create-address-state').value.trim();
+      const postalCode = document.getElementById('create-address-postal').value.trim();
+
+      if (!ownerId || !name || !phone || !line1 || !city || !state || !postalCode) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      const restaurantData = {
+        owner: ownerId,
+        name: name,
+        description: description,
+        phone: phone,
+        cuisine: cuisineInput ? cuisineInput.split(',').map(c => c.trim()).filter(c => c) : [],
+        address: {
+          line1: line1,
+          city: city,
+          state: state,
+          postalCode: postalCode
+        },
+        isActive: true
+      };
+
+      try {
+        const response = await window.foodAPI.createAdminRestaurant(restaurantData);
+        if (response && response.success) {
+          alert('Restaurant created successfully!');
+          closeCreateModal();
+          await loadRestaurantOwners(); // Reload to update owner status
+          loadRestaurants();
+        } else {
+          alert(response?.message || 'Failed to create restaurant');
+        }
+      } catch (error) {
+        alert('Error creating restaurant: ' + (error.message || 'Please try again'));
+      }
+    });
+
+    // Edit restaurant form
+    document.getElementById('edit-restaurant-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const restaurantId = document.getElementById('edit-restaurant-id').value;
+      const restaurantData = {
+        name: document.getElementById('edit-name').value,
+        description: document.getElementById('edit-description').value,
+        phone: document.getElementById('edit-phone').value,
+        isActive: document.getElementById('edit-isActive').checked,
+        address: {
+          city: document.getElementById('edit-city').value
+        }
+      };
+
+      try {
+        await window.foodAPI.updateAdminRestaurant(restaurantId, restaurantData);
+        closeEditModal();
+        loadRestaurants();
+      } catch (error) {
+        alert('Error updating restaurant: ' + error.message);
+      }
+    });
+
+    // Create owner form
+    document.getElementById('create-owner-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('owner-name').value.trim();
+      const email = document.getElementById('owner-email').value.trim();
+      const password = document.getElementById('owner-password').value;
+      const phone = document.getElementById('owner-phone').value.trim();
+
+      if (!name || !email || !password || !phone) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      if (password.length < 6) {
+        alert('Password must be at least 6 characters long');
+        return;
+      }
+
+      try {
+        const response = await window.foodAPI.createAdminUser({
+          name,
+          email,
+          password,
+          phone,
+          role: 'restaurant_owner',
+          isActive: true,
+          isVerified: true
+        });
+
+        if (response && response.success) {
+          alert('Restaurant owner created successfully!');
+          closeCreateOwnerModal();
+          await loadRestaurantOwners(); // Reload the owners list
+          // Auto-select the newly created owner
+          const select = document.getElementById('create-owner');
+          if (select && response.data) {
+            select.value = response.data._id || response.data.id;
+          }
+        } else {
+          alert(response?.message || 'Failed to create restaurant owner');
+        }
+      } catch (error) {
+        alert('Error creating restaurant owner: ' + (error.message || 'Please try again'));
+      }
+    });
+
+    // Make functions global
+    window.showCreateModal = showCreateModal;
+    window.closeCreateModal = closeCreateModal;
+    window.closeEditModal = closeEditModal;
+    window.showCreateOwnerModal = showCreateOwnerModal;
+    window.closeCreateOwnerModal = closeCreateOwnerModal;
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      window.foodAPI.logout();
+      window.location.href = 'login.html';
+    });
+
+    // Make functions global
+    window.editRestaurant = editRestaurant;
+    window.deleteRestaurant = deleteRestaurant;
+    window.changePage = changePage;
+
+    // Initialize when API is ready
+    waitForAPI(() => {
+      checkAuth();
+    });
+  </script>
+
+  <style>
+    .table-container {
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .data-table th {
+      background: var(--color-offwhite);
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+    .data-table td {
+      padding: 1rem;
+      border-top: 1px solid var(--color-border);
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      background: var(--color-border);
+    }
+    .badge-success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .badge-danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: var(--radius);
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    .input {
+      width: 100%;
+      padding: 0.625rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      font-size: 1rem;
+    }
+    textarea.input {
+      resize: vertical;
+    }
+  </style>
+</body>
+</html>
+

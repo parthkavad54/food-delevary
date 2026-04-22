@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile — FOODY</title>
+  <meta name="description" content="Manage your FOODY profile, preferences, and account settings." />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <script defer src="assets/api.js"></script>
+  <script defer src="assets/script.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="restaurants.html" class="nav-link">Restaurants</a>
+        <a href="reviews.html" class="nav-link">Reviews</a>
+        <a href="order.html" class="button button-outline" id="nav-cart-link">Cart</a>
+        <div class="nav-auth" id="nav-auth" style="display: none;">
+          <a href="login.html" class="button button-outline" id="login-link">Login</a>
+          <a href="signup.html" class="button button-primary" id="signup-link">Sign Up</a>
+        </div>
+        <div class="nav-user" id="nav-user">
+          <a href="dashboard.html" class="nav-link" id="dashboard-link">Dashboard</a>
+          <a href="profile.html" class="nav-link is-active" id="profile-link">Profile</a>
+          <button class="button button-outline" id="logout-btn">Logout</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="profile-container">
+          <div class="profile-header">
+            <div class="profile-avatar">
+              <div class="avatar-circle">
+                <span id="avatar-initials">U</span>
+              </div>
+            </div>
+            <div class="profile-info">
+              <h1 class="h2" id="profile-name">User Name</h1>
+              <p class="muted" id="profile-email">user@example.com</p>
+              <p class="meta">Member since <span id="member-since">2024</span></p>
+            </div>
+          </div>
+
+          <div class="profile-tabs">
+            <button class="tab-button active" data-tab="personal">Personal Info</button>
+            <button class="tab-button" data-tab="addresses">Addresses</button>
+            <button class="tab-button" data-tab="preferences">Preferences</button>
+            <button class="tab-button" data-tab="orders">Order History</button>
+          </div>
+
+          <!-- Personal Information Tab -->
+          <div class="tab-content active" id="personal-tab">
+            <div class="form-with-preview">
+              <!-- Form Section -->
+              <div class="form-with-preview__form">
+                <h3 class="h3" style="margin-bottom: 1.5rem;">Edit Personal Information</h3>
+                
+                <div class="form-progress-indicator" id="form-progress">
+                  <div class="progress-dot"></div>
+                  <div class="progress-dot"></div>
+                  <div class="progress-dot"></div>
+                  <div class="progress-dot"></div>
+                  <div class="progress-dot"></div>
+                </div>
+
+                <form class="profile-form" id="personal-form">
+                  <div class="form-group-with-preview">
+                    <label for="firstName" class="label">First Name</label>
+                    <input type="text" id="firstName" name="firstName" class="form-input" placeholder="Enter your first name" />
+                  </div>
+
+                  <div class="form-group-with-preview">
+                    <label for="lastName" class="label">Last Name</label>
+                    <input type="text" id="lastName" name="lastName" class="form-input" placeholder="Enter your last name" />
+                  </div>
+                  
+                  <div class="form-group-with-preview">
+                    <label for="email" class="label">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-input" placeholder="your@email.com" />
+                  </div>
+                  
+                  <div class="form-group-with-preview">
+                    <label for="phone" class="label">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="+91 98765 43210" />
+                  </div>
+                  
+                  <div class="form-group-with-preview">
+                    <label for="birthday" class="label">Date of Birth</label>
+                    <input type="date" id="birthday" name="birthday" class="form-input" />
+                  </div>
+                  
+                  <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="submit" class="button button-primary" style="flex: 1;">Save Changes</button>
+                    <button type="button" class="button button-outline" onclick="window.location.href='dashboard.html'" style="flex: 1;">Cancel</button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Preview Section -->
+              <div class="form-with-preview__preview">
+                <div class="preview-header">
+                  <div class="preview-avatar" id="preview-avatar">👤</div>
+                  <div class="preview-info">
+                    <h3 id="preview-name">Your Name</h3>
+                    <p id="preview-status">Filling your profile...</p>
+                  </div>
+                </div>
+
+                <div class="preview-section">
+                  <div class="preview-section-title">Contact Information</div>
+                  
+                  <div class="preview-item" data-preview="email">
+                    <div class="preview-item-label">Email</div>
+                    <div class="preview-item-value placeholder">Not provided</div>
+                    <div class="preview-item-icon"></div>
+                  </div>
+
+                  <div class="preview-item" data-preview="phone">
+                    <div class="preview-item-label">Phone</div>
+                    <div class="preview-item-value placeholder">Not provided</div>
+                    <div class="preview-item-icon"></div>
+                  </div>
+                </div>
+
+                <div class="preview-section">
+                  <div class="preview-section-title">Personal Details</div>
+                  
+                  <div class="preview-item" data-preview="birthday">
+                    <div class="preview-item-label">Birthday</div>
+                    <div class="preview-item-value placeholder">Not provided</div>
+                    <div class="preview-item-icon"></div>
+                  </div>
+                </div>
+
+                <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--color-border); text-align: center;">
+                  <p style="font-size: 0.85rem; color: rgba(17,24,39,0.6); margin: 0;">Profile <span id="completion-percent">0</span>% complete</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Addresses Tab -->
+          <div class="tab-content" id="addresses-tab">
+            <div class="profile-card">
+              <h3 class="h3">Delivery Addresses</h3>
+              <div class="addresses-list" id="addresses-list">
+                <div class="address-item">
+                  <div class="address-info">
+                    <h4 class="h4">Home Address</h4>
+                    <p id="home-address">123 Main Street, City, State 12345</p>
+                    <p class="meta">Default delivery address</p>
+                  </div>
+                  <div class="address-actions">
+                    <button class="button button-outline edit-address-btn" data-address-id="1">Edit</button>
+                    <button class="button button-ghost remove-address-btn" data-address-id="1">Remove</button>
+                  </div>
+                </div>
+              </div>
+              
+              <button class="button button-primary" id="add-address-btn">Add New Address</button>
+              
+              <!-- Add/Edit Address Modal -->
+              <div class="address-modal" id="address-modal" style="display: none;">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h4 class="h4" id="modal-title">Add New Address</h4>
+                    <button class="close-modal" id="close-modal">&times;</button>
+                  </div>
+                  <form class="address-form" id="address-form">
+                    <input type="hidden" id="address-id" name="addressId" />
+                    <div class="form-group">
+                      <label for="address-label" class="label">Address Label</label>
+                      <input type="text" id="address-label" name="label" class="form-input" placeholder="Home, Office, etc." required />
+                    </div>
+                    <div class="form-group">
+                      <label for="full-address" class="label">Full Address</label>
+                      <textarea id="full-address" name="fullAddress" class="form-input" rows="3" placeholder="Enter complete address" required></textarea>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="pincode" class="label">Pincode</label>
+                        <input type="text" id="pincode" name="pincode" class="form-input" placeholder="123456" maxlength="6" required />
+                      </div>
+                      <div class="form-group">
+                        <label for="city" class="label">City</label>
+                        <input type="text" id="city" name="city" class="form-input" placeholder="City" required />
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label for="state" class="label">State</label>
+                        <input type="text" id="state" name="state" class="form-input" placeholder="State" required />
+                      </div>
+                      <div class="form-group">
+                        <label for="landmark" class="label">Landmark (Optional)</label>
+                        <input type="text" id="landmark" name="landmark" class="form-input" placeholder="Near landmark" />
+                      </div>
+                    </div>
+                    <div class="form-actions">
+                      <button type="button" class="button button-outline" id="cancel-address">Cancel</button>
+                      <button type="submit" class="button button-primary">Save Address</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preferences Tab -->
+          <div class="tab-content" id="preferences-tab">
+            <div class="profile-card">
+              <h3 class="h3">Food Preferences</h3>
+              <form class="preferences-form">
+                <div class="preference-group">
+                  <h4 class="h4">Dietary Restrictions</h4>
+                  <div class="checkbox-group">
+                    <label class="checkbox">
+                      <input type="checkbox" name="dietary" value="vegetarian" />
+                      Vegetarian
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="dietary" value="vegan" />
+                      Vegan
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="dietary" value="gluten-free" />
+                      Gluten-Free
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="dietary" value="halal" />
+                      Halal
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="dietary" value="kosher" />
+                      Kosher
+                    </label>
+                  </div>
+                </div>
+                
+                <div class="preference-group">
+                  <h4 class="h4">Spice Level</h4>
+                  <div class="radio-group">
+                    <label class="radio">
+                      <input type="radio" name="spice" value="mild" />
+                      Mild
+                    </label>
+                    <label class="radio">
+                      <input type="radio" name="spice" value="medium" />
+                      Medium
+                    </label>
+                    <label class="radio">
+                      <input type="radio" name="spice" value="hot" />
+                      Hot
+                    </label>
+                  </div>
+                </div>
+                
+                <div class="preference-group">
+                  <h4 class="h4">Notifications</h4>
+                  <div class="checkbox-group">
+                    <label class="checkbox">
+                      <input type="checkbox" name="notifications" value="email" checked />
+                      Email notifications
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="notifications" value="sms" />
+                      SMS notifications
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="notifications" value="push" checked />
+                      Push notifications
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" name="notifications" value="promotions" checked />
+                      Promotional offers
+                    </label>
+                  </div>
+                </div>
+                
+                <button type="submit" class="button button-primary">Save Preferences</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Order History Tab -->
+          <div class="tab-content" id="orders-tab">
+            <div class="profile-card">
+              <h3 class="h3">Order History</h3>
+              <div class="orders-list">
+                <div class="order-item">
+                  <div class="order-info">
+                    <h4 class="h4">Margherita Pizza</h4>
+                    <p class="muted">Bella Roma • Order #12345</p>
+                    <p class="meta">Delivered on Dec 15, 2024</p>
+                  </div>
+                  <div class="order-status-badge completed">Delivered</div>
+                  <div class="order-price">₹299</div>
+                  <button class="button button-outline">Reorder</button>
+                </div>
+                
+                <div class="order-item">
+                  <div class="order-info">
+                    <h4 class="h4">Sushi Platter</h4>
+                    <p class="muted">Sora Sushi • Order #12344</p>
+                    <p class="meta">Delivered on Dec 12, 2024</p>
+                  </div>
+                  <div class="order-status-badge completed">Delivered</div>
+                  <div class="order-price">₹119</div>
+                  <button class="button button-outline">Reorder</button>
+                </div>
+                
+                <div class="order-item">
+                  <div class="order-info">
+                    <h4 class="h4">Butter Chicken</h4>
+                    <p class="muted">Spice Route • Order #12343</p>
+                    <p class="meta">Delivered on Dec 10, 2024</p>
+                  </div>
+                  <div class="order-status-badge completed">Delivered</div>
+                  <div class="order-price">₹149</div>
+                  <button class="button button-outline">Reorder</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-brand">
+            <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="footer-logo" />
+            <span class="brand-name">FOODY</span>
+          </div>
+          <p class="footer-description">Delivering delicious food from your favorite restaurants right to your doorstep. Fast, fresh, and always satisfying.</p>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Facebook">📘</a>
+            <a href="#" class="social-link" aria-label="Twitter">🐦</a>
+            <a href="#" class="social-link" aria-label="Instagram">📷</a>
+            <a href="#" class="social-link" aria-label="LinkedIn">💼</a>
+          </div>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="restaurants.html">Restaurants</a></li>
+            <li><a href="menu.html">Menu</a></li>
+            <li><a href="reviews.html">Reviews</a></li>
+            <li><a href="order.html">Order</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Customer Service</h4>
+          <ul class="footer-links">
+            <li><a href="https://wa.me/919925177306" target="_blank">Help Center</a></li>
+            <li><a href="mailto:kavadparth54@gmail.com">Contact Us</a></li>
+            <li><a href="dashboard.html">Track Order</a></li>
+            <li><a href="#">Refund Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-section">
+          <h4 class="footer-title">Contact Info</h4>
+          <div class="contact-info">
+            <p>📞 +91 9925177306</p>
+            <p>📧 kavadparth54@gmail.com</p>
+            <p>📍 303 foody  khav-gali, Rajkot, Gujrat 360005</p>
+            <p>🕒 Mon-Sun: 8:00 AM - 11:00 PM</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p class="copyright">© <span id="year"></span> FOODY — With love ♥</p>
+        <div class="footer-bottom-links">
+          <a href="signup.html">Privacy Policy</a>
+          <a href="signup.html">Terms of Service</a>
+          <a href="#">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function pickDefaultAddress(addresses = []) {
+      return addresses.find(a => a.isDefault) || addresses[0] || null;
+    }
+
+    function setCheckboxValues(container, values) {
+      const set = new Set(values || []);
+      container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.checked = set.has(cb.value);
+      });
+    }
+
+    function getCheckboxValues(container) {
+      return Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+    }
+
+    async function loadProfile() {
+      const token = localStorage.getItem('foody_token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const profileRes = await window.foodAPI.getUserProfile();
+      const user = profileRes.user;
+      localStorage.setItem('foody_user', JSON.stringify(user));
+
+      // Header
+      document.getElementById('profile-name').textContent = user.name || 'User';
+      document.getElementById('profile-email').textContent = user.email || '';
+      const initials = (user.name || 'User').split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase();
+      document.getElementById('avatar-initials').textContent = initials || 'U';
+      document.getElementById('member-since').textContent = new Date(user.createdAt || Date.now()).getFullYear();
+
+      // Personal form
+      const firstName = document.getElementById('firstName');
+      const lastName = document.getElementById('lastName');
+      const email = document.getElementById('email');
+      const phone = document.getElementById('phone');
+      const birthday = document.getElementById('birthday');
+
+      if (firstName) firstName.value = user.firstName || '';
+      if (lastName) lastName.value = user.lastName || '';
+      if (email) email.value = user.email || '';
+      if (phone) phone.value = user.phone || '';
+      if (birthday) birthday.value = user.birthday ? new Date(user.birthday).toISOString().slice(0, 10) : '';
+
+      // Address summary
+      const addr = pickDefaultAddress(user.addresses || []);
+      const homeAddress = document.getElementById('home-address');
+      if (homeAddress) {
+        homeAddress.textContent = addr
+          ? [addr.street, addr.city, addr.state, addr.zipCode].filter(Boolean).join(', ')
+          : 'No address set';
+      }
+
+      // Preferences
+      const prefsForm = document.querySelector('.preferences-form');
+      if (prefsForm) {
+        setCheckboxValues(prefsForm.querySelector('.preference-group:nth-of-type(1) .checkbox-group'), user.preferences?.dietary || []);
+        const spice = prefsForm.querySelector(`input[name="spice"][value="${user.preferences?.spice || ''}"]`);
+        if (spice) spice.checked = true;
+        setCheckboxValues(prefsForm.querySelector('.preference-group:nth-of-type(3) .checkbox-group'), user.preferences?.notifications || []);
+      }
+
+      // Addresses tab (read-only list)
+      renderAddresses(user.addresses || []);
+
+      // Orders history
+      await renderOrders();
+    }
+
+    function renderAddresses(addresses) {
+      const addressesList = document.getElementById('addresses-list');
+      if (!addressesList) return;
+      if (!addresses || addresses.length === 0) {
+        addressesList.innerHTML = '<p class="muted">No addresses saved yet. Add your first address below.</p>';
+        return;
+      }
+
+      addressesList.innerHTML = addresses.map(addr => {
+        const line = [addr.street, addr.city, addr.state, addr.zipCode].filter(Boolean).join(', ');
+        return `
+          <div class="address-item ${addr.isDefault ? 'default' : ''}">
+            <div class="address-info">
+              <h4 class="h4">${addr.label || 'Address'}</h4>
+              <p>${line || '-'}</p>
+              ${addr.isDefault ? '<p class="meta">Default delivery address</p>' : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function renderOrders() {
+      const ordersTab = document.getElementById('orders-tab');
+      if (!ordersTab) return;
+      const list = ordersTab.querySelector('.orders-list');
+      if (!list) return;
+
+      list.innerHTML = '<div class="empty-state"><p>Loading your orders...</p></div>';
+
+      try {
+        const res = await window.foodAPI.getOrders();
+        const orders = res.orders || [];
+
+        if (orders.length === 0) {
+          list.innerHTML = '<div class="empty-state"><p>No orders yet.</p><a class="button button-primary" href="restaurants.html?autostart=1">Start Ordering</a></div>';
+          return;
+        }
+
+        list.innerHTML = orders.map(order => {
+          const date = new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+          const firstItem = order.items?.[0]?.name || 'Order';
+          const restName = order.restaurant?.name || 'Restaurant';
+          const status = order.orderStatus || 'Pending';
+          const total = order.grandTotal || order.totalPrice || 0;
+          return `
+            <div class="order-item" data-order-id="${order._id}">
+              <div class="order-info">
+                <h4 class="h4">${firstItem}${order.items?.length > 1 ? ` +${order.items.length - 1} more` : ''}</h4>
+                <p class="muted">${restName} • Order #${order._id.slice(-6).toUpperCase()}</p>
+                <p class="meta">${date}</p>
+              </div>
+              <div class="order-status-badge completed">${status}</div>
+              <div class="order-price">₹${Number(total).toLocaleString('en-IN')}</div>
+              <button class="button button-outline reorder-btn" data-order-id="${order._id}">Reorder</button>
+            </div>
+          `;
+        }).join('');
+
+        list.querySelectorAll('.reorder-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const orderId = btn.dataset.orderId;
+            const orderRes = await window.foodAPI.getOrder(orderId);
+            const order = orderRes.order;
+            if (!order || !order.items?.length) return;
+
+            const cartApi = window.foodyCart;
+            const cart = cartApi?.load ? cartApi.load() : [];
+            order.items.forEach(item => {
+              const menuItemId = item.menuItem?._id || item.menuItem;
+              const restaurantId = order.restaurant?._id || order.restaurant;
+              const key = JSON.stringify({ id: String(menuItemId), restaurantId: String(restaurantId), notes: '' })
+              const existing = cart.find(it => it.key === key);
+              if (existing) {
+                existing.qty += item.quantity;
+              } else {
+                cart.push({
+                  key,
+                  id: String(menuItemId),
+                  menuItemId: String(menuItemId),
+                  restaurantId: String(restaurantId),
+                  name: item.name,
+                  unitPrice: Math.round(Number(item.price)),
+                  qty: item.quantity,
+                  options: { notes: '' }
+                });
+              }
+            });
+            if (cartApi?.save) {
+              await cartApi.save(cart);
+            } else {
+              localStorage.setItem('dd_cart', JSON.stringify(cart));
+            }
+            window.location.href = 'order.html';
+          });
+        });
+      } catch (err) {
+        console.error('Failed to load orders:', err);
+        list.innerHTML = '<div class="empty-state"><p>Could not load orders. Please try again.</p></div>';
+      }
+    }
+
+    // Tab functionality
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.dataset.tab;
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById(`${tabId}-tab`).classList.add('active');
+      });
+    });
+
+    // Initialize form preview
+    const fieldMap = {
+      'email': 'email',
+      'phone': 'phone',
+      'birthday': 'birthday'
+    };
+
+    // Wait for formPreviewUtils to be available
+    function waitForFormUtils() {
+      if (window.formPreviewUtils) {
+        window.formPreviewUtils.initFormPreview(
+          '#personal-form',
+          '.form-with-preview__preview',
+          fieldMap
+        );
+      } else {
+        setTimeout(waitForFormUtils, 100);
+      }
+    }
+
+    waitForFormUtils();
+
+    // Update completion percentage
+    function updateCompletionPercent() {
+      const form = document.getElementById('personal-form');
+      const firstName = form.querySelector('[name="firstName"]').value;
+      const lastName = form.querySelector('[name="lastName"]').value;
+      const email = form.querySelector('[name="email"]').value;
+      const phone = form.querySelector('[name="phone"]').value;
+      const birthday = form.querySelector('[name="birthday"]').value;
+
+      const filledCount = [firstName, lastName, email, phone, birthday].filter(Boolean).length;
+      const totalCount = 5;
+      const percent = Math.round((filledCount / totalCount) * 100);
+
+      document.getElementById('completion-percent').textContent = percent;
+    }
+
+    // Listen to form changes to update percentage
+    document.getElementById('personal-form').querySelectorAll('input').forEach(input => {
+      input.addEventListener('input', updateCompletionPercent);
+      input.addEventListener('change', updateCompletionPercent);
+    });
+
+    // Save personal info
+    document.getElementById('personal-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const birthday = document.getElementById('birthday').value;
+      const name = [firstName, lastName].filter(Boolean).join(' ') || (JSON.parse(localStorage.getItem('foody_user') || 'null')?.name || 'User');
+
+      try {
+        const res = await window.foodAPI.updateUserProfile({
+          firstName,
+          lastName,
+          name,
+          phone,
+          birthday: birthday || null
+        });
+        localStorage.setItem('foody_user', JSON.stringify(res.user));
+        document.getElementById('profile-name').textContent = res.user.name || 'User';
+        alert('Profile updated successfully!');
+      } catch (err) {
+        alert(err.message || 'Failed to update profile');
+      }
+    });
+
+    // Save preferences
+    const prefsForm = document.querySelector('.preferences-form');
+    if (prefsForm) {
+      prefsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const dietary = getCheckboxValues(prefsForm.querySelector('.preference-group:nth-of-type(1) .checkbox-group'));
+        const spice = (prefsForm.querySelector('input[name="spice"]:checked')?.value) || '';
+        const notifications = getCheckboxValues(prefsForm.querySelector('.preference-group:nth-of-type(3) .checkbox-group'));
+        try {
+          const res = await window.foodAPI.updateUserProfile({ preferences: { dietary, spice, notifications } });
+          localStorage.setItem('foody_user', JSON.stringify(res.user));
+          alert('Preferences saved!');
+        } catch (err) {
+          alert(err.message || 'Failed to save preferences');
+        }
+      });
+    }
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await window.foodAPI.logout();
+      window.location.href = 'index.html';
+    });
+
+    // Init
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadProfile);
+    } else {
+      loadProfile();
+    }
+  </script>
+</body>
+</html>

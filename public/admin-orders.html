@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Manage Orders — Admin Panel</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <a href="admin-dashboard.html" class="nav-link">Dashboard</a>
+        <a href="admin-restaurants.html" class="nav-link">Restaurants</a>
+        <a href="admin-users.html" class="nav-link">Users</a>
+        <a href="admin-orders.html" class="nav-link is-active">Orders</a>
+        <!-- <a href="index.html" class="nav-link">Home</a> -->
+        <button class="button button-outline" id="logout-btn">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="dashboard-header">
+          <h1 class="h2">Manage Orders</h1>
+          <div style="display: flex; gap: 1rem; align-items: center; margin-top: 1rem;">
+            <select id="status-filter" class="input" style="max-width: 200px;">
+              <option value="">All Status</option>
+              <option value="Pending">Pending</option>
+              <option value="Confirmed">Confirmed</option>
+              <option value="Preparing">Preparing</option>
+              <option value="Ready For Pickup">Ready For Pickup</option>
+              <option value="Out For Delivery">Out For Delivery</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="orders-container">
+          <div style="text-align: center; padding: 2rem;">Loading orders...</div>
+        </div>
+
+        <div id="pagination" style="margin-top: 2rem; display: flex; justify-content: center; gap: 0.5rem;"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let currentPage = 1;
+    let currentFilters = {};
+
+    async function checkAuth() {
+      const token = localStorage.getItem('foody_token');
+      const userStr = localStorage.getItem('foody_user');
+      
+      if (!token || !userStr) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+      if (user.role !== 'admin') {
+        alert('Access denied. Admin access required.');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      loadOrders();
+    }
+
+    async function loadOrders() {
+      try {
+        const filters = { ...currentFilters, page: currentPage, limit: 20 };
+        const data = await window.foodAPI.getAdminOrders(filters);
+        
+        if (data.success) {
+          renderOrders(data.data);
+          renderPagination(data.page, data.pages);
+        }
+      } catch (error) {
+        console.error('Error loading orders:', error);
+        document.getElementById('orders-container').innerHTML = 
+          '<div style="text-align: center; padding: 2rem;">Error loading orders</div>';
+      }
+    }
+
+    function renderOrders(orders) {
+      const container = document.getElementById('orders-container');
+      if (orders.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 2rem;">No orders found</div>';
+        return;
+      }
+
+      const statusColors = {
+        'Pending': '#fbbf24',
+        'Confirmed': '#3b82f6',
+        'Preparing': '#8b5cf6',
+        'Ready For Pickup': '#10b981',
+        'Out For Delivery': '#06b6d4',
+        'Delivered': '#10b981',
+        'Cancelled': '#ef4444'
+      };
+
+      container.innerHTML = orders.map(order => `
+        <div class="order-card" style="background: white; padding: 1.5rem; border-radius: var(--radius); margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+            <div>
+              <h3 style="margin: 0 0 0.5rem;">Order #${order._id.slice(-6)}</h3>
+              <p style="margin: 0; color: rgba(17,24,39,0.7);">Restaurant: ${order.restaurant ? order.restaurant.name : 'N/A'}</p>
+              <p style="margin: 0.25rem 0 0; color: rgba(17,24,39,0.7);">Customer: ${order.user ? order.user.name : 'N/A'}</p>
+              <p style="margin: 0.25rem 0 0; color: rgba(17,24,39,0.7);">Email: ${order.user ? order.user.email : 'N/A'}</p>
+            </div>
+            <div style="text-align: right;">
+              <span class="badge" style="background: ${statusColors[order.orderStatus] || '#6b7280'}; color: white; padding: 0.25rem 0.75rem; border-radius: 999px;">
+                ${order.orderStatus}
+              </span>
+              <p style="margin: 0.5rem 0 0; font-weight: 600; font-size: 1.25rem;">₹${order.grandTotal}</p>
+            </div>
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <p style="margin: 0.25rem 0; font-size: 0.875rem;"><strong>Items:</strong></p>
+            ${order.items ? order.items.map(item => 
+              `<p style="margin: 0.25rem 0; font-size: 0.875rem;">${item.quantity}x ${item.name || item.menuItem?.name || 'Item'} - ₹${item.price}</p>`
+            ).join('') : ''}
+          </div>
+          <p style="margin: 0; font-size: 0.875rem; color: rgba(17,24,39,0.6);">
+            Created: ${new Date(order.createdAt).toLocaleString()}
+          </p>
+        </div>
+      `).join('');
+    }
+
+    function renderPagination(page, pages) {
+      const pagination = document.getElementById('pagination');
+      if (pages <= 1) {
+        pagination.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      if (page > 1) {
+        html += `<button class="button button-outline" onclick="changePage(${page - 1})">Previous</button>`;
+      }
+      html += `<span style="padding: 0.5rem 1rem;">Page ${page} of ${pages}</span>`;
+      if (page < pages) {
+        html += `<button class="button button-outline" onclick="changePage(${page + 1})">Next</button>`;
+      }
+      pagination.innerHTML = html;
+    }
+
+    function changePage(page) {
+      currentPage = page;
+      loadOrders();
+    }
+
+    document.getElementById('status-filter').addEventListener('change', (e) => {
+      currentFilters.status = e.target.value || undefined;
+      currentPage = 1;
+      loadOrders();
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      window.foodAPI.logout();
+      window.location.href = 'login.html';
+    });
+
+    window.changePage = changePage;
+
+    checkAuth();
+  </script>
+
+  <style>
+    .input {
+      width: 100%;
+      padding: 0.625rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      font-size: 1rem;
+    }
+  </style>
+</body>
+</html>
+

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Restaurant Dashboard — FOODY</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <script defer src="assets/api.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="brand-mark" />
+        <span class="brand-name">FOODY</span>
+      </a>
+      <nav class="nav">
+        <a href="restaurant-dashboard.html" class="nav-link is-active">Dashboard</a>
+        <a href="restaurant-orders.html" class="nav-link">Orders</a>
+        <a href="restaurant-menu.html" class="nav-link">Menu Items</a>
+        <!-- <a href="index.html" class="nav-link">Home</a> -->
+        <button class="button button-outline" id="logout-btn">Logout</button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container">
+        <div class="dashboard-header">
+          <h1 class="h2">Restaurant Dashboard</h1>
+          <p class="muted">Manage your restaurant operations</p>
+        </div>
+
+        <!-- No Restaurant Message -->
+        <div id="no-restaurant-section" style="display: none;">
+          <div class="auth-card" style="max-width: 600px; margin: 2rem auto; text-align: center;">
+            <div class="auth-header">
+              <h2 class="h2">No Restaurant Assigned</h2>
+              <p class="muted">Contact the administrator to get your restaurant set up</p>
+            </div>
+            <div style="padding: 2rem;">
+              <p>Your restaurant account is ready, but you need an administrator to create and assign a restaurant to your account.</p>
+              <p style="margin-top: 1rem; color: rgba(17,24,39,0.7);">Once your restaurant is created, you'll be able to manage it from this dashboard.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Restaurant Info Card -->
+        <div id="restaurant-info-section" style="display: none;">
+          <div class="auth-card" style="max-width: 800px; margin: 2rem auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+              <div>
+                <h2 class="h2" id="restaurant-name-display">My Restaurant</h2>
+                <p class="muted" id="restaurant-description-display">Restaurant description</p>
+              </div>
+              <div style="text-align: right;">
+                <div style="margin-bottom: 0.5rem;">
+                  <span class="badge" id="restaurant-status-badge">Status</span>
+                </div>
+                <button class="button" id="toggle-status-btn" onclick="toggleRestaurantStatus()">
+                  <span id="toggle-status-text">Toggle Status</span>
+                </button>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+              <div>
+                <strong>Phone:</strong>
+                <p id="restaurant-phone-display">-</p>
+              </div>
+              <div>
+                <strong>Address:</strong>
+                <p id="restaurant-address-display">-</p>
+              </div>
+              <div>
+                <strong>Cuisine:</strong>
+                <p id="restaurant-cuisine-display">-</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" style="text-align: center; padding: 3rem;">
+          <p>Loading dashboard...</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="dashboard-stats" id="stats-container" style="display: none;">
+          <div class="stat-card">
+            <div class="stat-icon">🍽️</div>
+            <div class="stat-content">
+              <h3 class="stat-value" id="total-restaurants">-</h3>
+              <p class="stat-label">My Restaurants</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-content">
+              <h3 class="stat-value" id="total-orders">-</h3>
+              <p class="stat-label">Total Orders</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-content">
+              <h3 class="stat-value" id="pending-orders">-</h3>
+              <p class="stat-label">Pending Orders</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-content">
+              <h3 class="stat-value" id="completed-orders">-</h3>
+              <p class="stat-label">Completed Orders</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-content">
+              <h3 class="stat-value" id="total-revenue">-</h3>
+              <p class="stat-label">Total Revenue</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🍴</div>
+            <div class="stat-content">
+              <h3 class="stat-value" id="total-menu-items">-</h3>
+              <p class="stat-label">Menu Items</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="dashboard-actions" id="quick-actions" style="display: none;">
+          <a href="restaurant-orders.html" class="action-card">
+            <div class="action-icon">📦</div>
+            <h3>Manage Orders</h3>
+            <p>View and update order status</p>
+          </a>
+          <a href="restaurant-menu.html" class="action-card">
+            <div class="action-icon">🍴</div>
+            <h3>Manage Menu</h3>
+            <p>Add and edit menu items</p>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Wait for API to be available
+    function waitForAPI(callback) {
+      if (window.foodAPI) {
+        callback();
+      } else {
+        setTimeout(() => waitForAPI(callback), 100);
+      }
+    }
+
+    // Check authentication
+    async function checkAuth() {
+      const token = localStorage.getItem('foody_token');
+      const userStr = localStorage.getItem('foody_user');
+      
+      if (!token || !userStr) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+      if (user.role !== 'restaurant_owner' && user.role !== 'admin') {
+        alert('Access denied. Restaurant owner access required.');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Load dashboard data
+      await loadDashboardStats();
+    }
+
+    let myRestaurant = null;
+
+    // Load dashboard statistics
+    async function loadDashboardStats() {
+      try {
+        // Hide loading after a moment
+        setTimeout(() => {
+          const loadingEl = document.getElementById('loading-state');
+          if (loadingEl) loadingEl.style.display = 'none';
+        }, 500);
+
+        // Load restaurant info first
+        const hasRestaurant = await loadMyRestaurant();
+
+        const response = await window.foodAPI.getRestaurantDashboardStats();
+        
+        // Handle response
+        if (response && response.success) {
+          const stats = response.data || {};
+          
+          // If no restaurants, show no restaurant message
+          if (!hasRestaurant || !stats.totalRestaurants || stats.totalRestaurants === 0) {
+            showNoRestaurant();
+          } else {
+            // Show dashboard with stats
+            showDashboard(stats);
+            // Ensure restaurant info is visible
+            if (myRestaurant) {
+              showRestaurantInfo(myRestaurant);
+            }
+          }
+        } else {
+          // Invalid response - show no restaurant as fallback
+          if (!hasRestaurant) {
+            showNoRestaurant();
+          }
+        }
+      } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        
+        // Check if it's an authentication error
+        if (error.message && (error.message.includes('401') || error.message.includes('Not authorized'))) {
+          window.location.href = 'login.html';
+          return;
+        }
+        
+        // For other errors, gracefully show no restaurant
+        showNoRestaurant();
+      }
+    }
+
+    // Load my restaurant info
+    async function loadMyRestaurant() {
+      try {
+        const response = await window.foodAPI.getMyRestaurants();
+        if (response && response.success && response.data && Array.isArray(response.data) && response.data.length > 0) {
+          myRestaurant = response.data[0];
+          showRestaurantInfo(myRestaurant);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error('Error loading restaurant:', error);
+        return false;
+      }
+    }
+
+    // Show no restaurant message
+    function showNoRestaurant() {
+      const loadingEl = document.getElementById('loading-state');
+      const noRestEl = document.getElementById('no-restaurant-section');
+      const infoEl = document.getElementById('restaurant-info-section');
+      const statsEl = document.getElementById('stats-container');
+      const actionsEl = document.getElementById('quick-actions');
+      
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (noRestEl) noRestEl.style.display = 'block';
+      if (infoEl) infoEl.style.display = 'none';
+      if (statsEl) statsEl.style.display = 'none';
+      if (actionsEl) actionsEl.style.display = 'none';
+    }
+
+    // Show restaurant info
+    function showRestaurantInfo(restaurant) {
+      if (!restaurant) return;
+      
+      const infoEl = document.getElementById('restaurant-info-section');
+      if (infoEl) infoEl.style.display = 'block';
+
+      const nameEl = document.getElementById('restaurant-name-display');
+      const descEl = document.getElementById('restaurant-description-display');
+      const phoneEl = document.getElementById('restaurant-phone-display');
+      const addressEl = document.getElementById('restaurant-address-display');
+      const cuisineEl = document.getElementById('restaurant-cuisine-display');
+      
+      if (nameEl) nameEl.textContent = restaurant.name || 'My Restaurant';
+      if (descEl) descEl.textContent = restaurant.description || 'No description';
+      if (phoneEl) phoneEl.textContent = restaurant.phone || '-';
+      
+      if (addressEl) {
+        const address = restaurant.address;
+        const addressStr = address ? 
+          `${address.line1 || ''}, ${address.city || ''}, ${address.state || ''} ${address.postalCode || ''}`.trim() : '-';
+        addressEl.textContent = addressStr;
+      }
+      
+      if (cuisineEl) {
+        const cuisineStr = restaurant.cuisine && Array.isArray(restaurant.cuisine) && restaurant.cuisine.length > 0 ? 
+          restaurant.cuisine.join(', ') : '-';
+        cuisineEl.textContent = cuisineStr;
+      }
+
+      // Update status badge and button
+      const isActive = restaurant.isActive !== false;
+      const badge = document.getElementById('restaurant-status-badge');
+      const btn = document.getElementById('toggle-status-btn');
+      const text = document.getElementById('toggle-status-text');
+
+      if (badge) {
+        badge.textContent = isActive ? '🟢 Open' : '🔴 Closed';
+        badge.className = isActive ? 'badge badge-success' : 'badge badge-danger';
+      }
+      if (btn) {
+        btn.className = isActive ? 'button button-outline' : 'button button-primary';
+        btn.textContent = isActive ? 'Close Restaurant' : 'Open Restaurant';
+      }
+      if (text) {
+        text.textContent = isActive ? 'Close Restaurant' : 'Open Restaurant';
+      }
+    }
+
+    // Toggle restaurant status
+    async function toggleRestaurantStatus() {
+      if (!myRestaurant) {
+        alert('No restaurant found');
+        return;
+      }
+
+      const btn = document.getElementById('toggle-status-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Updating...';
+      }
+
+      try {
+        const response = await window.foodAPI.toggleRestaurantStatus(myRestaurant._id);
+        if (response && response.success) {
+          myRestaurant.isActive = response.data.isActive;
+          showRestaurantInfo(myRestaurant);
+          alert(`Restaurant ${myRestaurant.isActive ? 'opened' : 'closed'} successfully!`);
+        } else {
+          alert(response?.message || 'Failed to update restaurant status');
+        }
+      } catch (error) {
+        console.error('Error toggling status:', error);
+        alert(error.message || 'Failed to update restaurant status');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+        }
+      }
+    }
+
+    window.toggleRestaurantStatus = toggleRestaurantStatus;
+
+    // Show dashboard with statistics
+    function showDashboard(stats) {
+      const loadingEl = document.getElementById('loading-state');
+      const createEl = document.getElementById('create-restaurant-section');
+      const noRestEl = document.getElementById('no-restaurant-section');
+      const statsEl = document.getElementById('stats-container');
+      const actionsEl = document.getElementById('quick-actions');
+      
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (createEl) createEl.style.display = 'none';
+      if (noRestEl) noRestEl.style.display = 'none';
+      if (statsEl) statsEl.style.display = 'grid';
+      if (actionsEl) actionsEl.style.display = 'grid';
+      
+      // Update stats safely
+      const updateElement = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+      };
+      
+      updateElement('total-restaurants', stats.totalRestaurants || 0);
+      updateElement('total-orders', stats.totalOrders || 0);
+      updateElement('pending-orders', stats.pendingOrders || 0);
+      updateElement('completed-orders', stats.completedOrders || 0);
+      updateElement('total-revenue', `₹${(stats.totalRevenue || 0).toLocaleString()}`);
+      updateElement('total-menu-items', stats.totalMenuItems || 0);
+    }
+
+
+    // Initialize when API is ready
+    waitForAPI(() => {
+      checkAuth();
+      
+      // Setup logout button after API is available
+      const logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+          window.foodAPI.logout();
+          window.location.href = 'login.html';
+        });
+      }
+    });
+  </script>
+
+  <style>
+    .dashboard-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    .stat-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .stat-icon {
+      font-size: 2.5rem;
+    }
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--color-primary);
+    }
+    .stat-label {
+      margin: 0.25rem 0 0;
+      color: var(--color-text);
+      opacity: 0.7;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      background: var(--color-border);
+    }
+    .badge-success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .badge-danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  </style>
+</body>
+</html>
