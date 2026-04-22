@@ -73,10 +73,7 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   app.use(express.static(path.join(__dirname, '../../frontend'), { extensions: ['html', 'htm'] }));
 }
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/food_delivery', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/food_delivery')
 .then(() => console.log('MongoDB Connected'))
 .catch(err => console.error('MongoDB Connection Error:', err));
 

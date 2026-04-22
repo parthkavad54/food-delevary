@@ -254,6 +254,7 @@
       new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 
     let userAddresses = [];
+    let orderTotal = 0;
 
     async function loadCheckout() {
       try {
@@ -296,12 +297,12 @@
 
         const deliveryFee = 0; // TODO: Calculate based on distance
         const gst = Math.round(grandTotal * 0.05);
-        const total = grandTotal + deliveryFee + gst;
+        orderTotal = grandTotal + deliveryFee + gst;
 
         document.getElementById('summary-subtotal').textContent = fmtINR(grandTotal);
         document.getElementById('summary-delivery').textContent = fmtINR(deliveryFee);
         document.getElementById('summary-gst').textContent = fmtINR(gst);
-        document.getElementById('summary-total').textContent = fmtINR(total);
+        document.getElementById('summary-total').textContent = fmtINR(orderTotal);
 
         // Place order button handler
         document.getElementById('place-order-btn').addEventListener('click', async () => {
@@ -319,14 +320,29 @@
           }
 
           const deliveryNotes = document.getElementById('delivery-notes').value;
+          const btn = document.getElementById('place-order-btn');
+          const originalText = btn.textContent;
+          btn.disabled = true;
+          btn.textContent = 'Processing...';
 
-          // Create orders for each restaurant
-          const orders = await createOrders(selectedAddress.value, deliveryNotes);
+          try {
+            // Create orders for each restaurant
+            const orders = await createOrders(selectedAddress.value, deliveryNotes, selectedPaymentMethod);
 
-          if (selectedPaymentMethod === 'razorpay') {
-            processRazorpayPayment(orders, total);
-          } else if (selectedPaymentMethod === 'cod') {
-            processCODPayment(orders);
+            if (!orders || orders.length === 0) {
+              throw new Error('No orders were created');
+            }
+
+            if (selectedPaymentMethod === 'razorpay') {
+              processRazorpayPayment(orders, orderTotal);
+            } else if (selectedPaymentMethod === 'cod') {
+              processCODPayment(orders);
+            }
+          } catch (error) {
+            console.error('Checkout error:', error);
+            alert(`Checkout failed: ${error.message}`);
+            btn.disabled = false;
+            btn.textContent = originalText;
           }
         });
       } catch (error) {
@@ -380,13 +396,24 @@
       }
     });
 
-    async function createOrders(addressIndex, notes) {
+    async function createOrders(addressIndex, notes, paymentMethod) {
       const cart = window.multiRestaurantCart.load();
       const restaurants = Object.values(cart.restaurants);
       const selectedAddress = userAddresses[parseInt(addressIndex)];
       const orders = [];
 
+      // Map frontend payment method to backend enum values
+      const paymentMethodMap = {
+        'razorpay': 'CreditCard',
+        'cod': 'COD'
+      };
+
       for (const restaurant of restaurants) {
+        const subtotal = restaurant.items.reduce((sum, item) => sum + ((item.unitPrice || item.price) * item.quantity), 0);
+        const deliveryFee = 0; // TODO: Calculate based on distance
+        const taxAmount = Math.round(subtotal * 0.05);
+        const grandTotal = subtotal + deliveryFee + taxAmount;
+
         const orderData = {
           restaurant: restaurant.id,
           items: restaurant.items.map(item => ({
@@ -395,25 +422,55 @@
             price: item.unitPrice || item.price,
             quantity: item.quantity
           })),
-          deliveryAddress: selectedAddress,
-          notes,
-          totalPrice: restaurant.items.reduce((sum, item) => sum + ((item.unitPrice || item.price) * item.quantity), 0)
+          deliveryAddress: {
+            street: selectedAddress.street,
+            city: selectedAddress.city,
+            postalCode: selectedAddress.zipCode,
+            country: 'India'
+          },
+          paymentMethod: paymentMethodMap[paymentMethod] || 'COD',
+          totalPrice: subtotal,
+          deliveryFee: deliveryFee,
+          taxAmount: taxAmount,
+          grandTotal: grandTotal,
+          orderStatus: 'Pending'
         };
 
-        const res = await window.foodAPI.createOrder(orderData);
-        orders.push(res.order);
+        try {
+          const res = await window.foodAPI.createOrder(orderData);
+          if (res.order) {
+            orders.push(res.order);
+          } else {
+            throw new Error('Invalid order response from server');
+          }
+        } catch (error) {
+          console.error('Order creation error:', error);
+          throw new Error(`Failed to create order: ${error.message}`);
+        }
       }
 
       return orders;
     }
 
     function processRazorpayPayment(orders, totalAmount) {
+      let userEmail = '';
+      let userPhone = '';
+      
+      try {
+        const userData = JSON.parse(localStorage.getItem('foody_user'));
+        userEmail = userData?.email || '';
+        userPhone = userData?.phone || '';
+      } catch (e) {
+        console.error('Could not read user data from localStorage:', e);
+      }
+
       const options = {
         key: 'rzp_test_1DP5mmOlF5G0m4', // TODO: Replace with your Razorpay key
         amount: totalAmount * 100, // Razorpay expects amount in paise
         currency: 'INR',
         name: 'FOODY',
         description: `Order for ${orders.length} restaurant(s)`,
+        order_id: orders[0]._id,
         handler: async function(response) {
           try {
             // Verify payment with backend
@@ -427,32 +484,36 @@
               window.multiRestaurantCart.clear();
               alert('Order placed successfully!');
               window.location.href = `delivery-tracking.html?orderId=${orders[0]._id}`;
+            } else {
+              alert('Payment verification failed. Please contact support.');
             }
           } catch (error) {
-            alert('Payment verification failed');
+            console.error('Payment verification error:', error);
+            alert('Payment verification failed: ' + error.message);
           }
         },
         prefill: {
-          email: localStorage.getItem('foody_user_email'),
-          contact: localStorage.getItem('foody_user_phone')
+          email: userEmail,
+          contact: userPhone
         }
       };
 
-      const rzp = new Razorpay(options);
-      rzp.open();
+      try {
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } catch (error) {
+        console.error('Razorpay initialization error:', error);
+        alert('Failed to open payment gateway. Please try again.');
+      }
     }
 
     async function processCODPayment(orders) {
       try {
-        for (const order of orders) {
-          await window.foodAPI.updateOrder(order._id, { paymentMethod: 'cod', paymentStatus: 'pending' });
-        }
-
         window.multiRestaurantCart.clear();
         alert('Order placed successfully! Pay on delivery.');
         window.location.href = `delivery-tracking.html?orderId=${orders[0]._id}`;
       } catch (error) {
-        alert('Failed to place order');
+        alert('Failed to process order');
       }
     }
 

@@ -20,7 +20,7 @@ router.post('/process', protect, async (req, res) => {
       });
     }
 
-    if (order.customer.toString() !== req.user._id.toString()) {
+    if (order.user.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized'
@@ -37,33 +37,25 @@ router.post('/process', protect, async (req, res) => {
     let paymentSuccess = true;
     let transactionId = '';
 
-    if (paymentMethod === 'card') {
+    if (paymentMethod === 'CreditCard' || paymentMethod === 'DebitCard') {
       // Simulate card payment processing
       transactionId = `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
       // In production: Call payment gateway API
       // const result = await processCardPayment(paymentDetails);
       // paymentSuccess = result.success;
       // transactionId = result.transactionId;
-    } else if (paymentMethod === 'upi') {
-      // Simulate UPI payment
-      transactionId = `UPI${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    } else if (paymentMethod === 'wallet') {
-      // Simulate wallet payment
-      transactionId = `WAL${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    } else if (paymentMethod === 'cash') {
+    } else if (paymentMethod === 'PayPal') {
+      // Simulate PayPal payment
+      transactionId = `PP${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    } else if (paymentMethod === 'COD') {
       // Cash on delivery - no transaction needed
       paymentSuccess = true;
     }
 
     if (paymentSuccess) {
-      order.paymentStatus = paymentMethod === 'cash' ? 'pending' : 'completed';
-      order.transactionId = transactionId;
-      order.status = 'confirmed';
-      order.statusHistory.push({
-        status: 'confirmed',
-        note: 'Payment processed successfully',
-        timestamp: new Date()
-      });
+      order.isPaid = paymentMethod !== 'COD';
+      order.paidAt = paymentMethod !== 'COD' ? new Date() : null;
+      order.orderStatus = 'Confirmed';
       await order.save();
 
       res.json({
@@ -73,9 +65,6 @@ router.post('/process', protect, async (req, res) => {
         order
       });
     } else {
-      order.paymentStatus = 'failed';
-      await order.save();
-
       res.status(400).json({
         success: false,
         message: 'Payment processing failed'
@@ -118,8 +107,8 @@ router.post('/verify', protect, async (req, res) => {
     const isVerified = true;
 
     if (isVerified) {
-      order.paymentStatus = 'completed';
-      order.paymentId = paymentId;
+      order.isPaid = true;
+      order.paidAt = new Date();
       order.orderStatus = 'Confirmed';
       await order.save();
 

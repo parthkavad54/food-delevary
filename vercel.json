@@ -1,8 +1,11 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "public": "frontend",
-  "buildCommand": "npm run build",
+  "public": true,
+  "buildCommand": "npm install && cd backend && npm install",
+  "env": {
+    "NODE_ENV": "production"
+  },
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -16,8 +19,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }

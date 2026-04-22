@@ -9,9 +9,49 @@ import { protect, authorize } from '../middleware/auth.middleware.js';
 // @access  Private (Customer)
 router.post('/', protect, async (req, res) => {
   try {
+    const { restaurant, items, deliveryAddress, paymentMethod, totalPrice, deliveryFee, taxAmount, grandTotal, orderStatus } = req.body;
+
+    // Validate required fields
+    if (!restaurant) {
+      return res.status(400).json({
+        success: false,
+        message: 'Restaurant ID is required'
+      });
+    }
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Order must contain at least one item'
+      });
+    }
+
+    if (!deliveryAddress) {
+      return res.status(400).json({
+        success: false,
+        message: 'Delivery address is required'
+      });
+    }
+
+    if (!paymentMethod || !['CreditCard', 'DebitCard', 'PayPal', 'COD'].includes(paymentMethod)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid payment method is required'
+      });
+    }
+
     const orderData = {
-      ...req.body,
-      user: req.user._id
+      user: req.user._id,
+      restaurant,
+      items,
+      deliveryAddress,
+      paymentMethod,
+      totalPrice: totalPrice || 0,
+      deliveryFee: deliveryFee || 0,
+      taxAmount: taxAmount || 0,
+      grandTotal: grandTotal || (totalPrice || 0) + (deliveryFee || 0) + (taxAmount || 0),
+      orderStatus: orderStatus || 'Pending',
+      isPaid: false
     };
 
     const order = new Order(orderData);
@@ -29,6 +69,7 @@ router.post('/', protect, async (req, res) => {
       order
     });
   } catch (err) {
+    console.error('Order creation error:', err);
     res.status(500).json({
       success: false,
       message: 'Server error',
