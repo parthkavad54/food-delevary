@@ -68,14 +68,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Static files - serve frontend
+// Static files - serve frontend (works in both dev and production)
 const frontendPath = path.join(__dirname, '../../frontend');
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-  app.use(express.static(frontendPath, { 
-    extensions: ['html', 'htm'],
-    maxAge: '1h'
-  }));
-}
+app.use(express.static(frontendPath, { 
+  extensions: ['html', 'htm'],
+  maxAge: '1h'
+}));
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/food_delivery')
 .then(() => console.log('MongoDB Connected'))
