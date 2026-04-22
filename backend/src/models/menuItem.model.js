@@ -28,7 +28,7 @@ const MenuItemSchema = mongoose.Schema({
     category: {
         type: String,
         required: [true, 'Menu item must have a category (e.g., Appetizer, Main Course, Dessert)'],
-        enum: ['Appetizer', 'Main Course', 'Dessert', 'Beverage', 'Side', 'Pizza', 'Burger'], // Example categories
+        enum: ['Appetizer', 'Main Course', 'Dessert', 'Beverage', 'Side', 'Pizza', 'Burger', 'Sandwich', 'Indian', 'Gujarati', 'Punjabi'], // Expanded categories
         default: 'Main Course'
     },
     // Inventory or availability status
