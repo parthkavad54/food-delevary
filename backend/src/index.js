@@ -68,9 +68,13 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Static files are served by Vercel directly; serve them using Express only locally
+// Static files - serve frontend
+const frontendPath = path.join(__dirname, '../../frontend');
 if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-  app.use(express.static(path.join(__dirname, '../../frontend'), { extensions: ['html', 'htm'] }));
+  app.use(express.static(frontendPath, { 
+    extensions: ['html', 'htm'],
+    maxAge: '1h'
+  }));
 }
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/food_delivery')
@@ -106,6 +110,22 @@ app.use('/api/restaurant-owner', restaurantOwnerRoutes);
 // Health Check
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', message: 'Server is running' });
+});
+
+// SPA Fallback - serve index.html for all unmatched routes (for client-side routing)
+app.use((req, res, next) => {
+  // Skip if it's an API route or already handled
+  if (req.path.startsWith('/api') || req.path === '/health') {
+    return next();
+  }
+  
+  // Check if the request is for a static file (has an extension)
+  if (path.extname(req.path)) {
+    return next();
+  }
+  
+  // Serve index.html for SPA routing
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // Import Error Handler
