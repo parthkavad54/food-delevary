@@ -121,6 +121,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1.5rem;
   padding: 0.75rem 0;
 }
 .brand {
@@ -147,19 +148,20 @@ img {
   background: transparent;
   border: none;
   padding: 0;
-  min-width: 300px;
-  max-width: 400px;
+  flex: 1;
+  max-width: 500px;
 }
 
 .location-icon {
-  font-size: 1rem;
+  font-size: 1.25rem;
   flex-shrink: 0;
 }
 
 .location-input-group {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
   flex: 1;
 }
 
@@ -171,6 +173,7 @@ img {
   background: #fff;
   color: var(--color-text);
   width: 100%;
+  height: 44px;
   transition: all 0.2s ease;
 }
 
@@ -194,6 +197,7 @@ img {
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius);
   width: 100%;
+  height: 44px;
   transition: all 0.2s ease;
 }
 
