@@ -415,23 +415,22 @@
       return Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
     }
 
-    async function loadProfile() {
-      const token = localStorage.getItem('foody_token');
-      if (!token) {
-        window.location.href = 'login.html';
-        return;
-      }
-
-      const profileRes = await window.foodAPI.getUserProfile();
-      const user = profileRes.user;
-      localStorage.setItem('foody_user', JSON.stringify(user));
-
+    function populateProfileDOM(user) {
+      if (!user) return;
+      
       // Header
-      document.getElementById('profile-name').textContent = user.name || 'User';
-      document.getElementById('profile-email').textContent = user.email || '';
-      const initials = (user.name || 'User').split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase();
-      document.getElementById('avatar-initials').textContent = initials || 'U';
-      document.getElementById('member-since').textContent = new Date(user.createdAt || Date.now()).getFullYear();
+      const nameEl = document.getElementById('profile-name');
+      const emailEl = document.getElementById('profile-email');
+      const initialsEl = document.getElementById('avatar-initials');
+      const memberSinceEl = document.getElementById('member-since');
+      
+      if (nameEl) nameEl.textContent = user.name || 'User';
+      if (emailEl) emailEl.textContent = user.email || '';
+      if (initialsEl) {
+        const initials = (user.name || 'User').split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase();
+        initialsEl.textContent = initials || 'U';
+      }
+      if (memberSinceEl) memberSinceEl.textContent = new Date(user.createdAt || Date.now()).getFullYear();
 
       // Personal form
       const firstName = document.getElementById('firstName');
@@ -466,7 +465,30 @@
 
       // Addresses tab (read-only list)
       renderAddresses(user.addresses || []);
+    }
 
+    async function loadProfile() {
+      const token = localStorage.getItem('foody_token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Prevent dummy data flash by loading local cache first
+      try {
+        const localUser = JSON.parse(localStorage.getItem('foody_user'));
+        if (localUser) populateProfileDOM(localUser);
+      } catch (e) {}
+
+      // Fetch fresh data
+      try {
+        const profileRes = await window.foodAPI.getUserProfile();
+        const user = profileRes.user;
+        localStorage.setItem('foody_user', JSON.stringify(user));
+        populateProfileDOM(user);
+      } catch (err) {
+        console.error('Failed to load fresh profile:', err);
+      }
       // Orders history
       await renderOrders();
     }

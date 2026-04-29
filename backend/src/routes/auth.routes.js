@@ -173,10 +173,7 @@ router.get('/me', async (req, res) => {
 
 router.get('/google', (req, res, next) => {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-    return res.status(501).json({
-      success: false,
-      message: 'Google OAuth is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.'
-    });
+    return res.redirect('/login.html?error=google_not_configured');
   }
   return passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
 });
@@ -194,10 +191,7 @@ router.get(
 
 router.get('/facebook', (req, res, next) => {
   if (!process.env.FACEBOOK_APP_ID || !process.env.FACEBOOK_APP_SECRET) {
-    return res.status(501).json({
-      success: false,
-      message: 'Facebook OAuth is not configured. Set FACEBOOK_APP_ID and FACEBOOK_APP_SECRET.'
-    });
+    return res.redirect('/login.html?error=facebook_not_configured');
   }
   return passport.authenticate('facebook', { scope: ['email'] })(req, res, next);
 });

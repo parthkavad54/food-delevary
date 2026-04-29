@@ -275,34 +275,32 @@
         renderAddresses();
 
         // Load cart data
-        const cart = window.multiRestaurantCart.load();
-        const restaurants = Object.values(cart.restaurants);
+        const cartItems = window.foodyCart ? window.foodyCart.load() : [];
 
-        if (restaurants.length === 0) {
+        if (cartItems.length === 0) {
           window.location.href = 'order.html';
           return;
         }
 
         // Render order summary
         let grandTotal = 0;
-        const summaryHTML = restaurants.map(restaurant => {
-          let subtotal = 0;
-          const itemsHTML = restaurant.items.map(item => {
-            const itemTotal = (item.unitPrice || item.price) * item.quantity;
-            subtotal += itemTotal;
-            return `<p style="font-size: 0.9rem; color: rgba(17,24,39,0.7); margin: 0.25rem 0;">${item.name} × ${item.quantity}</p>`;
-          }).join('');
-
-          grandTotal += subtotal;
-
-          return `
-            <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--color-border);">
-              <p style="font-weight: 600; margin: 0 0 0.5rem; color: var(--color-text);">${restaurant.name}</p>
-              ${itemsHTML}
-              <p style="font-weight: 600; margin-top: 0.5rem; color: var(--color-primary);">${fmtINR(subtotal)}</p>
-            </div>
-          `;
+        
+        let subtotal = 0;
+        const itemsHTML = cartItems.map(item => {
+          const itemTotal = (item.unitPrice || item.price) * (item.qty || item.quantity);
+          subtotal += itemTotal;
+          return `<p style="font-size: 0.9rem; color: rgba(17,24,39,0.7); margin: 0.25rem 0;">${item.name} × ${item.qty || item.quantity}</p>`;
         }).join('');
+
+        grandTotal += subtotal;
+
+        const summaryHTML = `
+          <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--color-border);">
+            <p style="font-weight: 600; margin: 0 0 0.5rem; color: var(--color-text);">Your Order</p>
+            ${itemsHTML}
+            <p style="font-weight: 600; margin-top: 0.5rem; color: var(--color-primary);">${fmtINR(subtotal)}</p>
+          </div>
+        `;
 
         document.getElementById('orders-summary').innerHTML = summaryHTML;
 
@@ -470,10 +468,23 @@
     });
 
     async function createOrders(addressIndex, notes, paymentMethod) {
-      const cart = window.multiRestaurantCart.load();
-      const restaurants = Object.values(cart.restaurants);
+      const cartItems = window.foodyCart ? window.foodyCart.load() : [];
       const selectedAddress = userAddresses[parseInt(addressIndex)];
       const orders = [];
+
+      // Group by restaurant
+      const restaurantsMap = {};
+      cartItems.forEach(item => {
+        const restId = item.restaurantId;
+        if (!restaurantsMap[restId]) {
+          restaurantsMap[restId] = {
+            id: restId,
+            items: []
+          };
+        }
+        restaurantsMap[restId].items.push(item);
+      });
+      const restaurants = Object.values(restaurantsMap);
 
       // Map frontend payment method to backend enum values
       const paymentMethodMap = {
@@ -482,7 +493,7 @@
       };
 
       for (const restaurant of restaurants) {
-        const subtotal = restaurant.items.reduce((sum, item) => sum + ((item.unitPrice || item.price) * item.quantity), 0);
+        const subtotal = restaurant.items.reduce((sum, item) => sum + ((item.unitPrice || item.price) * (item.qty || item.quantity)), 0);
         const deliveryFee = 0; // TODO: Calculate based on distance
         const taxAmount = Math.round(subtotal * 0.05);
         const grandTotal = subtotal + deliveryFee + taxAmount;
@@ -490,10 +501,10 @@
         const orderData = {
           restaurant: restaurant.id,
           items: restaurant.items.map(item => ({
-            menuItem: item.menuItemId,
+            menuItem: item.menuItemId || item.id,
             name: item.name,
             price: item.unitPrice || item.price,
-            quantity: item.quantity
+            quantity: item.qty || item.quantity
           })),
           deliveryAddress: {
             street: selectedAddress.street,
@@ -525,7 +536,7 @@
       return orders;
     }
 
-    function processRazorpayPayment(orders, totalAmount) {
+    async function processRazorpayPayment(orders, totalAmount) {
       let userEmail = '';
       let userPhone = '';
       
@@ -537,52 +548,63 @@
         console.error('Could not read user data from localStorage:', e);
       }
 
-      const options = {
-        key: 'rzp_test_1DP5mmOlF5G0m4', // TODO: Replace with your Razorpay key
-        amount: totalAmount * 100, // Razorpay expects amount in paise
-        currency: 'INR',
-        name: 'FOODY',
-        description: `Order for ${orders.length} restaurant(s)`,
-        order_id: orders[0]._id,
-        handler: async function(response) {
-          try {
-            // Verify payment with backend
-            const paymentRes = await window.foodAPI.verifyPayment({
-              orderId: orders[0]._id,
-              paymentId: response.razorpay_payment_id,
-              signature: response.razorpay_signature
-            });
-
-            if (paymentRes.success) {
-              window.multiRestaurantCart.clear();
-              alert('Order placed successfully!');
-              window.location.href = `delivery-tracking.html?orderId=${orders[0]._id}`;
-            } else {
-              alert('Payment verification failed. Please contact support.');
-            }
-          } catch (error) {
-            console.error('Payment verification error:', error);
-            alert('Payment verification failed: ' + error.message);
-          }
-        },
-        prefill: {
-          email: userEmail,
-          contact: userPhone
-        }
-      };
-
       try {
+        // 1. Create order on Razorpay servers via our backend
+        const orderRes = await window.foodAPI.createRazorpayOrder({
+          amount: totalAmount,
+          receipt: orders[0]._id
+        });
+
+        if (!orderRes.success || !orderRes.order) {
+          throw new Error('Failed to create Razorpay order');
+        }
+
+        const options = {
+          key: 'rzp_test_SjOj91QPxzzv7b', // Set to match the backend key
+          amount: orderRes.order.amount,
+          currency: orderRes.order.currency,
+          name: 'FOODY',
+          description: `Order for ${orders.length} restaurant(s)`,
+          order_id: orderRes.order.id, // The real Razorpay order ID
+          handler: async function(response) {
+            try {
+              // 2. Verify payment with backend
+              const paymentRes = await window.foodAPI.verifyPayment({
+                orderId: orders[0]._id,
+                paymentId: response.razorpay_payment_id,
+                signature: response.razorpay_signature,
+                razorpayOrderId: response.razorpay_order_id
+              });
+
+              if (paymentRes.success) {
+                if (window.foodyCart) window.foodyCart.save([]);
+                alert('Order placed successfully!');
+                window.location.href = `delivery-tracking.html?orderId=${orders[0]._id}`;
+              } else {
+                alert('Payment verification failed. Please contact support.');
+              }
+            } catch (error) {
+              console.error('Payment verification error:', error);
+              alert('Payment verification failed: ' + error.message);
+            }
+          },
+          prefill: {
+            email: userEmail,
+            contact: userPhone
+          }
+        };
+
         const rzp = new Razorpay(options);
         rzp.open();
       } catch (error) {
         console.error('Razorpay initialization error:', error);
-        alert('Failed to open payment gateway. Please try again.');
+        alert('Failed to initialize payment gateway. ' + error.message);
       }
     }
 
     async function processCODPayment(orders) {
       try {
-        window.multiRestaurantCart.clear();
+        if (window.foodyCart) window.foodyCart.save([]);
         alert('Order placed successfully! Pay on delivery.');
         window.location.href = `delivery-tracking.html?orderId=${orders[0]._id}`;
       } catch (error) {

@@ -211,6 +211,13 @@ class FoodDeliveryAPI {
   }
 
   // Payment methods
+  async createRazorpayOrder(paymentData) {
+    return await this.request('/payment/create-razorpay-order', {
+      method: 'POST',
+      body: JSON.stringify(paymentData)
+    });
+  }
+
   async verifyPayment(paymentData) {
     return await this.request('/payment/verify', {
       method: 'POST',

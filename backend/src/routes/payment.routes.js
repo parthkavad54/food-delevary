@@ -4,6 +4,39 @@ const router = express.Router();
 import Order from '../models/order.model.js';
 import { protect } from '../middleware/auth.middleware.js';
 
+import Razorpay from 'razorpay';
+import crypto from 'crypto';
+
+const getRazorpayInstance = () => {
+  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    throw new Error('Razorpay keys not configured');
+  }
+  return new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+  });
+};
+
+// @route   POST /api/payment/create-razorpay-order
+// @desc    Create Razorpay Order
+// @access  Private
+router.post('/create-razorpay-order', protect, async (req, res) => {
+  try {
+    const { amount, receipt } = req.body;
+    const rzp = getRazorpayInstance();
+    const options = {
+      amount: Math.round(amount * 100), // amount in smallest currency unit
+      currency: "INR",
+      receipt: receipt
+    };
+    const order = await rzp.orders.create(options);
+    res.json({ success: true, order });
+  } catch (err) {
+    console.error('Razorpay Order Creation Error:', err);
+    res.status(500).json({ success: false, message: 'Failed to create payment order' });
+  }
+});
+
 // @route   POST /api/payment/process
 // @desc    Process payment
 // @access  Private
@@ -27,49 +60,20 @@ router.post('/process', protect, async (req, res) => {
       });
     }
 
-    // Here you would integrate with payment gateways like:
-    // - Stripe
-    // - Razorpay
-    // - PayPal
-    // - etc.
-
-    // For demo purposes, we'll simulate payment processing
-    let paymentSuccess = true;
-    let transactionId = '';
-
-    if (paymentMethod === 'CreditCard' || paymentMethod === 'DebitCard') {
-      // Simulate card payment processing
-      transactionId = `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
-      // In production: Call payment gateway API
-      // const result = await processCardPayment(paymentDetails);
-      // paymentSuccess = result.success;
-      // transactionId = result.transactionId;
-    } else if (paymentMethod === 'PayPal') {
-      // Simulate PayPal payment
-      transactionId = `PP${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    } else if (paymentMethod === 'COD') {
-      // Cash on delivery - no transaction needed
-      paymentSuccess = true;
-    }
-
-    if (paymentSuccess) {
-      order.isPaid = paymentMethod !== 'COD';
-      order.paidAt = paymentMethod !== 'COD' ? new Date() : null;
+    // For COD
+    if (paymentMethod === 'COD') {
+      order.isPaid = false;
+      order.paidAt = null;
       order.orderStatus = 'Confirmed';
       await order.save();
-
-      res.json({
+      return res.json({
         success: true,
-        message: 'Payment processed successfully',
-        transactionId,
+        message: 'Order processed successfully (COD)',
         order
       });
-    } else {
-      res.status(400).json({
-        success: false,
-        message: 'Payment processing failed'
-      });
     }
+    
+    res.status(400).json({ success: false, message: 'Invalid payment processing method' });
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -84,7 +88,7 @@ router.post('/process', protect, async (req, res) => {
 // @access  Private
 router.post('/verify', protect, async (req, res) => {
   try {
-    const { orderId, paymentId, signature } = req.body;
+    const { orderId, paymentId, signature, razorpayOrderId } = req.body;
 
     const order = await Order.findById(orderId);
 
@@ -95,21 +99,20 @@ router.post('/verify', protect, async (req, res) => {
       });
     }
 
-    // In production: Verify with Razorpay using signature
-    // const crypto = require('crypto');
-    // const expectedSignature = crypto
-    //   .createHmac('sha256', RAZORPAY_KEY_SECRET)
-    //   .update(orderId + '|' + paymentId)
-    //   .digest('hex');
-    // const isVerified = expectedSignature === signature;
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      return res.status(500).json({ success: false, message: 'Razorpay secret not configured' });
+    }
 
-    // For demo: Accept all payments
-    const isVerified = true;
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(razorpayOrderId + '|' + paymentId)
+      .digest('hex');
 
-    if (isVerified) {
+    if (expectedSignature === signature) {
       order.isPaid = true;
       order.paidAt = new Date();
       order.orderStatus = 'Confirmed';
+      order.paymentMethod = 'CreditCard';
       await order.save();
 
       res.json({

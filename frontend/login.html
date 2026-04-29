@@ -175,6 +175,20 @@
     // OAuth redirect handler (Google/Facebook callback)
     (function handleOAuthToken() {
       const url = new URL(window.location.href);
+      const error = url.searchParams.get('error');
+      if (error === 'google_not_configured') {
+        alert('Google Login is not configured on the server yet.');
+        return;
+      }
+      if (error === 'facebook_not_configured') {
+        alert('Facebook Login is not configured on the server yet.');
+        return;
+      }
+      if (error) {
+        alert('OAuth login failed. Please try again.');
+        return;
+      }
+
       const token = url.searchParams.get('token');
       if (!token) return;
       localStorage.setItem('foody_token', token);

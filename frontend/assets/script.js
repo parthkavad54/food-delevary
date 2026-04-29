@@ -29,9 +29,13 @@
         return me.user;
       }
     } catch (e) {
-      // Token invalid/expired; clear session state
-      localStorage.removeItem('foody_token');
-      localStorage.removeItem('foody_user');
+      // Token invalid/expired; clear session state only on auth errors
+      if (e.status === 401 || e.status === 403) {
+        localStorage.removeItem('foody_token');
+        localStorage.removeItem('foody_user');
+      } else {
+        console.warn('Network error during auth check, preserving session');
+      }
     }
 
     if (navAuth) navAuth.style.display = 'flex';
@@ -444,11 +448,15 @@
       const cart = loadCart()
       if (cart.length === 0) {
         emptyEl.hidden = false
+        emptyEl.style.display = 'block'
         contEl.hidden = true
+        contEl.style.display = 'none'
         return
       }
       emptyEl.hidden = true
+      emptyEl.style.display = 'none'
       contEl.hidden = false
+      contEl.style.display = 'grid'
 
       listEl.innerHTML = ""
       let subtotal = 0
@@ -616,88 +624,7 @@
   }
   initCartPage()
   // Mobile Menu Toggle
-  // PROFILE PAGE handling
-  async function initProfilePage() {
-    const personalForm = document.getElementById('personal-form');
-    if (!personalForm) return;
-
-    // Load user profile data
-    async function loadUserProfile() {
-      try {
-        const user = await window.foodAPI.me();
-        if (!user || !user.user) return;
-
-        const userData = user.user;
-
-        // Populate form fields
-        const firstNameInput = document.getElementById('firstName');
-        const lastNameInput = document.getElementById('lastName');
-        const emailInput = document.getElementById('email');
-        const phoneInput = document.getElementById('phone');
-        const birthdayInput = document.getElementById('birthday');
-        const profileName = document.getElementById('profile-name');
-        const profileEmail = document.getElementById('profile-email');
-        const avatarInitials = document.getElementById('avatar-initials');
-
-        if (firstNameInput) firstNameInput.value = userData.firstName || '';
-        if (lastNameInput) lastNameInput.value = userData.lastName || '';
-        if (emailInput) emailInput.value = userData.email || '';
-        if (phoneInput) phoneInput.value = userData.phone || '';
-        if (birthdayInput && userData.birthday) {
-          birthdayInput.value = new Date(userData.birthday).toISOString().split('T')[0];
-        }
-
-        // Update profile header
-        const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || userData.name || 'User';
-        if (profileName) profileName.textContent = fullName;
-        if (profileEmail) profileEmail.textContent = userData.email;
-
-        // Update avatar initials
-        const initials = (userData.firstName?.charAt(0) || 'U') + (userData.lastName?.charAt(0) || '');
-        if (avatarInitials) avatarInitials.textContent = initials.toUpperCase();
-      } catch (error) {
-        console.error('Error loading user profile:', error);
-      }
-    }
-
-    // Handle form submission
-    personalForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const firstNameInput = document.getElementById('firstName');
-      const lastNameInput = document.getElementById('lastName');
-      const phoneInput = document.getElementById('phone');
-      const birthdayInput = document.getElementById('birthday');
-
-      try {
-        const updateData = {
-          firstName: firstNameInput.value || '',
-          lastName: lastNameInput.value || '',
-          phone: phoneInput.value || '',
-          birthday: birthdayInput.value ? new Date(birthdayInput.value) : null
-        };
-
-        // Call API to update user profile
-        const result = await window.foodAPI.updateUserProfile(updateData);
-
-        if (result && result.success) {
-          alert('Profile updated successfully!');
-          // Refresh the profile data
-          await loadUserProfile();
-        } else {
-          alert(result?.message || 'Failed to update profile');
-        }
-      } catch (error) {
-        console.error('Error updating profile:', error);
-        alert(error?.message || 'Failed to update profile');
-      }
-    });
-
-    // Load profile data on page load
-    await loadUserProfile();
-  }
-
-  initProfilePage();
+  // PROFILE PAGE handling moved to profile.html
 
   // CART POPUP - Show modal when item is added to cart
   function initAddToCartPopup() {
