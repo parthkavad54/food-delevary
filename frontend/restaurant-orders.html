@@ -110,59 +110,73 @@
 
     async function loadOrders() {
       try {
-        const filters = { ...currentFilters, page: currentPage, limit: 10 };
+        const filters = { ...currentFilters };
         const data = await window.foodAPI.getRestaurantOrders(filters);
-        
-        if (data.success) {
-          renderOrders(data.data);
-          renderPagination(data.page, data.pages);
-        }
+        // Support both {data: [...]} and {orders: [...]} response shapes
+        const orders = data.orders || data.data || [];
+        renderOrders(orders);
       } catch (error) {
         console.error('Error loading orders:', error);
-        document.getElementById('orders-container').innerHTML = 
-          '<div style="text-align: center; padding: 2rem;">Error loading orders</div>';
+        document.getElementById('orders-container').innerHTML =
+          '<div style="text-align: center; padding: 2rem; color: #ef4444;">Error loading orders: ' + error.message + '</div>';
       }
     }
 
+    function statusColor(s) {
+      const m = { 'Pending': '#f97316', 'Confirmed': '#3b82f6', 'Preparing': '#8b5cf6', 'Ready For Pickup': '#0ea5e9', 'Out For Delivery': '#f59e0b', 'Delivered': '#22c55e', 'Cancelled': '#ef4444' };
+      return m[s] || '#64748b';
+    }
+
+    function renderOrderCard(order) {
+      const nextStatuses = {
+        'Pending': ['Confirmed', 'Cancelled'],
+        'Confirmed': ['Preparing', 'Cancelled'],
+        'Preparing': ['Ready For Pickup'],
+        'Ready For Pickup': ['Out For Delivery'],
+        'Out For Delivery': ['Delivered'],
+        'Delivered': [], 'Cancelled': []
+      };
+      const nexts = nextStatuses[order.orderStatus] || [];
+      const date = new Date(order.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      return `
+        <div class="order-item" style="border: 1px solid #e2e8f0; border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1rem; background: #fff;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+            <div>
+              <h4 style="margin: 0 0 0.25rem; font-size: 1rem;">${order.user?.name || 'Customer'}</h4>
+              <p style="margin: 0; font-size: 0.85rem; color: #718096;">${date} · ${order.items?.length || 0} items</p>
+            </div>
+            <div style="text-align: right;">
+              <span style="background: ${statusColor(order.orderStatus)}22; color: ${statusColor(order.orderStatus)}; padding: 0.2rem 0.7rem; border-radius: 1rem; font-size: 0.8rem; font-weight: 700;">${order.orderStatus}</span>
+              <p style="margin: 0.25rem 0 0; font-weight: 700;">₹${Number(order.grandTotal || order.totalPrice || 0).toLocaleString('en-IN')}</p>
+            </div>
+          </div>
+          <div style="font-size: 0.9rem; color: #4a5568; margin-bottom: 0.75rem;">
+            ${(order.items || []).map(i => `${i.name} × ${i.quantity}`).join(' · ')}
+          </div>
+          ${order.deliveryAddress ? `<p style="font-size: 0.82rem; color: #718096; margin-bottom: 0.75rem;">📍 ${[order.deliveryAddress.street, order.deliveryAddress.city].filter(Boolean).join(', ')}</p>` : ''}
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button onclick="viewOrder('${order._id}')" style="padding: 0.4rem 0.9rem; border: 1px solid #e2e8f0; border-radius: 1rem; background: #fff; cursor: pointer; font-size: 0.85rem;">View Details</button>
+            ${nexts.map(s => `<button onclick="quickUpdateStatus('${order._id}', '${s}', this)" style="padding: 0.4rem 0.9rem; border: none; border-radius: 1rem; background: ${statusColor(s)}; color: #fff; cursor: pointer; font-size: 0.85rem; font-weight: 600;">→ ${s}</button>`).join('')}
+          </div>
+        </div>`;
+    }
+
+    async function quickUpdateStatus(orderId, status, btn) {
+      btn.disabled = true; btn.textContent = 'Updating...';
+      try {
+        await window.foodAPI.updateRestaurantOrderStatus(orderId, status);
+        loadOrders();
+      } catch(e) { alert('Error: ' + e.message); btn.disabled = false; }
+    }
+    window.quickUpdateStatus = quickUpdateStatus;
+
     function renderOrders(orders) {
       const container = document.getElementById('orders-container');
-      if (orders.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 2rem;">No orders found</div>';
+      if (!orders || orders.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 3rem; color: #718096;"><div style="font-size: 3rem; margin-bottom: 1rem;">📋</div><h3>No orders found</h3><p>New orders will appear here.</p></div>';
         return;
       }
-
-      container.innerHTML = orders.map(order => {
-        return window.orderStatusUtils.renderOrderCard(order);
-      }).join('');
-
-      // Attach event listeners to status buttons
-      orders.forEach(order => {
-        const orderCard = container.querySelector(`[data-order-id="${order._id}"]`);
-        if (orderCard) {
-          orderCard.querySelectorAll('.status-button').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-              const newStatus = e.target.dataset.status;
-              await updateOrderStatusDialog(order._id, newStatus);
-            });
-          });
-        }
-      });
-
-      // Alternative: Use event delegation
-      container.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('status-button')) {
-          const card = e.target.closest('.order-card');
-          if (card) {
-            const orderIdElement = card.querySelector('.order-id');
-            const orderText = orderIdElement ? orderIdElement.textContent : '';
-            const orderId = orderText.replace('Order #', '');
-            const newStatus = e.target.dataset.status;
-            if (orderId && newStatus) {
-              await updateOrderStatusDialog(orderId, newStatus);
-            }
-          }
-        }
-      });
+      container.innerHTML = orders.map(order => renderOrderCard(order)).join('');
     }
 
     function renderPagination(page, pages) {

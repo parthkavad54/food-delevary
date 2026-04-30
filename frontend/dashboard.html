@@ -293,9 +293,8 @@
               </div>
             `;
           } else {
-            currentEl.innerHTML = active.slice(0, 3).map(o => {
+            currentEl.innerHTML = active.slice(0, 5).map(o => {
               const date = new Date(o.createdAt || Date.now()).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-              const inTransit = ['Out For Delivery', 'Ready For Pickup'].includes(o.orderStatus);
               return `
                 <div class="order-item">
                   <div class="order-info">
@@ -304,8 +303,8 @@
                     <p class="meta">${date}</p>
                   </div>
                   <div class="order-status-badge completed">${o.orderStatus}</div>
-                  <div class="order-price">₹${Number(o.grandTotal || 0).toLocaleString('en-IN')}</div>
-                  ${inTransit ? `<a href="delivery-tracking.html?orderId=${o._id}" class="button button-primary" style="margin-left: 1rem;">📍 Track</a>` : ''}
+                  <div class="order-price">₹${Number(o.grandTotal || o.totalPrice || 0).toLocaleString('en-IN')}</div>
+                  <a href="delivery-tracking.html?orderId=${o._id}" class="button button-primary" style="margin-left: 1rem;">📍 Track</a>
                 </div>
               `;
             }).join('');
@@ -315,9 +314,8 @@
         // Recent orders list
         const historyEl = document.getElementById('order-history');
         if (historyEl) {
-          historyEl.innerHTML = orders.slice(0, 5).map(o => {
+          historyEl.innerHTML = orders.slice(0, 10).map(o => {
             const date = new Date(o.createdAt || Date.now()).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
-            const inTransit = ['Out For Delivery', 'Ready For Pickup'].includes(o.orderStatus);
             return `
               <div class="order-item">
                 <div class="order-info">
@@ -326,8 +324,8 @@
                   <p class="meta">${date}</p>
                 </div>
                 <div class="order-status-badge completed">${o.orderStatus}</div>
-                <div class="order-price">₹${Number(o.grandTotal || 0).toLocaleString('en-IN')}</div>
-                ${inTransit ? `<a href="delivery-tracking.html?orderId=${o._id}" class="button button-primary" style="margin-left: 1rem;">📍 Track</a>` : ''}
+                <div class="order-price">₹${Number(o.grandTotal || o.totalPrice || 0).toLocaleString('en-IN')}</div>
+                <a href="delivery-tracking.html?orderId=${o._id}" class="button button-outline" style="margin-left: 1rem;">View Details</a>
               </div>
             `;
           }).join('');

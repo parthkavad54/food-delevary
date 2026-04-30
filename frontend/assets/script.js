@@ -48,32 +48,49 @@
     const customerPaths = ['dashboard.html', 'profile.html', 'order.html', 'checkout.html'];
     const adminPaths = ['admin-dashboard.html', 'admin-orders.html', 'admin-restaurants.html', 'admin-statistics-dashboard.html', 'admin-users.html'];
     const restOwnerPaths = ['restaurant-dashboard.html', 'restaurant-menu.html', 'restaurant-orders.html'];
+    const deliveryPaths = ['delivery-tracking.html'];
     
     const isCustomerPath = customerPaths.some(p => location.pathname.endsWith(p));
     const isAdminPath = adminPaths.some(p => location.pathname.endsWith(p));
     const isRestOwnerPath = restOwnerPaths.some(p => location.pathname.endsWith(p));
+    const isDeliveryPath = deliveryPaths.some(p => location.pathname.endsWith(p));
     
-    const isProtected = isCustomerPath || isAdminPath || isRestOwnerPath;
-    if (!isProtected) return;
+    const isProtected = isCustomerPath || isAdminPath || isRestOwnerPath || isDeliveryPath;
+    const isProfile = location.pathname.endsWith('profile.html');
 
     const user = await checkAuth();
+
+    // If not logged in
     if (!user) {
-      const params = new URLSearchParams({ redirect: location.pathname });
-      window.location.href = `login.html?${params.toString()}`;
+      const isHome = location.pathname === '/' || location.pathname.endsWith('index.html');
+      if (isProtected || isHome) {
+        const redirectPath = isHome ? 'dashboard.html' : location.pathname;
+        const params = new URLSearchParams({ redirect: redirectPath });
+        window.location.href = `login.html?${params.toString()}`;
+      }
       return;
     }
 
-    // Role-based access control
+    // Role-based strict isolation
     const role = user.role || 'customer';
     
-    if (role === 'admin' && !isAdminPath && !location.pathname.endsWith('profile.html')) {
-      window.location.href = 'admin-dashboard.html';
-    } else if (role === 'restaurant_owner' && !isRestOwnerPath && !location.pathname.endsWith('profile.html')) {
-      window.location.href = 'restaurant-dashboard.html';
-    } else if ((role === 'delivery' || role === 'delivery_boy') && isCustomerPath && !location.pathname.endsWith('delivery-tracking.html') && !location.pathname.endsWith('profile.html')) {
-      window.location.href = 'delivery-tracking.html';
-    } else if (role === 'customer' && (isAdminPath || isRestOwnerPath)) {
-      window.location.href = 'dashboard.html';
+    if (role === 'admin') {
+      if (!isAdminPath && !isProfile) {
+        window.location.href = 'admin-dashboard.html';
+      }
+    } else if (role === 'restaurant_owner') {
+      if (!isRestOwnerPath && !isProfile) {
+        window.location.href = 'restaurant-dashboard.html';
+      }
+    } else if (role === 'delivery' || role === 'delivery_boy' || role === 'delivery_person') {
+      if (!isDeliveryPath && !isProfile) {
+        window.location.href = 'delivery-tracking.html';
+      }
+    } else {
+      // Default for 'customer' or any unrecognized role
+      if (isAdminPath || isRestOwnerPath || isDeliveryPath) {
+        window.location.href = 'dashboard.html';
+      }
     }
   }
 
@@ -710,11 +727,15 @@
 
         const originalText = btn.textContent;
         btn.disabled = true;
+        btn.textContent = 'Adding...';
+        
         try {
-          await addMenuItemToCartFromCard(card);
+          // Do not await the entire cart sync, run it in the background
+          addMenuItemToCartFromCard(card).catch(err => console.error("Background sync failed:", err));
+          
           btn.textContent = '✅ Added!';
 
-          // Show cart popup modal
+          // Show cart popup modal instantly
           const modalEl = document.getElementById('cart-popup-modal');
           if (modalEl) {
             modalEl.style.display = 'flex';
@@ -793,16 +814,38 @@
     // Show notification for order status change
     showOrderStatusNotification(data) {
       const { orderId, newStatus, message } = data;
+      const title = 'Order Updated';
+      const body = message || `Order status updated to ${newStatus}`;
       
+      // 1. Native Browser Notification
+      if ("Notification" in window) {
+        if (Notification.permission === "granted") {
+          new Notification(title, {
+            body: body,
+            icon: './public/images/logo-mark.jpg'
+          });
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+              new Notification(title, {
+                body: body,
+                icon: './public/images/logo-mark.jpg'
+              });
+            }
+          });
+        }
+      }
+      
+      // 2. In-app HTML Notification
       const notification = document.createElement('div');
       notification.className = 'order-status-notification success';
       notification.innerHTML = `
         <button class="notification-close">✕</button>
         <div class="notification-header">
           <div class="notification-icon">✓</div>
-          <h4 class="notification-title">Order Updated</h4>
+          <h4 class="notification-title">${title}</h4>
         </div>
-        <p class="notification-message">${message || `Order status updated to ${newStatus}`}</p>
+        <p class="notification-message">${body}</p>
       `;
 
       document.body.appendChild(notification);
@@ -930,20 +973,22 @@
     map: null,
     markers: [],
     infoWindows: [],
-    GOOGLE_MAPS_API_KEY: 'AIzaSyDxd1d5xWz8PZdKEzEV-sN-Z_5P-9qM7k4',
     DEFAULT_CENTER: { lat: 22.3039, lng: 70.8022 }, // Rajkot, Gujarat
 
-    // Load Google Maps API
-    loadGoogleMapsAPI() {
-      if (window.google && window.google.maps) {
+    // Load Leaflet API dynamically if not already loaded
+    loadLeafletAPI() {
+      if (window.L) {
         return Promise.resolve();
       }
 
       return new Promise((resolve, reject) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(link);
+
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${this.GOOGLE_MAPS_API_KEY}&libraries=places,marker`;
-        script.async = true;
-        script.defer = true;
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
         script.onload = () => resolve();
         script.onerror = reject;
         document.head.appendChild(script);
@@ -953,18 +998,19 @@
     // Initialize map on element
     async initMap(elementId, center = this.DEFAULT_CENTER, zoom = 12) {
       try {
-        await this.loadGoogleMapsAPI();
+        await this.loadLeafletAPI();
 
         const element = document.getElementById(elementId);
         if (!element) return null;
 
-        this.map = new google.maps.Map(element, {
-          center,
-          zoom,
-          mapTypeControl: true,
-          fullscreenControl: true,
-          zoomControl: true
-        });
+        if (this.map) {
+          this.map.remove();
+        }
+
+        this.map = L.map(elementId).setView([center.lat, center.lng], zoom);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(this.map);
 
         return this.map;
       } catch (error) {
@@ -976,12 +1022,10 @@
     addMarker(position, title, icon = null) {
       if (!this.map) return null;
 
-      const marker = new google.maps.Marker({
-        position,
-        map: this.map,
-        title,
-        icon
-      });
+      const marker = L.marker([position.lat, position.lng], { title }).addTo(this.map);
+      if (title) {
+        marker.bindPopup(title);
+      }
 
       this.markers.push(marker);
       return marker;
@@ -989,18 +1033,13 @@
 
     // Add info window to marker
     addInfoWindow(marker, content) {
-      const infoWindow = new google.maps.InfoWindow({ content });
-      marker.addListener('click', () => {
-        this.infoWindows.forEach(iw => iw.close());
-        infoWindow.open(this.map, marker);
-      });
-      this.infoWindows.push(infoWindow);
-      return infoWindow;
+      marker.bindPopup(content);
+      return marker;
     },
 
     // Clear all markers
     clearMarkers() {
-      this.markers.forEach(marker => marker.setMap(null));
+      this.markers.forEach(marker => marker.remove());
       this.markers = [];
       this.infoWindows = [];
     },
@@ -1008,7 +1047,7 @@
     // Pan to location
     panTo(location) {
       if (this.map) {
-        this.map.panTo(location);
+        this.map.panTo([location.lat, location.lng]);
       }
     },
 
@@ -1048,39 +1087,31 @@
 
     // Get address from coordinates (reverse geocoding)
     async getAddressFromCoordinates(lat, lng) {
-      await this.loadGoogleMapsAPI();
-      
-      return new Promise((resolve, reject) => {
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ location: { lat, lng } }, (results, status) => {
-          if (status === 'OK' && results[0]) {
-            resolve(results[0].formatted_address);
-          } else {
-            reject(new Error('Geocoding failed'));
-          }
-        });
-      });
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+        const data = await response.json();
+        return data.display_name;
+      } catch (e) {
+        throw new Error('Geocoding failed');
+      }
     },
 
     // Get coordinates from address
     async getCoordinatesFromAddress(address) {
-      await this.loadGoogleMapsAPI();
-      
-      return new Promise((resolve, reject) => {
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ address }, (results, status) => {
-          if (status === 'OK' && results[0]) {
-            const location = results[0].geometry.location;
-            resolve({
-              lat: location.lat(),
-              lng: location.lng(),
-              address: results[0].formatted_address
-            });
-          } else {
-            reject(new Error('Geocoding failed'));
-          }
-        });
-      });
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`);
+        const data = await response.json();
+        if (data && data.length > 0) {
+          return {
+            lat: parseFloat(data[0].lat),
+            lng: parseFloat(data[0].lon),
+            address: data[0].display_name
+          };
+        }
+        throw new Error('Geocoding failed');
+      } catch (e) {
+        throw new Error('Geocoding failed');
+      }
     },
 
     // Watch delivery boy location (simulate with updates)

@@ -463,6 +463,30 @@ class FoodDeliveryAPI {
       method: 'DELETE'
     });
   }
+
+  // =================================================================
+  // DELIVERY PERSON METHODS
+  // =================================================================
+
+  // Get all available (unassigned) orders
+  async getAvailableOrders() {
+    return await this.request('/orders/available');
+  }
+
+  // Claim an order (delivery person self-assigns)
+  async claimOrder(orderId) {
+    return await this.request(`/orders/${orderId}/claim`, {
+      method: 'PUT'
+    });
+  }
+
+  // Update order status (for delivery person to mark as Delivered)
+  async updateOrderStatusDelivery(orderId, status) {
+    return await this.request(`/orders/${orderId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    });
+  }
 }
 
 // Create global API instance

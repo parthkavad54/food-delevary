@@ -7,6 +7,42 @@
   <link rel="stylesheet" href="assets/styles.css" />
   <script defer src="assets/api.js"></script>
   <script defer src="assets/script.js"></script>
+  <style>
+    .track-hero { text-align: center; padding: 2.5rem 0 1.5rem; }
+    .track-hero h1 { font-size: 2.2rem; color: var(--color-primary); margin-bottom: 0.5rem; }
+    .status-bar { display: flex; justify-content: space-between; align-items: flex-start; position: relative; background: #fff; border-radius: 1rem; padding: 2rem 1.5rem; box-shadow: 0 8px 24px rgba(0,0,0,0.07); margin-bottom: 1.5rem; }
+    .status-bar::before { content: ''; position: absolute; top: 44px; left: 12%; right: 12%; height: 4px; background: #e2e8f0; border-radius: 2px; z-index: 1; }
+    .status-fill { position: absolute; top: 44px; left: 12%; height: 4px; background: linear-gradient(90deg, #f97316, #ef4444); border-radius: 2px; z-index: 2; transition: width 0.6s ease; }
+    .status-step { z-index: 3; text-align: center; flex: 1; }
+    .status-dot { width: 44px; height: 44px; border-radius: 50%; background: #e2e8f0; color: #a0aec0; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem; font-size: 1.3rem; transition: all 0.4s ease; }
+    .status-dot.active { background: linear-gradient(135deg, #f97316, #ef4444); color: #fff; box-shadow: 0 4px 14px rgba(249,115,22,0.4); }
+    .status-dot.done { background: #22c55e; color: #fff; box-shadow: 0 4px 14px rgba(34,197,94,0.3); }
+    .status-label { font-size: 0.78rem; font-weight: 700; color: #718096; }
+    .status-label.active { color: #f97316; }
+    .track-card { background: #fff; border-radius: 1rem; padding: 1.75rem; box-shadow: 0 8px 24px rgba(0,0,0,0.07); margin-bottom: 1.5rem; }
+    .order-item-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.8rem; background: #f8fafc; border-radius: 0.5rem; margin-bottom: 0.5rem; }
+    .delivery-available-card { border: 2px solid #e2e8f0; border-radius: 0.75rem; padding: 1.2rem; margin-bottom: 1rem; transition: border-color 0.2s; }
+    .delivery-available-card:hover { border-color: #f97316; }
+    .btn-claim { background: linear-gradient(135deg, #f97316, #ef4444); color: #fff; border: none; padding: 0.5rem 1.25rem; border-radius: 2rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+    .btn-claim:hover { opacity: 0.88; }
+    .btn-deliver { background: #22c55e; color: #fff; border: none; padding: 0.6rem 1.5rem; border-radius: 2rem; font-weight: 700; cursor: pointer; font-size: 1rem; width: 100%; margin-top: 1rem; transition: opacity 0.2s; }
+    .btn-deliver:hover { opacity: 0.88; }
+    .badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 2rem; font-size: 0.8rem; font-weight: 700; }
+    .badge-orange { background: #fff7ed; color: #f97316; }
+    .badge-green { background: #f0fdf4; color: #16a34a; }
+    .badge-blue { background: #eff6ff; color: #2563eb; }
+    .badge-gray { background: #f1f5f9; color: #64748b; }
+    .spinner-box { text-align: center; padding: 5rem 0; }
+    .spinner { width: 44px; height: 44px; border: 4px solid #e2e8f0; border-top-color: #f97316; border-radius: 50%; animation: spin 0.9s linear infinite; margin: 0 auto 1rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-box { text-align: center; padding: 4rem 0; }
+    .empty-box .big-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+    .divider { border: none; border-top: 1px dashed #e2e8f0; margin: 1rem 0; }
+    .price-row { display: flex; justify-content: space-between; margin-bottom: 0.4rem; color: #718096; font-size: 0.95rem; }
+    .price-row.total { font-weight: 800; font-size: 1.15rem; color: #1a202c; margin-top: 0.5rem; }
+    .driver-row { display: flex; align-items: center; gap: 1rem; }
+    .driver-avatar { width: 56px; height: 56px; border-radius: 50%; background: #fff7ed; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+  </style>
 </head>
 <body>
   <header class="site-header">
@@ -16,119 +52,131 @@
         <span class="brand-name">FOODY</span>
       </a>
       <nav class="nav">
-        <a href="index.html" class="nav-link">Home</a>
-        <a href="dashboard.html" class="nav-link">Dashboard</a>
-        <a href="profile.html" class="nav-link">Profile</a>
-        <button class="button button-outline" id="logout-btn">Logout</button>
+        <div class="nav-auth" id="nav-auth" style="display:none;">
+          <a href="login.html" class="button button-ghost">Login</a>
+        </div>
+        <div class="nav-user" id="nav-user">
+          <a href="dashboard.html" class="nav-link">Dashboard</a>
+          <a href="profile.html" class="nav-link">Profile</a>
+          <button class="button button-outline" id="logout-btn">Logout</button>
+        </div>
       </nav>
     </div>
   </header>
 
   <main>
     <section class="section">
-      <div class="container">
-        <div class="section-head">
-          <h1 class="h2">Track Your Order</h1>
-          <p class="muted">Real-time delivery updates and live tracking</p>
+      <div class="container" style="max-width: 800px;">
+        <div class="track-hero">
+          <h1>🛵 Track Your Order</h1>
+          <p class="muted">Live updates on your delicious meal</p>
         </div>
 
-        <div id="loading-state" style="text-align: center; padding: 3rem;">
-          <p>Loading order details...</p>
+        <div id="loading-state" class="spinner-box">
+          <div class="spinner"></div>
+          <p style="color:#718096; font-weight:600;">Loading...</p>
         </div>
 
-        <div id="tracking-container" style="display: none;">
-          <!-- Map Section -->
-          <div class="delivery-tracking-container">
-            <div class="delivery-map-section" id="map-container"></div>
+        <!-- CUSTOMER VIEW -->
+        <div id="customer-view" style="display:none;">
+          <div class="status-bar" id="status-bar">
+            <div class="status-fill" id="status-fill" style="width:0%"></div>
+            <div class="status-step"><div class="status-dot" id="dot-0">📋</div><div class="status-label" id="lbl-0">Pending</div></div>
+            <div class="status-step"><div class="status-dot" id="dot-1">✅</div><div class="status-label" id="lbl-1">Confirmed</div></div>
+            <div class="status-step"><div class="status-dot" id="dot-2">🍳</div><div class="status-label" id="lbl-2">Preparing</div></div>
+            <div class="status-step"><div class="status-dot" id="dot-3">📦</div><div class="status-label" id="lbl-3">Ready</div></div>
+            <div class="status-step"><div class="status-dot" id="dot-4">🚴</div><div class="status-label" id="lbl-4">On the Way</div></div>
+            <div class="status-step"><div class="status-dot" id="dot-5">🎉</div><div class="status-label" id="lbl-5">Delivered</div></div>
+          </div>
 
-            <!-- Delivery Info Panel -->
-            <div class="delivery-info-panel">
-              <div class="delivery-person-info">
-                <div class="delivery-person-avatar" id="delivery-avatar">🚴</div>
-                <div class="delivery-person-details">
-                  <h3 id="delivery-person-name">Delivery Person</h3>
-                  <p id="delivery-person-phone">+91 98765 43210</p>
-                  <div class="delivery-person-rating">
-                    <span class="star">★</span>
-                    <span class="star">★</span>
-                    <span class="star">★</span>
-                    <span class="star">★</span>
-                    <span class="star">★</span>
-                    <span id="delivery-rating-text" style="margin-left: 0.5rem;">4.9/5.0</span>
-                  </div>
-                </div>
+          <!-- Driver Info -->
+          <div class="track-card" id="driver-card">
+            <div class="driver-row">
+              <div class="driver-avatar">🚴</div>
+              <div>
+                <h3 style="margin:0 0 0.2rem; font-size:1.1rem;" id="driver-name">Assigning driver...</h3>
+                <p style="margin:0; color:#718096; font-size:0.9rem;" id="driver-phone">Your order is being prepared</p>
               </div>
-
-              <div class="delivery-estimate">
-                <div class="estimate-item">
-                  <div class="estimate-label">Distance</div>
-                  <div class="estimate-value" id="delivery-distance">2.3 km</div>
-                </div>
-                <div class="estimate-item">
-                  <div class="estimate-label">ETA</div>
-                  <div class="estimate-value" id="delivery-eta">8 min</div>
-                </div>
-              </div>
-
-              <div class="delivery-actions">
-                <button onclick="callDeliveryPerson()">📞 Call</button>
-                <button onclick="chatDeliveryPerson()" class="primary">💬 Chat</button>
-              </div>
+              <span class="badge badge-orange" id="order-status-badge" style="margin-left:auto;">Pending</span>
             </div>
           </div>
 
-          <!-- Order Details -->
-          <div style="margin-top: 2rem;">
-            <div class="profile-card">
-              <h3 class="h3">Order Details</h3>
-              
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin: 1.5rem 0;">
-                <!-- From -->
-                <div>
-                  <p style="font-size: 0.85rem; font-weight: 600; color: rgba(17,24,39,0.6); text-transform: uppercase; margin-bottom: 0.5rem;">FROM</p>
-                  <h4 id="restaurant-name" style="margin: 0 0 0.25rem;">Restaurant</h4>
-                  <p id="restaurant-address" style="margin: 0; font-size: 0.9rem; color: rgba(17,24,39,0.7);">Address</p>
-                </div>
-
-                <!-- To -->
-                <div>
-                  <p style="font-size: 0.85rem; font-weight: 600; color: rgba(17,24,39,0.6); text-transform: uppercase; margin-bottom: 0.5rem;">DELIVERY TO</p>
-                  <h4 id="delivery-address-name" style="margin: 0 0 0.25rem;">Home</h4>
-                  <p id="delivery-address" style="margin: 0; font-size: 0.9rem; color: rgba(17,24,39,0.7);">Address</p>
-                </div>
-
-                <!-- Status -->
-                <div>
-                  <p style="font-size: 0.85rem; font-weight: 600; color: rgba(17,24,39,0.6); text-transform: uppercase; margin-bottom: 0.5rem;">STATUS</p>
-                  <h4 id="order-status" style="margin: 0 0 0.5rem; color: var(--color-accent);">In Transit</h4>
-                  <p id="status-time" style="margin: 0; font-size: 0.85rem; color: rgba(17,24,39,0.6);">Updated now</p>
-                </div>
+          <!-- Order Summary -->
+          <div class="track-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+              <h3 style="margin:0;">Order Summary</h3>
+              <span style="font-size:0.85rem; color:#718096;" id="order-date"></span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; background:#f8fafc; padding:1rem; border-radius:0.75rem; margin-bottom:1.25rem;">
+              <div>
+                <p style="font-size:0.7rem; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:0.2rem;">From</p>
+                <p style="font-weight:700; margin:0;" id="restaurant-name">—</p>
+                <p style="font-size:0.85rem; color:#718096; margin:0;" id="restaurant-address">—</p>
               </div>
-
-              <!-- Order Items -->
-              <div style="border-top: 1px solid var(--color-border); padding-top: 1.5rem; margin-top: 1.5rem;">
-                <h4 class="h4">Order Items</h4>
-                <div id="order-items-list" style="margin-top: 1rem;">
-                  <!-- Items injected by JS -->
-                </div>
+              <div>
+                <p style="font-size:0.7rem; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:0.2rem;">Deliver To</p>
+                <p style="font-weight:700; margin:0;" id="delivery-label">Home</p>
+                <p style="font-size:0.85rem; color:#718096; margin:0;" id="delivery-address">—</p>
               </div>
+            </div>
+            <div id="order-items-list"></div>
+            <hr class="divider" />
+            <div class="price-row"><span>Subtotal</span><span id="order-subtotal">₹0</span></div>
+            <div class="price-row"><span>Delivery Fee</span><span id="order-delivery">₹0</span></div>
+            <div class="price-row"><span>Tax</span><span id="order-tax">₹0</span></div>
+            <div class="price-row total"><span>Total</span><span id="order-total">₹0</span></div>
+          </div>
+        </div>
 
-              <!-- Order Total -->
-              <div style="border-top: 1px solid var(--color-border); padding-top: 1.5rem; margin-top: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                  <span>Subtotal</span>
-                  <span id="order-subtotal">₹0</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                  <span>Delivery Fee</span>
-                  <span id="order-delivery">₹0</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 1.1rem;">
-                  <span>Total</span>
-                  <span id="order-total">₹0</span>
+        <!-- DELIVERY PERSON VIEW -->
+        <div id="delivery-view" style="display:none;">
+          <!-- Active order (if assigned) -->
+          <div id="active-order-section" style="display:none;">
+            <div class="track-card">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 style="margin:0;">🚴 Active Delivery</h3>
+                <span class="badge badge-orange" id="active-status">Out For Delivery</span>
+              </div>
+              <div style="background:#f8fafc; padding:1rem; border-radius:0.75rem; margin-bottom:1rem;">
+                <p style="font-size:0.7rem; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:0.25rem;">Restaurant</p>
+                <p style="font-weight:700; margin:0;" id="active-restaurant">—</p>
+                <p style="font-size:0.85rem; color:#718096; margin:0;" id="active-restaurant-address">—</p>
+              </div>
+              <div style="background:#f8fafc; padding:1rem; border-radius:0.75rem; margin-bottom:1rem;">
+                <p style="font-size:0.7rem; font-weight:700; color:#a0aec0; text-transform:uppercase; margin-bottom:0.25rem;">Deliver To Customer</p>
+                <p style="font-weight:700; margin:0;" id="active-customer">—</p>
+                <p style="font-size:0.85rem; color:#718096; margin:0;" id="active-address">—</p>
+              </div>
+              <div id="active-items-list"></div>
+              <button class="btn-deliver" id="btn-mark-delivered">✅ Mark as Delivered</button>
+            </div>
+          </div>
+
+          <!-- Available orders to claim -->
+          <div id="available-orders-section">
+            <div class="track-card">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h3 style="margin:0;">📋 Available Orders</h3>
+                <button onclick="loadDeliveryView()" style="background:none; border:1px solid #e2e8f0; padding:0.3rem 0.8rem; border-radius:1rem; cursor:pointer; font-size:0.85rem;">🔄 Refresh</button>
+              </div>
+              <div id="available-list">
+                <div class="empty-box">
+                  <div class="big-icon">🕒</div>
+                  <h3 style="color:#4a5568;">Waiting for Orders</h3>
+                  <p class="muted">No active deliveries assigned to you right now.</p>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Error state -->
+        <div id="error-state" style="display:none;">
+          <div class="empty-box">
+            <div class="big-icon">😕</div>
+            <h3 id="error-msg">Something went wrong</h3>
+            <p class="muted" id="error-detail">Please try again.</p>
+            <a href="dashboard.html" class="button button-primary" style="margin-top:1rem;">Go to Dashboard</a>
           </div>
         </div>
       </div>
@@ -137,24 +185,6 @@
 
   <footer class="site-footer">
     <div class="container">
-      <div class="footer-content">
-        <div class="footer-section">
-          <div class="footer-brand">
-            <img src="./public/images/logo-mark.jpg" alt="FOODY logo" class="footer-logo" />
-            <span class="brand-name">FOODY</span>
-          </div>
-          <p class="footer-description">Delivering delicious food from your favorite restaurants right to your doorstep. Fast, fresh, and always satisfying.</p>
-        </div>
-        <div class="footer-section">
-          <h4 class="footer-title">Quick Links</h4>
-          <ul class="footer-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="restaurants.html">Restaurants</a></li>
-            <li><a href="dashboard.html">Orders</a></li>
-            <li><a href="profile.html">Profile</a></li>
-          </ul>
-        </div>
-      </div>
       <div class="footer-bottom">
         <p class="copyright">© <span id="year"></span> FOODY — With love ♥</p>
       </div>
@@ -162,144 +192,278 @@
   </footer>
 
   <script>
-    const fmtINR = (n) =>
-      new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+    const fmtINR = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n || 0);
 
-    let currentOrder = null;
-    let deliveryWatchId = null;
+    const STATUS_STEPS = ['Pending', 'Confirmed', 'Preparing', 'Ready For Pickup', 'Out For Delivery', 'Delivered'];
+    const FILL_PCT = [0, 20, 40, 60, 80, 100];
 
-    async function loadOrderTracking() {
+    function updateProgressBar(status) {
+      const idx = STATUS_STEPS.indexOf(status);
+      if (idx < 0) return;
+      const fill = document.getElementById('status-fill');
+      if (fill) fill.style.width = FILL_PCT[idx] + '%';
+      STATUS_STEPS.forEach((_, i) => {
+        const dot = document.getElementById('dot-' + i);
+        const lbl = document.getElementById('lbl-' + i);
+        if (!dot || !lbl) return;
+        if (i < idx) { dot.classList.add('done'); dot.classList.remove('active'); lbl.classList.remove('active'); }
+        else if (i === idx) { dot.classList.add('active'); dot.classList.remove('done'); lbl.classList.add('active'); }
+        else { dot.classList.remove('active', 'done'); lbl.classList.remove('active'); }
+      });
+    }
+
+    function statusBadgeColor(status) {
+      const map = { 'Delivered': 'badge-green', 'Out For Delivery': 'badge-orange', 'Preparing': 'badge-blue', 'Cancelled': 'badge-gray' };
+      return map[status] || 'badge-blue';
+    }
+
+    let pollInterval = null;
+
+    function waitForAPI(cb) {
+      if (window.foodAPI) { cb(); } else { setTimeout(() => waitForAPI(cb), 80); }
+    }
+
+    async function init() {
+      const userStr = localStorage.getItem('foody_user');
+      const token = localStorage.getItem('foody_token');
+      if (!token) { window.location.href = 'login.html'; return; }
+
+      let user = userStr ? JSON.parse(userStr) : null;
+      // refresh user from server
       try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('orderId');
+        const me = await window.foodAPI.me();
+        if (me && me.user) { user = me.user; localStorage.setItem('foody_user', JSON.stringify(user)); }
+      } catch(e) { console.warn('Could not refresh user', e); }
 
-        if (!orderId) {
-          alert('No order ID provided');
-          window.location.href = 'dashboard.html';
-          return;
-        }
+      const role = user?.role || 'customer';
+      const isDelivery = (role === 'delivery_person' || role === 'delivery' || role === 'delivery_boy');
 
-        // Fetch order details
-        const response = await window.foodAPI.getOrder(orderId);
-        currentOrder = response.order;
-
-        // Initialize map
-        const restaurantLoc = currentOrder.restaurant.location || window.mapsUtils.DEFAULT_CENTER;
-        const map = await window.mapsUtils.initMap('map-container', restaurantLoc, 13);
-
-        // Add restaurant marker
-        window.mapsUtils.addMarker(restaurantLoc, currentOrder.restaurant.name, {
-          path: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z',
-          fillColor: '#F97316',
-          fillOpacity: 0.8,
-          scale: 1.5
-        });
-
-        // Add delivery location marker (if available)
-        if (currentOrder.deliveryAddress?.coordinates) {
-          const deliveryLoc = {
-            lat: currentOrder.deliveryAddress.coordinates[0],
-            lng: currentOrder.deliveryAddress.coordinates[1]
-          };
-          window.mapsUtils.addMarker(deliveryLoc, 'Delivery Location');
-        }
-
-        // Populate order details
-        document.getElementById('restaurant-name').textContent = currentOrder.restaurant.name;
-        document.getElementById('restaurant-address').textContent = currentOrder.restaurant.address || 'Address';
-        document.getElementById('delivery-address-name').textContent = currentOrder.deliveryAddress?.label || 'Home';
-        document.getElementById('delivery-address').textContent = 
-          [currentOrder.deliveryAddress?.street, currentOrder.deliveryAddress?.city].filter(Boolean).join(', ') || 'Address';
-        document.getElementById('order-status').textContent = currentOrder.orderStatus;
-
-        // Populate order items
-        const itemsHTML = currentOrder.items.map(item => `
-          <div style="display: flex; justify-content: space-between; padding: 0.75rem; background: var(--color-offwhite); border-radius: 0.375rem; margin-bottom: 0.5rem;">
-            <div>
-              <strong>${item.name}</strong>
-              <p style="margin: 0.25rem 0 0; font-size: 0.85rem; color: rgba(17,24,39,0.6);">Qty: ${item.quantity}</p>
-            </div>
-            <div style="font-weight: 600;">${fmtINR(item.price * item.quantity)}</div>
-          </div>
-        `).join('');
-        document.getElementById('order-items-list').innerHTML = itemsHTML;
-
-        // Update totals
-        const subtotal = currentOrder.totalPrice || 0;
-        const deliveryFee = 0; // TODO: Add delivery fee calculation
-        const total = subtotal + deliveryFee;
-
-        document.getElementById('order-subtotal').textContent = fmtINR(subtotal);
-        document.getElementById('order-delivery').textContent = fmtINR(deliveryFee);
-        document.getElementById('order-total').textContent = fmtINR(total);
-
-        // Populate delivery person info (mock data)
-        const deliveryPersonNames = ['Raj Kumar', 'Priya Singh', 'Arjun Patel', 'Deepak Sharma'];
-        const deliveryPerson = deliveryPersonNames[Math.floor(Math.random() * deliveryPersonNames.length)];
-        document.getElementById('delivery-person-name').textContent = deliveryPerson;
-        document.getElementById('delivery-person-phone').textContent = '+91 98765 ' + Math.floor(10000 + Math.random() * 90000);
-
-        // Start real-time tracking updates
-        window.orderRealtimeUtils.joinOrderRoom(orderId, JSON.parse(localStorage.getItem('foody_user'))?._id);
-        window.orderRealtimeUtils.onOrderStatusChanged((data) => {
-          document.getElementById('order-status').textContent = data.newStatus;
-          document.getElementById('status-time').textContent = 'Just updated';
-        });
-
-        document.getElementById('loading-state').style.display = 'none';
-        document.getElementById('tracking-container').style.display = 'block';
-
-        // Simulate delivery location updates
-        simulateDeliveryTracking(restaurantLoc);
-      } catch (error) {
-        console.error('Error loading order:', error);
-        alert('Failed to load order details');
+      if (isDelivery) {
+        await loadDeliveryView();
+      } else {
+        await loadCustomerView(user);
       }
     }
 
-    function simulateDeliveryTracking(startLocation) {
-      // Simulate delivery person moving towards customer
-      const deliveryLoc = { lat: startLocation.lat + 0.01, lng: startLocation.lng + 0.01 };
-      const updateInterval = setInterval(() => {
-        deliveryLoc.lat += (Math.random() - 0.48) * 0.001;
-        deliveryLoc.lng += (Math.random() - 0.48) * 0.001;
+    // ─── CUSTOMER TRACKING ──────────────────────────────────────────────────────
+    async function loadCustomerView(user) {
+      const urlParams = new URLSearchParams(window.location.search);
+      let orderId = urlParams.get('orderId');
 
-        const distance = window.mapsUtils.calculateDistance(deliveryLoc, startLocation);
-        const eta = Math.max(1, Math.round(distance * 4)); // Rough ETA calculation
+      if (!orderId) {
+        // Try to find latest active order
+        try {
+          const res = await window.foodAPI.getOrders();
+          const orders = res.orders || [];
+          const active = orders.find(o => !['Delivered', 'Cancelled'].includes(o.orderStatus));
+          if (active) { orderId = active._id; }
+        } catch(e) { /* ignore */ }
+      }
 
-        document.getElementById('delivery-distance').textContent = distance.toFixed(1) + ' km';
-        document.getElementById('delivery-eta').textContent = eta + ' min';
+      if (!orderId) {
+        showError('No Active Order', 'You have no active orders to track. Place an order first!');
+        return;
+      }
 
-        // Update delivery marker on map
-        window.mapsUtils.clearMarkers();
-        window.mapsUtils.addMarker(startLocation, 'Restaurant');
-        window.mapsUtils.addMarker(deliveryLoc, 'Your Order');
+      try {
+        const res = await window.foodAPI.getOrder(orderId);
+        if (!res || !res.order) throw new Error('Invalid response from server');
+        renderCustomerOrder(res.order);
+        // Poll every 15s for status updates
+        pollInterval = setInterval(async () => {
+          try {
+            const r = await window.foodAPI.getOrder(orderId);
+            if (r && r.order) renderCustomerOrder(r.order);
+          } catch(e) { /* silent */ }
+        }, 15000);
+      } catch(err) {
+        showError('Failed to load order details', err.message || 'Please try again or go to your dashboard.');
+      }
+    }
 
-        if (distance < 0.1) {
-          clearInterval(updateInterval);
-          document.getElementById('order-status').textContent = 'Delivered';
-          document.getElementById('status-time').textContent = 'Just now';
+    function renderCustomerOrder(order) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('customer-view').style.display = 'block';
+
+      // Status bar
+      updateProgressBar(order.orderStatus);
+
+      // Badge
+      const badge = document.getElementById('order-status-badge');
+      if (badge) { badge.textContent = order.orderStatus; badge.className = 'badge ' + statusBadgeColor(order.orderStatus); }
+
+      // Driver info
+      if (order.driver) {
+        document.getElementById('driver-name').textContent = order.driver.name || 'Delivery Partner';
+        document.getElementById('driver-phone').textContent = order.driver.phone || '';
+      } else {
+        document.getElementById('driver-name').textContent = order.orderStatus === 'Delivered' ? 'Delivered ✓' : 'Assigning a driver...';
+        document.getElementById('driver-phone').textContent = order.orderStatus === 'Delivered' ? 'Your order has been delivered' : 'Sit tight while we find a driver';
+      }
+
+      // Restaurant
+      document.getElementById('restaurant-name').textContent = order.restaurant?.name || '—';
+      document.getElementById('restaurant-address').textContent = order.restaurant?.address || '—';
+
+      // Delivery address
+      const addr = order.deliveryAddress;
+      document.getElementById('delivery-label').textContent = addr?.label || 'Delivery';
+      document.getElementById('delivery-address').textContent = addr ? [addr.street, addr.city, addr.postalCode].filter(Boolean).join(', ') : '—';
+
+      // Date
+      const dateEl = document.getElementById('order-date');
+      if (dateEl && order.createdAt) dateEl.textContent = new Date(order.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+      // Items
+      const itemsEl = document.getElementById('order-items-list');
+      if (itemsEl && order.items) {
+        itemsEl.innerHTML = order.items.map(item => `
+          <div class="order-item-row">
+            <div><strong>${item.name}</strong> <span style="color:#718096; font-size:0.85rem;">× ${item.quantity}</span></div>
+            <div style="font-weight:700;">${fmtINR(item.price * item.quantity)}</div>
+          </div>`).join('');
+      }
+
+      // Totals
+      document.getElementById('order-subtotal').textContent = fmtINR(order.totalPrice || 0);
+      document.getElementById('order-delivery').textContent = fmtINR(order.deliveryFee || 0);
+      document.getElementById('order-tax').textContent = fmtINR(order.taxAmount || 0);
+      document.getElementById('order-total').textContent = fmtINR(order.grandTotal || order.totalPrice || 0);
+    }
+
+    // ─── DELIVERY PERSON VIEW ────────────────────────────────────────────────────
+    async function loadDeliveryView() {
+      document.getElementById('loading-state').style.display = 'block';
+      document.getElementById('delivery-view').style.display = 'none';
+
+      try {
+        // Check if delivery person has an active assigned order
+        const myOrdersRes = await window.foodAPI.getOrders();
+        const myOrders = myOrdersRes.orders || [];
+        const activeOrder = myOrders.find(o => o.orderStatus === 'Out For Delivery');
+
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('delivery-view').style.display = 'block';
+
+        if (activeOrder) {
+          // Show active order
+          document.getElementById('active-order-section').style.display = 'block';
+          renderActiveDelivery(activeOrder);
+        } else {
+          document.getElementById('active-order-section').style.display = 'none';
         }
-      }, 3000);
+
+        // Always show available orders pool
+        await loadAvailableOrders();
+      } catch(err) {
+        showError('Failed to load', err.message);
+      }
     }
 
-    function callDeliveryPerson() {
-      const phone = document.getElementById('delivery-person-phone').textContent;
-      alert(`Calling ${phone}...`);
-      // In production: window.location.href = `tel:${phone}`;
+    function renderActiveDelivery(order) {
+      document.getElementById('active-status').textContent = order.orderStatus;
+      document.getElementById('active-restaurant').textContent = order.restaurant?.name || '—';
+      document.getElementById('active-restaurant-address').textContent = order.restaurant?.address || '—';
+      document.getElementById('active-customer').textContent = order.user?.name || 'Customer';
+      const addr = order.deliveryAddress;
+      document.getElementById('active-address').textContent = addr ? [addr.street, addr.city, addr.postalCode].filter(Boolean).join(', ') : '—';
+
+      const itemsEl = document.getElementById('active-items-list');
+      if (itemsEl && order.items) {
+        itemsEl.innerHTML = order.items.map(i => `<div class="order-item-row"><span>${i.name} × ${i.quantity}</span><span style="font-weight:700;">${fmtINR(i.price * i.quantity)}</span></div>`).join('');
+      }
+
+      const btn = document.getElementById('btn-mark-delivered');
+      if (btn) {
+        btn.onclick = async () => {
+          if (!confirm('Mark this order as Delivered?')) return;
+          btn.disabled = true; btn.textContent = 'Updating...';
+          try {
+            await window.foodAPI.updateOrderStatusDelivery(order._id, 'Delivered');
+            alert('Order marked as delivered! Great job! 🎉');
+            loadDeliveryView(); // Reload
+          } catch(err) {
+            alert('Failed to update: ' + err.message);
+            btn.disabled = false; btn.textContent = '✅ Mark as Delivered';
+          }
+        };
+      }
     }
 
-    function chatDeliveryPerson() {
-      alert('Chat with delivery person coming soon!');
-      // TODO: Implement chat functionality
+    async function loadAvailableOrders() {
+      const listEl = document.getElementById('available-list');
+      if (!listEl) return;
+
+      listEl.innerHTML = '<div style="text-align:center; padding:2rem;"><div class="spinner" style="width:30px;height:30px;margin:0 auto;"></div></div>';
+
+      try {
+        const res = await window.foodAPI.getAvailableOrders();
+        const orders = res.orders || [];
+
+        if (orders.length === 0) {
+          listEl.innerHTML = `
+            <div class="empty-box">
+              <div class="big-icon">🕒</div>
+              <h3 style="color:#4a5568; margin-bottom:0.5rem;">Waiting for Orders</h3>
+              <p class="muted">No active deliveries available right now.<br>Check back soon!</p>
+            </div>`;
+          return;
+        }
+
+        listEl.innerHTML = orders.map(order => {
+          const addr = order.deliveryAddress;
+          const addrStr = addr ? [addr.street, addr.city].filter(Boolean).join(', ') : 'Address not set';
+          const total = fmtINR(order.grandTotal || order.totalPrice || 0);
+          return `
+            <div class="delivery-available-card">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+                <div>
+                  <h4 style="margin:0 0 0.2rem; font-size:1rem;">${order.restaurant?.name || 'Restaurant'}</h4>
+                  <p style="margin:0; font-size:0.85rem; color:#718096;">📍 Drop: ${addrStr}</p>
+                </div>
+                <div style="text-align:right;">
+                  <span class="badge badge-orange">${order.orderStatus}</span>
+                  <p style="margin:0.3rem 0 0; font-weight:700; color:#f97316;">${total}</p>
+                </div>
+              </div>
+              <div style="font-size:0.85rem; color:#718096; margin-bottom:0.75rem;">
+                ${(order.items || []).map(i => `${i.name} × ${i.quantity}`).join(' · ')}
+              </div>
+              <button class="btn-claim" onclick="claimOrder('${order._id}', this)">Accept Delivery</button>
+            </div>`;
+        }).join('');
+      } catch(err) {
+        listEl.innerHTML = `<p style="color:#ef4444; text-align:center; padding:1rem;">Error loading orders: ${err.message}</p>`;
+      }
     }
 
-    // Initialize when page loads
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', loadOrderTracking);
-    } else {
-      loadOrderTracking();
+    async function claimOrder(orderId, btn) {
+      if (!confirm('Accept this delivery?')) return;
+      btn.disabled = true; btn.textContent = 'Accepting...';
+      try {
+        await window.foodAPI.claimOrder(orderId);
+        alert('Order accepted! 🚴 Head to the restaurant to pick it up.');
+        await loadDeliveryView();
+      } catch(err) {
+        alert('Failed to claim order: ' + err.message);
+        btn.disabled = false; btn.textContent = 'Accept Delivery';
+      }
     }
+
+    function showError(title, detail) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('customer-view').style.display = 'none';
+      document.getElementById('delivery-view').style.display = 'none';
+      document.getElementById('error-state').style.display = 'block';
+      document.getElementById('error-msg').textContent = title;
+      document.getElementById('error-detail').textContent = detail;
+    }
+
+    // Start
+    waitForAPI(init);
+
+    // Cleanup on unload
+    window.addEventListener('beforeunload', () => { if (pollInterval) clearInterval(pollInterval); });
   </script>
 </body>
 </html>

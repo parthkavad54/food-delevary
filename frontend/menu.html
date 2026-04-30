@@ -50,7 +50,7 @@
       <div class="container">
         <div class="section-head">
           <h1 class="h2" id="restaurant-name">Explore the Menu</h1>
-          <p class="muted" id="restaurant-description">Customize portions, add notes, and make it yours. Click "Add to Cart" to begin.</p>
+          <p class="muted" id="restaurant-description">Browse our delicious menu items and add them to your cart.</p>
         </div>
 
         <div id="menu-loading" style="text-align: center; padding: 3rem;">
@@ -58,7 +58,7 @@
         </div>
 
         <div id="menu-container" style="display: none;">
-          <div id="menu-items-grid" class="menu-grid">
+          <div id="menu-items-grid">
           </div>
         </div>
       </div>
@@ -235,7 +235,9 @@
       // Render items grouped by category
       let html = '';
       Object.keys(itemsByCategory).forEach(category => {
-        html += `<h2 class="h3" style="margin-top: 2rem; margin-bottom: 1rem;">${category}</h2>`;
+        html += `<div style="margin-top: 2rem;"><h2 class="h3" style="margin-bottom: 1rem; border-bottom: 2px solid var(--color-border); padding-bottom: 0.5rem;">${category}</h2>`;
+        html += `<div class="menu-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem;">`;
+        
         const fallbackImages = ['burger.jpg', 'curry.jpg', 'dessert.jpg', 'pasta.jpg', 'pizza.jpg', 'salad.jpg', 'sandwich.jpg', 'sushi.jpg'];
         
         html += itemsByCategory[category].map((item, index) => {
@@ -245,38 +247,20 @@
           const imageUrl = (item.imageUrl && item.imageUrl.trim() !== '') ? item.imageUrl : fallbackImg;
           
           return `
-            <article class="menu-item" data-id="${item._id}" data-base-price="${item.price}" data-restaurant-id="${currentRestaurantId}">
-              <img src="${imageUrl}" alt="${item.name}" onerror="this.src='${fallbackImg}'" />
-              <div class="menu-body">
-                <h3 class="h4">${item.name}</h3>
-                <p class="muted">${item.description || ''}</p>
-
-                <form class="menu-form">
-                  <label>
-                    <span class="label">Quantity</span>
-                    <select name="size">
-                      <option value="1">1x</option>
-                      <option value="2">2x</option>
-                      <option value="3">3x</option>
-                      <option value="4">4x</option>
-                      <option value="5">5x</option>
-                    </select>
-                  </label>
-
-                  <label>
-                    <span class="label">Special instructions</span>
-                    <input type="text" name="notes" placeholder="e.g., extra spicy, no onions" />
-                  </label>
-
-                  <div class="menu-actions">
-                    <span class="price" data-price>₹${item.price}</span>
-                    <button type="button" class="button add-to-cart">Add to Cart</button>
-                  </div>
-                </form>
+            <article class="menu-item" data-id="${item._id}" data-base-price="${item.price}" data-restaurant-id="${currentRestaurantId}" style="display: flex; flex-direction: column; height: 100%; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid var(--color-border); background: #fff; transition: transform 0.2s ease, box-shadow 0.2s ease;">
+              <img src="${imageUrl}" alt="" onerror="this.src='${fallbackImg}'" style="height: 200px; object-fit: cover; width: 100%;" />
+              <div class="menu-body" style="display: flex; flex-direction: column; flex-grow: 1; padding: 1.5rem;">
+                <h3 class="h4" style="margin: 0 0 0.5rem 0;">${item.name}</h3>
+                <p class="muted" style="margin: 0 0 1.5rem 0; flex-grow: 1; font-size: 0.95rem; line-height: 1.4;">${item.description || ''}</p>
+                <div class="menu-actions" style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+                  <span class="price" style="font-weight: 700; font-size: 1.25rem; color: var(--color-primary);" data-price>₹${item.price}</span>
+                  <button type="button" class="button add-to-cart" style="padding: 0.5rem 1.5rem;">Add to Cart</button>
+                </div>
               </div>
             </article>
           `;
         }).join('');
+        html += `</div></div>`;
       });
 
       container.innerHTML = html;

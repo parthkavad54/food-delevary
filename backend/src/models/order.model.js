@@ -23,9 +23,9 @@ const OrderItemSchema = mongoose.Schema({
 
 // Schema for the delivery address
 const DeliveryAddressSchema = mongoose.Schema({
-    street: { type: String, required: true },
-    city: { type: String, required: true },
-    postalCode: { type: String, required: true },
+    street: { type: String, required: true, default: 'Address' },
+    city: { type: String, required: true, default: 'City' },
+    postalCode: { type: String, required: true, default: '000000' },
     country: { type: String, required: true, default: 'India' },
     // Optional: latitude and longitude for precise delivery tracking
     location: {
@@ -106,7 +106,7 @@ const OrderSchema = mongoose.Schema({
     // Optional: Link to the driver/delivery partner
     driver: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'DeliveryPartner'
+        ref: 'User'
     }
 
 }, {

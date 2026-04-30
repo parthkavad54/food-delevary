@@ -37,9 +37,11 @@
           <div>
             <!-- Delivery Address Selection -->
             <div class="profile-card">
-              <h3 class="h3">Delivery Address</h3>
-              <div id="addresses-list" style="margin: 1rem 0;"></div>
-              <button class="button button-outline" onclick="openAddressModal()">+ Add New Address</button>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 class="h3" style="margin: 0;">Delivery Address</h3>
+                <button class="button button-outline" onclick="openAddressModal()" style="padding: 0.5rem 1rem; font-size: 0.85rem;">+ Add New Address</button>
+              </div>
+              <div id="addresses-list" style="display: flex; flex-direction: column; gap: 1rem;"></div>
             </div>
 
             <!-- Payment Method Selection -->
@@ -219,6 +221,7 @@
     }
 
     .address-card-checkout {
+      display: block;
       padding: 1rem;
       border: 2px solid var(--color-border);
       border-radius: 0.5rem;
@@ -507,9 +510,9 @@
             quantity: item.qty || item.quantity
           })),
           deliveryAddress: {
-            street: selectedAddress.street,
-            city: selectedAddress.city,
-            postalCode: selectedAddress.zipCode,
+            street: selectedAddress.street || 'Address',
+            city: selectedAddress.city || 'City',
+            postalCode: selectedAddress.zipCode || selectedAddress.postalCode || '000000',
             country: 'India'
           },
           paymentMethod: paymentMethodMap[paymentMethod] || 'COD',

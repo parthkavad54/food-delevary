@@ -134,6 +134,25 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+// @route   GET /api/orders/available
+// @desc    Get all available (unassigned) orders for delivery persons
+// @access  Private (delivery_person)
+router.get('/available', protect, authorize('delivery_person'), async (req, res) => {
+  try {
+    const orders = await Order.find({
+      orderStatus: { $in: ['Ready For Pickup', 'Confirmed', 'Preparing', 'Pending'] },
+      $or: [{ driver: { $exists: false } }, { driver: null }]
+    })
+      .populate('user', 'name phone')
+      .populate('restaurant', 'name address phone')
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, count: orders.length, orders });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Server error', error: err.message });
+  }
+});
+
 // @route   GET /api/orders/:id
 // @desc    Get single order
 // @access  Private
@@ -153,12 +172,13 @@ router.get('/:id', protect, async (req, res) => {
     }
 
     // Check authorization
-    const isCustomer = order.user._id.toString() === req.user._id.toString();
-    const isDelivery = order.driver && order.driver._id.toString() === req.user._id.toString();
+    const isCustomer = order.user && order.user._id.toString() === req.user._id.toString();
+    const isDelivery = req.user.role === 'delivery_person'; // delivery persons can view any order
+    const isAssignedDelivery = order.driver && order.driver._id && order.driver._id.toString() === req.user._id.toString();
     const isRestaurantOwner = req.user.role === 'restaurant_owner';
     const isAdmin = req.user.role === 'admin';
 
-    if (!isCustomer && !isDelivery && !isRestaurantOwner && !isAdmin) {
+    if (!isCustomer && !isDelivery && !isAssignedDelivery && !isRestaurantOwner && !isAdmin) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to view this order'
@@ -202,6 +222,16 @@ router.put('/:id/status', protect, authorize('restaurant_owner', 'delivery_perso
     }
 
     await order.save();
+
+    // Broadcast via socket.io so customers see real-time updates
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`order-${order._id}`).emit('order-status-changed', {
+        orderId: order._id,
+        newStatus: status,
+        message: `Your order is now: ${status}`
+      });
+    }
 
     res.json({
       success: true,
@@ -286,6 +316,82 @@ router.put('/:id/assign-delivery', protect, authorize('admin'), async (req, res)
     res.json({
       success: true,
       message: 'Delivery person assigned successfully',
+      order
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: err.message
+    });
+  }
+});
+
+// @route   GET /api/orders/available
+// @desc    Get all available (unassigned) orders for delivery persons
+// @access  Private (delivery_person)
+router.get('/available', protect, authorize('delivery_person'), async (req, res) => {
+  try {
+    const orders = await Order.find({
+      orderStatus: { $in: ['Ready For Pickup', 'Confirmed', 'Preparing'] },
+      driver: { $exists: false }
+    })
+      .populate('user', 'name phone')
+      .populate('restaurant', 'name address phone')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: orders.length,
+      orders
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: err.message
+    });
+  }
+});
+
+// @route   PUT /api/orders/:id/claim
+// @desc    Delivery person claims / self-assigns an order
+// @access  Private (delivery_person)
+router.put('/:id/claim', protect, authorize('delivery_person'), async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (order.driver) {
+      return res.status(400).json({ success: false, message: 'Order already claimed by another delivery person' });
+    }
+
+    order.driver = req.user._id;
+    order.orderStatus = 'Out For Delivery';
+    await order.save();
+
+    await order.populate([
+      { path: 'user', select: 'name phone' },
+      { path: 'restaurant', select: 'name address phone' },
+      { path: 'driver', select: 'name phone' }
+    ]);
+
+    // Notify via socket
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`order-${order._id}`).emit('order-status-changed', {
+        orderId: order._id,
+        newStatus: 'Out For Delivery',
+        message: `Your order is on the way! Driver: ${req.user.name}`
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Order claimed successfully',
       order
     });
   } catch (err) {
