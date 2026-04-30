@@ -45,49 +45,72 @@
 
   // Redirect to login if page is protected and enforce role-based access
   async function guardProtectedPages() {
+    // Pages accessible to ALL users (no redirect needed)
+    const publicPaths = [
+      'index.html', 'restaurants.html', 'menu.html', 'reviews.html',
+      'login.html', 'signup.html', 'test-location.html'
+    ];
+
     const customerPaths = ['dashboard.html', 'profile.html', 'order.html', 'checkout.html'];
     const adminPaths = ['admin-dashboard.html', 'admin-orders.html', 'admin-restaurants.html', 'admin-statistics-dashboard.html', 'admin-users.html'];
     const restOwnerPaths = ['restaurant-dashboard.html', 'restaurant-menu.html', 'restaurant-orders.html'];
     const deliveryPaths = ['delivery-tracking.html'];
-    
-    const isCustomerPath = customerPaths.some(p => location.pathname.endsWith(p));
-    const isAdminPath = adminPaths.some(p => location.pathname.endsWith(p));
-    const isRestOwnerPath = restOwnerPaths.some(p => location.pathname.endsWith(p));
-    const isDeliveryPath = deliveryPaths.some(p => location.pathname.endsWith(p));
-    
-    const isProtected = isCustomerPath || isAdminPath || isRestOwnerPath || isDeliveryPath;
-    const isProfile = location.pathname.endsWith('profile.html');
+
+    const path = location.pathname;
+
+    const isPublicPath  = path === '/' || publicPaths.some(p => path.endsWith(p));
+    const isCustomerPath = customerPaths.some(p => path.endsWith(p));
+    const isAdminPath    = adminPaths.some(p => path.endsWith(p));
+    const isRestOwnerPath = restOwnerPaths.some(p => path.endsWith(p));
+    const isDeliveryPath  = deliveryPaths.some(p => path.endsWith(p));
+    const isProfilePath   = path.endsWith('profile.html');
+
+    // A page is "protected" if it requires login
+    const isProtected = isCustomerPath || isAdminPath || isRestOwnerPath || isDeliveryPath || isProfilePath;
 
     const user = await checkAuth();
 
-    // If not logged in
+    // If NOT logged in → only redirect away from protected pages (not from public pages)
     if (!user) {
-      const isHome = location.pathname === '/' || location.pathname.endsWith('index.html');
-      if (isProtected || isHome) {
-        const redirectPath = isHome ? 'dashboard.html' : location.pathname;
-        const params = new URLSearchParams({ redirect: redirectPath });
-        window.location.href = `login.html?${params.toString()}`;
+      if (isProtected) {
+        window.location.href = `login.html?redirect=${encodeURIComponent(path)}`;
       }
       return;
     }
 
-    // Role-based strict isolation
+    // If logged in on login/signup → redirect to their home page
+    if (path.endsWith('login.html') || path.endsWith('signup.html')) {
+      const role = user.role || 'customer';
+      if (role === 'admin') window.location.href = 'admin-dashboard.html';
+      else if (role === 'restaurant_owner') window.location.href = 'restaurant-dashboard.html';
+      else if (role === 'delivery_person' || role === 'delivery' || role === 'delivery_boy') window.location.href = 'delivery-tracking.html';
+      else window.location.href = 'dashboard.html';
+      return;
+    }
+
+    // Public pages and profile → always allowed, no redirect
+    if (isPublicPath || isProfilePath) return;
+
+    // Role-based access: only block if user is on a page for a DIFFERENT role
     const role = user.role || 'customer';
-    
+
     if (role === 'admin') {
-      if (!isAdminPath && !isProfile) {
+      // Admin blocked from customer/owner/delivery-specific pages
+      if (isCustomerPath || isRestOwnerPath || isDeliveryPath) {
         window.location.href = 'admin-dashboard.html';
       }
     } else if (role === 'restaurant_owner') {
-      if (!isRestOwnerPath && !isProfile) {
+      // Owner blocked from customer/admin/delivery-specific pages
+      if (isCustomerPath || isAdminPath || isDeliveryPath) {
         window.location.href = 'restaurant-dashboard.html';
       }
-    } else if (role === 'delivery' || role === 'delivery_boy' || role === 'delivery_person') {
-      if (!isDeliveryPath && !isProfile) {
+    } else if (role === 'delivery_person' || role === 'delivery' || role === 'delivery_boy') {
+      // Delivery blocked from customer/admin/owner-specific pages
+      if (isCustomerPath || isAdminPath || isRestOwnerPath) {
         window.location.href = 'delivery-tracking.html';
       }
     } else {
-      // Default for 'customer' or any unrecognized role
+      // Customer blocked from admin/owner/delivery-specific pages
       if (isAdminPath || isRestOwnerPath || isDeliveryPath) {
         window.location.href = 'dashboard.html';
       }
