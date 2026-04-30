@@ -155,11 +155,16 @@
             const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
             const menuItemCount = restaurant.menuItems ? restaurant.menuItems.length : 0;
 
+            const fallbackImages = ['burger.jpg', 'curry.jpg', 'dessert.jpg', 'pasta.jpg', 'pizza.jpg', 'salad.jpg', 'sandwich.jpg', 'sushi.jpg'];
+            const charSum = (restaurant.name || '').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+            const fallbackImg = './public/images/' + fallbackImages[charSum % fallbackImages.length];
+            const imageUrl = restaurant.imageUrl || fallbackImg;
+
             return `
               <article class="restaurant-card"
                        data-cuisine="${cuisine}"
                        data-rating="${rating}">
-                <img src="./public/images/pizza.jpg" alt="${restaurant.name} logo" class="rest-logo" />
+                <img src="${imageUrl}" alt="${restaurant.name} logo" class="rest-logo" onerror="this.src='${fallbackImg}'" />
                 <div class="rest-content">
                   <h3 class="h4">${restaurant.name}</h3>
                   <div class="stars" aria-label="Rated ${rating} out of 5">${stars}</div>

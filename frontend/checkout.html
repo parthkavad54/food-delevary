@@ -458,8 +458,8 @@
       };
 
       try {
-        const res = await window.foodAPI.updateUserProfile({ addresses: [...userAddresses, newAddress] });
-        userAddresses = res.user.addresses || [];
+        const res = await window.foodAPI.addUserAddress(newAddress);
+        userAddresses = res.addresses || [];
         renderAddresses();
         closeAddressModal();
       } catch (error) {

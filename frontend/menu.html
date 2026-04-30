@@ -236,11 +236,17 @@
       let html = '';
       Object.keys(itemsByCategory).forEach(category => {
         html += `<h2 class="h3" style="margin-top: 2rem; margin-bottom: 1rem;">${category}</h2>`;
-        html += itemsByCategory[category].map(item => {
-          const imageUrl = item.imageUrl || './public/images/pizza.jpg';
+        const fallbackImages = ['burger.jpg', 'curry.jpg', 'dessert.jpg', 'pasta.jpg', 'pizza.jpg', 'salad.jpg', 'sandwich.jpg', 'sushi.jpg'];
+        
+        html += itemsByCategory[category].map((item, index) => {
+          // Create a simple deterministic hash from item name to pick a consistent image
+          const charSum = (item.name || '').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+          const fallbackImg = './public/images/' + fallbackImages[(charSum + index) % fallbackImages.length];
+          const imageUrl = (item.imageUrl && item.imageUrl.trim() !== '') ? item.imageUrl : fallbackImg;
+          
           return `
             <article class="menu-item" data-id="${item._id}" data-base-price="${item.price}" data-restaurant-id="${currentRestaurantId}">
-              <img src="${imageUrl}" alt="${item.name}" onerror="this.src='./public/images/pizza.jpg'" />
+              <img src="${imageUrl}" alt="${item.name}" onerror="this.src='${fallbackImg}'" />
               <div class="menu-body">
                 <h3 class="h4">${item.name}</h3>
                 <p class="muted">${item.description || ''}</p>

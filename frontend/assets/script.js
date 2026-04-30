@@ -43,16 +43,37 @@
     return null;
   }
 
-  // Redirect to login if page is protected
+  // Redirect to login if page is protected and enforce role-based access
   async function guardProtectedPages() {
-    const protectedPaths = ['dashboard.html', 'profile.html', 'order.html'];
-    const isProtected = protectedPaths.some(p => location.pathname.endsWith(p));
+    const customerPaths = ['dashboard.html', 'profile.html', 'order.html', 'checkout.html'];
+    const adminPaths = ['admin-dashboard.html', 'admin-orders.html', 'admin-restaurants.html', 'admin-statistics-dashboard.html', 'admin-users.html'];
+    const restOwnerPaths = ['restaurant-dashboard.html', 'restaurant-menu.html', 'restaurant-orders.html'];
+    
+    const isCustomerPath = customerPaths.some(p => location.pathname.endsWith(p));
+    const isAdminPath = adminPaths.some(p => location.pathname.endsWith(p));
+    const isRestOwnerPath = restOwnerPaths.some(p => location.pathname.endsWith(p));
+    
+    const isProtected = isCustomerPath || isAdminPath || isRestOwnerPath;
     if (!isProtected) return;
 
     const user = await checkAuth();
     if (!user) {
       const params = new URLSearchParams({ redirect: location.pathname });
       window.location.href = `login.html?${params.toString()}`;
+      return;
+    }
+
+    // Role-based access control
+    const role = user.role || 'customer';
+    
+    if (role === 'admin' && !isAdminPath && !location.pathname.endsWith('profile.html')) {
+      window.location.href = 'admin-dashboard.html';
+    } else if (role === 'restaurant_owner' && !isRestOwnerPath && !location.pathname.endsWith('profile.html')) {
+      window.location.href = 'restaurant-dashboard.html';
+    } else if ((role === 'delivery' || role === 'delivery_boy') && isCustomerPath && !location.pathname.endsWith('delivery-tracking.html') && !location.pathname.endsWith('profile.html')) {
+      window.location.href = 'delivery-tracking.html';
+    } else if (role === 'customer' && (isAdminPath || isRestOwnerPath)) {
+      window.location.href = 'dashboard.html';
     }
   }
 
